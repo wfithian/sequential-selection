@@ -1,0 +1,710 @@
+\documentclass{article}
+\usepackage[left=1.25in,top=1.25in,right=1.25in,bottom=1.25in,head=1.25in]{geometry}
+\usepackage{amsfonts,amsmath,amssymb,amsthm}
+\usepackage{verbatim,float,url,enumerate}
+\usepackage{graphicx,subfigure,epsfig,psfrag}
+\usepackage{bm,dsfont,color,appendix}
+\usepackage{natbib}
+\usepackage{latexsym,graphicx}
+%\usepackage{showkeys}
+
+\newtheorem{algorithm}{Algorithm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{remark}{Remark}
+\newtheorem{corollary}{Corollary} 
+\newtheorem{proposition}{Proposition}
+
+\newcommand{\argmin}{\mathop{\mathrm{argmin}}}
+\newcommand{\argmax}{\mathop{\mathrm{argmax}}}
+\newcommand{\minimize}{\mathop{\mathrm{minimize}}}
+\newcommand{\maximize}{\mathop{\mathrm{maximize}}}
+\newcommand{\st}{\mathop{\mathrm{subject\,\,to}}}
+
+\newcommand{\mm}{\mathcal{M}}
+\newcommand{\pp}{\mathcal{P}}
+
+\newcommand{\inc}{{\rm inc}}
+\newcommand{\comp}{{\rm comp}}
+\newcommand{\FM}{ {\rm FM}}
+% \def\baselinestretch{1.7931}  
+\pdfminorversion=4
+
+\def\real{\mathbb{R}}
+\def\epi{\mathbf{epi}}
+\def\E{\mathbb{E}}
+\def\P{\mathbb{P}}
+\def\Var{\mathrm{Var}}
+\def\Cov{\mathrm{Cov}}
+\def\half{\frac{1}{2}}
+\def\th{\mathrm{th}}
+\def\tr{\mathrm{tr}}
+\def\df{\mathrm{df}}
+\def\dim{\mathrm{dim}}
+\def\col{\mathrm{col}}
+\def\row{\mathrm{row}}
+\def\nul{\mathrm{null}}
+\def\rank{\mathrm{rank}}
+\def\nuli{\mathrm{nullity}}
+\def\sign{{\mathrm{sign}}}
+\def\supp{\mathrm{supp}}
+\def\diag{\mathrm{diag}}
+\def\aff{\mathrm{aff}}
+\def\hy{\hat{y}}
+\def\by{{\bf y}}
+\def \sI {{\cal I}}
+\def\bfeta{{\bf \eta}}
+\def\bmu{{\bf \mu}}
+\def\ty{{\tilde y}}
+\newcommand{\Nu}{{\cal V}}
+\def\bI {{\bf I}}
+\def\by{{\bf y}}
+\def\bSigma {{\bf\Sigma}}
+\def\ty{\tilde{y}}
+\def\hbeta{\hat{\beta}}
+\def\tbeta{\tilde{\beta}}
+\def\hu{\hat{u}}
+\def\hv{\hat{v}}
+\def\lone{1}
+\def\ltwo{2}
+\def\linf{\infty}
+\def\lzero{0}
+\def\T{^T}
+\def\R{\mathbb{R}}
+\def\cA{\mathcal{A}}
+\def\cB{\mathcal{B}}
+\def\cD{\mathcal{D}}
+\def\cE{\mathcal{E}}
+\def\cF{\mathcal{F}}
+\def\cG{\mathcal{G}}
+\def\cM{\mathcal{M}}
+\def\cN{\mathcal{N}}
+\def\cO{\mathcal{O}}
+\def\cP{\mathcal{P}}
+\def\cS{\mathcal{S}}
+\def\cT{\mathcal{T}}
+\def\cZ{\mathcal{Z}}
+\def\Exp{\mathrm{Exp}}
+\def\LARS{\mathrm{LARS}}
+\def\RSS{\mathrm{RSS}}
+\def\spa{\mathrm{span}}
+\def\cl{\mathrm{cl}}
+\def\relint{\mathrm{relint}}
+\def\lin{\mathrm{lin}}
+\def\codim{\mathrm{codim}}
+\def\F{\mathbb{F}}
+
+\usepackage[T1]{fontenc}
+\def\qu{\textquotedbl}
+
+\newcommand{\cd}{\overset{d}{\rightarrow}}
+\newcommand{\sphere}[1]{O^{#1-1}}
+\newcommand{\hittime}[2]{\gamma(#1,#2)}
+\def\strong{S}
+\def\lips{\mathcal{L}}
+\def\dimens{\text{dim}}
+\def\cone{\text{Cone}}
+\def\critval{\gamma}
+\def\tube{\mathrm{Tube}}
+\def\V{\mathcal{V}}
+\def\K{\mathcal{K}}
+\def\numsignals{L}
+\def\numevents{E}
+\def\weight{\omega}
+\def\winv{\theta}
+\def\Pp{\mathbb{P}}
+\def\Gfirst{G}
+\def\Gsecond{{\bar{G}}}
+\def\modelinfo{{\cal Z}}
+\def\cS {\cal S}
+\def\Prob{{\rm Pr}}
+
+
+\title{	Bootstrap and analytic conditional tests for  forward stepwise regression}
+%\author{Ryan Tibshirani$^1$, Robert J. Tibshirani$^2$, Alessandro Rinaldo$^1$ \and Larry Wasserman$^1$  in some order}
+\author{Tibs times two}
+
+%\and Robert Tibshirani$^1$}
+%\date{\normalsize $^1$Stanford University,
+%$^2$Simon Fraser University, 
+%$^3$Carnegie Mellon University}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We study the standard ``max-t'' test for sequential testing in forward stepwise regression.
+We provide computational and analytic approaches for carrying out this test,  that yield type- I error
+control  conditional on the selection inherent in the procedure.
+We compare the power of this procedure to the max-t test of Buja et al. and the recently proposed ``spacing'' test of \citet{TLTT2014}.
+We propose two versions of the procedure: one that uses a  Gaussian error model and the other a  nonparametric bootstrap approach.
+
+Keywords: Forward stepwise regression, multiple testing
+
+\end{abstract}
+
+
+\section{Introduction}
+\label{sec:intro}
+We consider observations $y \in \real^n$ drawn from a Gaussian model  
+\begin{equation}
+y = \theta + \epsilon, \;\;\; \epsilon \sim N(0,\sigma^2 I),
+\label{eq:mod}
+\end{equation}
+Given a fixed matrix $X \in \real^{n\times p}$ of predictor variables,
+we  derive new inferential tools for forward stepwise regression, that properly adjust
+for the selection inherent to the procedure.
+
+
+Assume that $X$ has standardized columns and $y$ has mean zero.
+Suppose that we run forward stepwise regression for $k-1$ steps, yielding a model $M$ having  least squares coefficients
+$\hat\beta$ and residuals $r=y-X\hat\beta$. Let $\tilde X=P_M^\perp X$, the residuals of each column of $X$ after projection onto $M$.
+The  standard ``Max'-t" test for entering the next predictor defines
+$$ T_j=\frac{\tilde x_j^Tr}{||\tilde x_j||};\; j\notin M$$
+and chooses $\hat j ={\rm argmax}_{j\notin M}  |T_j|$.
+In this paper we establish some  optimal properties of this sequential test, conditional on the selection, and provide analytic formulae for its implementation.
+We call this procedure the {\em Conditional max-t} test.
+
+We wish to stress that this test, of  course, is far from new. The max-t test is the standard test for forward stepwise regression.
+Typically it is used without any attempt to adjust for the  effects of selection, that is, to test significance a standardized version of $T_j$ is compared a normal quantile
+This yields a test with type I error that is far too large.  An exception is the discussion by Buja et. al. of \citet{LTTT2014}, who
+describe their ``max-t'  test that uses permutations at each step to get proper control of type I error.
+
+The conditional max-t test uses the same form of statistic of the max-t test of  described by Buja et. al in \cite{LTTT2014}.
+Further, at the first step of forward stepwise (test of the global null), the tests are the same.
+They both use parametric or nonparametric sampling of the data to estimate p-values.
+it is at subsequent steps that they differ. The max-t test computes residuals from the current model and then applies the global test
+to these residuals. In the process, it ignores the selection that has taken place up to the current step. The
+conditional max-t test conditions on this selection and uses resamples conditional on this selection.
+
+Because the max-t test ignore the effect of selection, it will tend to be too conservative and lose power in the process.
+ Figure \ref{fig:buja} demonstrates this effect in a small example with  three  signal
+variables. 
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{bujaplot.pdf}  
+\caption{\em Simulated data: $n=20, p=10, \sigma=1$, $\beta=(2,2,2,0,\ldots 0)$. Shown are the p-values for the first 6 steps of forward stepwise regression over 2000 realizations.
+In steps 4-6, we only report p-values for truly null case, that is, realizations for which the first 3 predictors are chosen in the first 3 steps.
+The power of the max-t and conditional max-t tests (parametric residual  bootstrap and its conditional version) at $\alpha=.10$. are indicated in the bottom right of each of the first 3 panels.}
+\label{fig:buja}
+\end{figure}
+The details are in the Figure caption. We see that the tests are identical within numerical simulation error in the first step, but the max-t test has lower power
+in steps 2 and 3.  After that, it becomes more and more conservative. 
+
+ 
+
+
+\section{Optimal tests after forward selection}
+\subsection{Hypothesis testing in regression}
+\citet{fdrlasso} present a clear definition of the different kinds of hypothesis tests that are possible in stepwise regression.
+We summarize their definitions here, as they provide an important framework for our comparisons.
+Suppose that we have a ${n \times p}$ data  matrix $X$  and an outcome vector 
+$y$, and seek to fit the linear regression model
+$$ \hat y =X \beta ^*$$
+using a sparse weight vector $\beta^*$. Forward stepwise regression yields a sequence of nested models
+$$ \emptyset = \mm_0 \subset \mm_1 \subset ... \subset \mm_p, \; \text{with} \; \mm_k = \{j_1, \, ..., \, j_k\}. $$
+We wish to  pick one of the models $\mm_k$, and
+set to zero all coordinates $\beta^*_j$ with $j \notin \mm_k$.
+The $k$-th ordered hypothesis $H_k$ then tests whether
+or not adding the $k$-th variable $j_k$ was helpful or not. 
+
+The null hypothesis $H_k$ that the addition of the  $k$-th variable
+along the regression path was unimportant, can be formalized
+in several ways:
+\begin{itemize}
+\item {\bf The Incremental Null:} Here we construct $H_k$ to measure whether model $\mm_k$ improves over $\mm_{k-1}$.
+The null hypothesis states that the best regression
+fit for model $\mm_{k-1}$ is the same as the best regression fit for $\mm_k$ or,
+more formally, that
+\begin{align}
+\label{eq:incremental}
+&H_k^{\inc}: \pp_{\mm_{k - 1}} X \beta^* = 
+\pp_{\mm_{k}} X \beta^*, \; \text{where} \\
+&\pp_{\mm} = X_{\mm} \left(X_{\mm}^\top X_{\mm}\right)^{\dagger} X_{\mm}
+\end{align}
+is a projection onto the column-span of $X_\mm$. Here, we
+write $X_{\mm}$ for the matrix comprised of the columns of $X$ contained
+in $\mm$, and $A^\dagger$ denotes the Moore-Penrose pseudoinverse of 
+a matrix A. \citet{TLTT2014} develop tests for $H_k^\inc$ in the context of
+both forward stepwise regression and least-angle regression.
+\item {\bf The Complete Null:}  We consider the stronger null hypothesis
+that the model $\mm_{k - 1}$  captures all the available signal. More specifically,
+writing $\mm^*$ for the support set of $\beta^*$, we define
+\begin{equation}
+\label{eq:complete}
+H_k^\comp: \mm^* \subseteq \mm_{k - 1}.
+\end{equation} 
+Tests of $H_k^\comp$ for various pathwise regression models
+have been studied by, among others by \citet{LTTT2013} and \cite{LT2014}.
+\item {\bf The Full-Model Null:} Here we test
+\begin{equation}
+\label{eq:abs}
+H_k^\FM: j_k \in \mm^*,
+\end{equation}
+i.e., that the $k$-th variable added to the regression path belongs to the support set of
+$\beta^*$. Despite its simple appearance, however, the hypothesis $H_k^\FM$ is
+difficult to work with. The problem is that the truth of $H_k^\FM$ depends critically on variables
+that may not be contained in $\mm_k$, and so $H_k^\FM$ will have a ``high-dimensional''
+character even when $k$ is small. We do not consider the
+Full-model Null in this  paper.
+\end{itemize}
+As we will make clear, the conditional max-t test is designed for testing the Complete Null hypothesis,  while the spacing test of \citet{TLTT2014}
+is designed for the Incremental null setting. However the simplicity of the spacing test makes it a natural choice for the Complete Null hypothesis yes as well,
+and we examine its performance  in that problem.
+\subsection{The conditional max-t test}
+
+To define our conditional max-t test and contrast it with other tests,  we need to make precise the notion of selection.
+Suppose at a given step we have selected predictors (and their signs) $S_M$ before this step $(M$ for model) , and predictor (and its sign) $S_C$ at the current step $(C$ for current).
+Let the support of the true model be $\cS$.
+We test the complete null hypothesis
+\begin{eqnarray}
+H_0: \cS \subseteq M.
+\end{eqnarray}
+That is, the null hypothesis is that all signal predictors are contained in the model $M$, and all predictors not in $M$ have coefficients of zero.
+Then the conditional max-t test  provides a cutpoint $c$ so that the selective type I error is equal to a target level $\alpha$:
+\begin{eqnarray}
+\Prob_{H_0} (|T_j| \geq t | S_M)=\alpha
+\label{eqn:null}
+\end{eqnarray}
+More precisely,  $S_M$ is the set of $y$ that lead to selection of the same model $M$ and its signs, in the steps leading up to the current one.
+
+Taking $Z$ to be an $n$-vector of standard normal variates , there are three probability mechanisms that we consider for the probability in (\ref{eqn:null}):
+\begin{eqnarray}
+y^*=P_My+ \sigma Z;  \;{\rm ``residual} \;{\rm  bootstrap}\;{\rm (RB)''}
+\label{eqn:parboot}
+\end{eqnarray}
+and
+\begin{eqnarray}
+y^*&=&P_My+ \sigma (I-P_M) Z;  \;{\rm ``conditional}\;{\rm  residual} \;{\rm bootstrap (CRB)}- \sigma \;{\rm known''.} \cr
+y^*&=&P_My+ k\cdot (I-P_M) Z;  \;{\rm ``conditional}\;{\rm  residual} \;{\rm bootstrap (CRB)} - \sigma \;{\rm unknown ''.}
+\label{eqn:selective}
+\end{eqnarray}
+
+The first is a standard parametric residual bootstrap sample from the fitted model $P_M y$;
+in the second and third model,s the residuals are constrained  to be orthogonal to $P_My$. This is equivalent to
+conditioning $y^*$ on  the observed value of $P_My$, and is the test for the complete null hypothesis that is  derived from the selective framework of \citet{FST2014}.
+As a result, under the reduced model it has exact type-I error control.  In the last model above, $k$ is chosen so that $||y^*||= ||y||$.
+This corresponds to conditioning on the value of $||y||$.
+
+
+For the test of the global null hypothesis, \citet{ACP2012}  show that under sparse alternatives where $p^{1-\gamma}$ coefficients are non-zero, and $3/4 \leq \gamma \leq 1$,
+the max-t  test is asymptotically most powerful. This result does not address the selective  setup: that is, further steps of the forward stepwise procedure.
+
+Hence we consider the alternative
+\begin{eqnarray}
+H_1: p^{1-\gamma}\;{\rm predictors}\; {\rm not}\;{\rm in}\; M\;{\rm  have}\; {\rm  nonzero}\;{\rm coefficients}
+\end{eqnarray}
+with $3/4 \leq \gamma \leq 1$.
+Building on the result of \citet{ACP2012}, heuristically we would expect that  the conditional max-t test is the asymptotically most powerful selective test for this problem under appropriate conditions.
+\subsection{Summary of the various tests studied}
+
+Since a number of different tests are examined in this paper, we summarized them here.
+\begin{enumerate}
+\item {\em Max-t test} with Gaussian errors (\ref{eq:mod}) . This test does not condition on the selection done in previous steps.
+\item {\em Max-t-RB test}. The conditional max-t test using bootstrap  sampling from the  model (\ref{eqn:parboot}).  This is done either parametrically (sampling from the Gaussian)
+or non-parametrically (sampling from the model residuals).  The parametric sampling is discussed in Section \ref{sec:exact}, while 
+the nonparametric version is illustrated in Section \ref{sec:bootstrap}.
+\item {\em Max-t-RB approximate test}. 
+ This is an analytic approximation to the  parametric bootstrap Max-t p-value, given below in Section (\ref{sec:analytic}).
+\item {\em Max-t-CRB test}. The conditional max-t test using bootstrap  sampling from the reduced model as in (\ref{eqn:selective}).  This is done either parametrically (sampling from the Gaussian)
+or non-parametrically (sampling from the model residuals).  T
+\end{enumerate}
+
+\section{Computation of the conditional max-t test p-values}
+
+\subsection{Exact computation}
+\label{sec:exact}
+Given a selected model $M$, we need to estimate the probability in (\ref{eqn:null}).
+For the first step of forward stepwise (for which  $M$  is empty), this is straightforward:  we can fix $X$ and generate permutations (or bootstrap samples)
+of $y$, compute the corresponding test statistics $T_1^*, T_2^*, \ldots T_p^*$  and use this to estimate the tail probability directly.
+
+For subsequent steps of
+forward stepwise regression, the computation is much more challenging. Given a model $M$ with fit $\hat\mu_M$,  we  generate a bootstrap sample
+\begin{eqnarray}
+y_i^*=\hat\mu_i+ \sigma A \cdot Z_i, \; i=1,2,\ldots N
+\label{eq:boot}
+\end{eqnarray}
+Here $A$ equals the identity for the parametric bootstrap test, and $(I-P_M)$ for the selective test.
+(Alternatively we can do residual bootstrap sampling: see Section \ref{sec:bootstrap}) .
+ Then we can directly estimate the tail probability in  (\ref{eqn:null}). However we need to retain
+only realizations $y^*$ that fall in $S_M$, that is, yield the same selected model $M$. 
+
+The task is made much simpler by the fact that the selection event can we written as $S_M=\{y: \Gamma y \geq u\}$.
+Hence we don't need to run the entire forward stepwise procedure on $y^*$: instead, we pre-compute $\Gamma$ and $u$ and then check
+if $\Gamma y^* \geq u$. Further, since $\Gamma$ has on the  order of $2pk$ rows after $k$ steps,  we can save 
+substantially in computation by checking the row-wise inequalities starting from the last row, wherethe inequality  it is most likely to fail.
+
+An additional fact that makes the computation feasible with strong signals:  much  of the time the procedure applied to bootstrap samples
+make the same selections as in the original sample. It is only when the selected variables are  noise that the great majority of bootstrap samples
+are rejected. Hence we run the procedure for a few steps after  the estimated p-values start to rise, and then stop.
+
+ {\em Importance sampling} is also very helpful here.
+Suppose that we want to estimate the conditional cdf  of a statistic $T(y)$ under $N(\mu, \Sigma)$, denoted by
+$F_\mu(t \mid S)$.
+Then if we instead sample $y_1^*, \ldots y_B^*$ from $N(\mu_0,\Sigma)$,  giving estimates $T_1^*, T_2^*, \ldots T_b^*$, 
+an unbiased estimate of $F_\mu(t)$ is given by
+\begin{eqnarray}
+\frac{1}{B} \sum_b w_b \cdot I(T_b^* \leq t)
+\end{eqnarray}
+where $w_b=\phi_{\mu,\Sigma}(y_b^*)/\phi_{\mu_0,\Sigma}(y_b^*)$.
+The idea is that we can choose $\mu_0$ so that the probability of $y^*$  lying  in the selection set $S$ is larger than under
+$\mu$ (ie. fewer rejections). 
+
+Here are more details.
+We want to choose $\mu_0$ to decrease the proportion of rejections, but don't want $\mu_0$ to be too far from $\mu$, or else the weights
+will become too extreme.
+ Denote the least squares estimate for the selected model after $k$ steps by $\hat\beta^M$.
+We construct $\mu_0$ as follows.
+The expected maximum of $(p-k)$  $N(0,1)$ variates is $\sqrt{2\log(p-k)}$.
+Thus for  each component $j$, if $|\hat\beta_j^M/{\rm \hat se}_j|< \sqrt{2\log(p-k)}$ we increase $\hat\beta_j^M$ away from zero 
+so that it equals $\sqrt{2\log(p-k)}$. For signal predictors, the coefficient will usually be unchanged: but for noise predictors, this will inflate their
+coefficient so that there will be fewer rejections.
+
+
+
+
+Table \ref{tab:tab1} shows an example. For the most difficult  case ($p=30$,  8 signals, 10 steps) the procedure required  1.8M samples to obtain 300 good ones.
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{r|rrr}
+  \hline
+  p&\multicolumn{3}{c}{Number of signals}\\
+ & 2 & 5 & 8 \\ 
+  \hline
+  10 & 0.08 & 1.62 & 1.23 \\ 
+  20 & 0.10 & 1.11 & 14.90\\ 
+  30& 0.09 & 0.35 & 24.81 \\ 
+   \hline
+\end{tabular}
+\label{tab:tab1}
+\caption{\em Time in seconds to estimate p-values, for nsteps= \# signals+2; min 300 bootstraps; n=50}
+\end{table}
+
+
+\subsection{An analytic approximation}
+\label{sec:analytic}
+In this section we provide an analytic approximation to the parametric bootstrap (\ref{eqn:parboot}).
+First consider the global null case, and let $T_j=v_j^Ty$ be the least squares estimates for predictor $j$  and $T_{max}={\rm max}_j(|T_j|)$ with observed value $M$.
+Let $G(t)$ be the CDF of $T_{max}$. The desired p-value is $1-G(M)$.
+Recall  Sidak's  lemma (see e.g. \citet{tong1990}) which states that if $y \sim N(0,\Sigma)$ then
+\begin{eqnarray}
+\Pr(\cap\{ |y_i| \leq t_i\} \geq \prod \Pr(|y_i| \leq t_i)
+\end{eqnarray}
+with equality if the variables are independent. Using this fact, we can approximate the p-value  $1-G(M)$ by 
+$1-\prod \Pr(|T_j| \leq M)$ and this will be conservative by Sidak's lemma.
+
+
+Now after  $k$ steps of FS with $p$ predictors, denote the selection by $S$. Let $T_j=v_j^Ty$,  $T_{max}={\rm max}_j(|T_j|)$
+with observed value $M$. Now at the first step, the value of $T_{\rm max}$ can be any value in $(-\infty, \infty)$.  But after $k$ steps, the selection  events allow us to narrow this range.
+The simple max-t test  described by Buja et. al in \cite{LTTT2014} ignores this fact and uses the range $(-\infty, \infty)$ for all steps, which will make quite conservative (as seen in Figure \ref{eqn:bujaplot}).
+The narrowing of the range is most easily seen when the predictors are uncorrelated. 
+Then $|T_{max}|$ can be no larger than its value at the previous step.  Hence $G(m)$ is the  CDF of largest of the last $p - k + 1$ 
+absolute normal order statistics, conditioned on being smaller than the $k$th  order statistic.
+
+Consider then the general non-independent  case where we have made a selection $S$ after $k$ steps.
+Let predictor $0$ be the one selected at the current step.
+Let $G(t)$ be the CDF of $T_{max} \mid S$. 
+Let $V_0^\pm$ be the limits derived from polyhedral lemma applied to $S$ and $v_0$.
+This lemma is reviewed in the appendix, and allows us to write the selection set $y \in S$  as
+$V_0^- \leq v_0^Ty\leq V_0^+$.
+
+
+Let $V={\rm max}(|V_0^-|, |V_0^+|)$, $M'=min(V,M)$.
+Define
+\begin{eqnarray}
+F(M')=\Bigl[\frac{\Phi(M'/\sigma)-\Phi(-M'/\sigma)}{\Phi(V/\sigma)-\Phi(-V/\sigma)}\Bigr]^{p-k}.
+\label{eq:approx}
+\end{eqnarray}
+The quantity $1-F(M')$ is our proposed approximate p-value.
+We conjecture that $G(M') \geq F(M)$  so that $1-F(M')  \geq 1-G(M) \sim U(0,1)$ under the null. Hence the test based on $1-F(M')$ is conservative under the null.
+At the first step (global null)  we have $V=\infty$ and hence this result is already established above. For subsequent steps with independent predictors, it is easy show that 
+$V$ equals the $k$th  largest value among the $|T_j|$ and again the result follows.
+
+
+
+Now we sketch a proof of the general result.
+First we give  a refinement of  Sidak's lemma, which we need later.
+
+\medskip
+
+{\bf Lemma 1.} 
+Let $y \sim N(0,\Sigma)$ and define
+$$S(t) = \frac{\Pr({\rm max} |y_i| \leq t )}{\prod_i \Pr( |y_i| \leq  t )},$$
+Then $S(t)$ is non-increasing in $t$.  [We note that Sidak's lemma implies that $S(t) \geq 1= S(\infty)$.]
+A proof, due to Roman Latala is given in the Appendix. We were unable to find the result in the literature.
+
+
+Now consider $G(M \mid S)=\Pr({\rm max}_{j \notin S} (|T_j|\leq M \mid S)$.
+
+PROOF IS NOT YET CORRECT!
+
+We can write
+\begin{eqnarray}
+G(M \mid S, V_0^- ,V_0^+)&=&\Pr({\rm max}_{j \notin S} (|T_j|\leq M\mid V_0^- \leq v_0^Ty\leq V_0^+,V_0^- ,V_0^+)\\
+&\geq &\Pr({\rm max}_{j \notin S} (|T_j|\leq M\mid -V \leq v_0^Ty\leq V, V_0^- ,V_0^+) )\\
+&=&\Pr({\rm max}_{j \notin S} (|T_j|\leq M\mid  -V \leq v_j^Ty\leq V, j\notin S, V_0^- ,V_0^+)) \\
+&\geq &\Pr({\rm max}_{j \notin S} (|T_j|\leq M'\mid -V \leq v_j^Ty\leq V, j\notin S, V_0^- ,V_0^+)\\
+&=&  \frac{ {\Pr({\rm max}_{j \notin S} |T_j|\leq M'},V_0^- ,V_0^+) } { \Pr({\rm max}_{j \notin S} |T_j|\leq V, V_0^- ,V_0^+)}\\
+&\geq & \frac{\Bigl[\prod_{j\notin S} \Pr(|T_j|\leq M', V_0^- ,V_0^+)\Bigr] } { \prod_{j\notin S} \Pr(|T_j|\leq V, V_0^- ,V_0^+]}\\
+&=&\Bigl[\frac{\Phi(M'/\sigma)-\Phi(-M'/\sigma)}{\Phi(V/\sigma)-\Phi(-V/\sigma)}\Bigr]^{p-k} \\
+\end{eqnarray}
+Now $V_0^- ,V_0^+$ are independent of $v_j^Ty$ for $j\notin S$, so (13) holds if we integrate out wrt $V_0^- ,V_0^+$.
+
+Explanations:
+
+(14):  $|V| \geq |V_0^-|, |V_0^+|$.
+
+(15)  predictor 0 was selected among $j \notin S$
+
+(16)  $M' \leq M$.
+
+(18)  follows from Lemma 1
+
+(19) The variance of $v_j^Ty$ is $\leq \sigma$ and under the null each $T_j$ has mean zero.
+
+\subsection{Example}
+
+
+Figure \ref{fig:fig2} compares the spacing, exact and approximate conditional max-t tests in  two examples.
+We see that conditional max-t test has substantially more power. The exact conditional max-tmax-t test test becomes
+a little conservative in the top  right panel, as we move farther into the null. The reason is as follows.
+Let $\hat \mu_0$ by the least squares fit for the model containing just the signal variables, and suppose that we have fit a larger model
+$\hat\mu$ containing the signal variables plus some noise ones.  Then the correct procedure generates
+$y^*=\hat\mu_0+\sigma Z$, but instead we generate
+$$y'=\hat\mu+\sigma Z=y^*+(\hat\mu-\hat\mu_0)$$
+Consider a contrast vector $v$ that is orthogonal to the column spaces yielding both $\hat\mu_0$ and $\hat\mu$.
+Then 
+$$v^T y'=v^T y^*+v^T(\hat\mu-\hat\mu_0)$$
+The second term above in normal  mean zero and some variance $\tau^2$.
+Thus the variance of $y'$ is larger than that of $y^*$ and the test becomes conservative.
+
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{fig2.pdf}  
+\caption{\em $n=20, p=8$ ,  $\beta=(3,0,0\ldots)$ in top panels and $(3,3,0,0,\ldots)$ in bottom panels.
+Estimated power at $\alpha=.10$ for spacing, approximate and exact conditional max-t tests: top left- .60, .80. 80;  bottom left- .59, .98,.98,; bottom middle-
+.39, .56, .62. }
+\label{fig:fig2}
+\end{figure}
+
+\subsection{Relation to the spacing test} 
+\label{sec:spacing}
+Suppose that we have carried out a forward selection  yielding a set of predictors and their signs, denoted by $S$.
+Let $\theta={\rm E}(y)$ and suppose we wish to make inferences about some linear contrast $v^T \theta$ based on
+our sample estimate $v^T y$. The common choice for $v$ is the vector that produces the partial regression coefficient for one of the predictors
+in the chosen model. Note that $v$ is data-dependent.
+\citet{TLTT2014} and \citet{LT2014} propose a closed form method that yields exact tests for $H_0: v^T\theta=0$ and exact confidence intervals
+for$v^T\theta$, condition on the selection $S$.
+From this description, we see that the spacing test is a test of the incremental null hypothesis.
+
+\cite{FST2014} provide a general framework for inference after selection, and derive uniformly most tests  when the distribution of the data are in  the exponential family.
+There are two scenarios in their paper: the {\em saturated model} for which only model ({\ref{eq:mod}) is assumed, and the {\em reduced model} in which we assume
+that some submodel of ({\ref{eq:mod}) holds. \citet{FST2014} 
+show that when $\sigma$ is known, the spacing test coincides with the uniformly most powerful test in the saturated model. Furthermore. if the predictors are orthogonal
+the spacing test is optimal under the reduced model as well.
+
+There is another conceptual difference between the two tests.
+If we include the current selection, we can view the overall selection event as $S=\{S_P,S_c\}$. The spacing test conditions on all of $S$.
+The conditional max-t test conditions only on $S_M$. Less conditioning  generally yields more power. 
+
+The following simple example contrast the two tests explicitly,
+Suppose we have $y=(y_1,y_2) \sim N((\theta_1,\theta_2), I)$.
+Assume that we select the variable $y_j={\rm max}(y_1,y_2)$.
+If we observe $y_1>y_2$, the spacing test  uses  the null hypothesis $\theta_1=0$, and its p-value is easily shown to be
+\begin{equation}
+{\rm pv}_{\rm spacing}=\frac{1-\Phi(y_1)}{1-\Phi(y_2)}.
+\end{equation}
+
+On the other hand, the conditional max-t test uses  the null hypothesis $\theta=(0,0)$ and has p-value
+\begin{equation}
+{\rm pv}_{\rm max}=1-\Phi(y_1)^2
+\end{equation}
+Direct inspection shows that ${\rm pv}_{\rm max} < {\rm pv}_{\rm spacing}$  as long as $y_1>y_2 > 0$.
+
+As a second example, \citet{TLTT2014} derive a sequential test  (``the spacing test'') for the Gaussian regression model, with an exact analytic formula for the p-values. This is one of the first
+regression tests that properly account for the selection effects and has exact type I error control at each step.
+
+The left panel of Figure \ref{fig:fig1}  shows a simple example of the conditional max-t test compared to the spacing test.
+ There are just two orthogonal predictors, whose statistics $T_1, T_2 \sim N(\Delta,1)$.
+ We select the largest of the two statistics in absolute value. The power of the conditional max-t test , for target type I error $\alpha=0.10$, is shown by the red curve, as a function of $\mu$.
+  Note that at $\Delta=0$ the power is $0.10$, confirming that the test is properly calibrated,
+In Figure \ref{fig:fig1} we can see that the spacing test has substantially less power in this example.
+The case of two large equal effects turns out to be especially problematic for the spacing test. In the right panel we show the alternative $(\Delta, \Delta/2)$:
+the gap between the power curves has narrowed, but the conditional max-t test is still superior.
+We study the relationship of the conditional max-t test with the spacing test in Section \ref{sec:spacing}.
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=.6\textwidth]{diab.pdf}  
+\caption{\em Diabetes data: p-values from spacing test, and exact and approximate conditional max-t test}
+\label{fig:diab}
+\end{figure}
+
+\subsection{Robustness to model misspecification}
+Figure \ref{fig:bujaplot-unksig} shows the sequential p-values from a setting in which the reduced is misspecified.
+Details are in the Figure caption.  We wee that the type I error of the conditional CRB test  started to drug above the nominal level in steps 
+4,5, and 6.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{bujaplot-fixnormy-unksigma.pdf}  
+\caption{\em $n=20, p=8, \beta=c(4,3,2,rep(0,5),rep(1,8))$, pairwise correlation $0.5$; only $x_1, \ldots x_8$ are
+observed; $\sigma$ unknown}
+\label{fig:bujaplot-unknsig}
+\end{figure}
+
+\section{Diabetes data}
+Here we apply the various selection procedure to some well-known known on diabetes.
+These data consists of  observations on $442$ patients, with the response of interest being a quantitative measure of disease progression one year after baseline.
+There are ten baseline variables---age, sex, body-mass index, average blood pressure,
+and six blood serum measurements---plus quadratic terms, giving a total of 64 features.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=.6\textwidth]{diab.pdf}  
+\caption{\em Diabetes data: p-values from spacing test, and exact and approximate conditional max-t test}
+\label{fig:diab}
+\end{figure}
+The results are shown in Figure \ref{fig:diab}. We see that there are only 2 or 3 small spacing p-values, while both forms of the conditional max exhibit 5 small p-values.
+
+
+
+\section{A nonparametric conditional max-t test }
+\label{sec:bootstrap}
+The non-parametric version of the conditional max-t test simply replaces the Gaussian generative model (\ref{eq:boot}) by bootstrap residual sampling:
+\begin{eqnarray}
+y_i^*=\hat\mu_i+ r_i^*,\; i=1,2,\ldots N
+\label{eq:bootnp}
+\end{eqnarray}
+where $r_i*$ is sampled with replacement from the residuals $r_i=y_i-\hat\mu_i$.
+We then apply the same exact computation scheme as outlined above.
+By avoiding normality assumption for the errors,  the hope is that this procedure will be more robust that the parametric version.
+Figure \ref{fig:slash} examines this in a small example with no signal.
+In the top row, with Gaussian errors, we see that both methods provide type I error control.
+In the bottom two, we have used long-tailed ``slash'' errors (a Gaussian divided by a uniform), and we use that the parametric  test becomes
+badly anti-conservative.  However the nonparametric version holds up quite well.
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{slash.pdf}  
+\caption{\em Parametric and nonparametric bootstrapping;. $n= 15, p=5$. Null model.
+Gaussian or slash errors}
+\label{fig:slash}
+\end{figure}
+
+\subsection{Analytic approximation to the nonparametric bootstrap test}
+Given a selection $S$, let $G(M \mid S)=\Pr({\rm max}_{j \notin S} (|T^*_j|\leq M \mid S)$.
+Let $V$ be the bounds  in (\ref{eq:approx}) obtained from polyhedral lemma.
+Then the same style of  argument that  was used in the Gaussian case suggests the approximation
+\begin{eqnarray}
+G(M \mid S, V_0^- ,V_0^+) &\approx& \Pr({\rm max}_{j \notin S} (|T^*_j|\leq M\mid V_0(y)^- \leq v_0^Ty^*\leq V_0(y)^+,V_0(y)^- ,V_0(y)^+)\cr
+&=& \frac{ {\hat F}(M)-{\hat F}(-M)} {  {\hat F}(V)-{\hat F}(V)}
+\label{eq:bootapprox}
+\end{eqnarray}
+Here $\hat F$ is the bootstrap distribution of the maximum attained  at step $k$. No rejection sampling is needed for account for the selection.
+Figure \ref{fig2boot} suggests that this approximation is potentially useful.
+
+
+\begin{figure}[hbtp]
+\centering
+\includegraphics[width=\textwidth]{fig2boot.pdf}  
+\caption{\em Approximation to non-parametric residual bootstrap p-values using (\ref{eq:bootapprox}). Here  $n=20, p=8$ and  $\beta=(3,0,0\ldots)$ in top panels and $(3,3,0,0,\ldots)$ in bottom panels.}
+\label{fig:fig2boot}
+\end{figure}
+
+{\bf Proof of correctness of bootstrap procedure}
+
+\section{Other topics and issues}
+Here we briefly discuss some further topics.
+\begin{itemize}
+\item {\it Estimation of the noise variance}
+\item{\it Backward stepwise selection}.
+The method described here can be also be adapted to backward stepwise regression.
+Here are some details.
+Suppose that we have dropped some  $k$ predictors: call the drop event $D$.
+Consider another  predictor  $j$ as a candidate to drop. Let $r=P_{D-j}^\perp y$, $\tilde X=P_{D-j}^\perp X$,
+$W_j=\langle r, \tilde x_j\rangle/||\tilde x_j||$. Then we drop the predictor
+\begin{eqnarray}
+\hat j={\rm argmin }(|W_j|)
+\end{eqnarray}
+Denote the attained minimum by $M=W_{\hat j}$. Define
+$$G(t)=P(M\geq t | D) $$
+then our p-value is $1-G(W_{\rm min})$.
+We can use the same form of construction as before to get an analytic approximation for $G$:
+\begin{eqnarray}
+F(M')=\Bigl[\frac{ (1-\Phi(M'/\sigma)-\Phi(-M'/\sigma))}{(1-\Phi(V/\sigma)-\Phi(-V/\sigma))}\Bigr]^{p-k}\
+\label{eq:approx}
+\end{eqnarray}
+The quantity $1-F(M')$ is then our proposed approximate p-value.
+\end{itemize}
+
+\section{Results of various simulations}
+
+
+\subsection*{Acknowledgements} 
+
+
+\appendix
+\section*{Review of Conditional Gaussian inference after polyhedral selection}  
+
+This section describes  a powerful result on Gaussian contrasts after polyhedral selection, which
+appears in \citet{TLTT2014} and \citet{exactlasso}. 
+\begin{equation*}
+y \sim N(\theta,\Sigma), 
+\end{equation*}
+where $\theta \in \R^n$ is unknown but $\Sigma \in \R^{n\times n}$ 
+is known. This generalizes our original setup in \eqref{eq:mod} (in
+that we allow for a general error covariance structure).  Consider a 
+polyhedron 
+\begin{equation*}
+\cP = \{y : \Gamma y \geq u\},
+\end{equation*}
+where $\Gamma \in \R^{m\times n}$, $u \in \R^m$ are fixed, and the
+above inequality is meant to be interpreted componentwise.  Recall
+that we call $y\in\cP$ a polyhedral selection event. Our goal is to
+make inferences about $v^T \theta$ conditional on $y \in \cP$.
+Indeed $v=v(\cP)$ is allowed to be defined in terms of $\cP$.  The 
+next result provides a key alternate representation for
+$\cP$.
+
+It is shown in \citet{TLTT2014} and \citet{exactlasso}.  that
+for any $\Sigma,v$ such that $v^T \Sigma v \not= 0$, there exists explicitly computable
+functions $\V^\mathrm{lo}(y), \V^\mathrm{lo}(y), \V^0(y)$ such that
+\begin{equation}
+\label{eq:truncate}
+\Gamma y \geq u \iff
+\V^\mathrm{lo}(y) \leq v^T y \leq \V^\mathrm{up}(y), 
+\, \V^0(y) \leq 0,
+\end{equation}
+Moreover,  it turns out that the triplet $(\V^\mathrm{lo},\V^\mathrm{up},\V^0)(y)$ is
+independent of $v^T y$.    The explicit  expressions for these quantities are given  
+ in the Appendix.
+
+Hence the distribution of 
+any linear function $v^Ty$, conditional on the selection 
+$\Gamma y \geq u$,  
+can be written as a truncated Gaussian distribution, and this can be used for hypothesis testing and confidence interval
+construction. 
+\citet{TLTT2014} use this result to derive a test for the entry of predictors in least angle and forward stepwise regression.
+
+
+
+\section*{ Proof of Lemma 1}  {\em Due to Rafal Latala, personal communication}
+
+
+The standard proof of the Khatri-Sidak inequality  (e.g. \citet{J70}) shows that for any
+symmetric convex set $K$ and symmetric Gaussian vector $X$ ,the function
+
+$$t \rightarrow  \frac {\Pr(X\in K,|X_1|< t)}{\Pr(|X_1|<t)}$$
+is nonincreasing on $(0,\infty)$.
+This shows that the function
+$$G(t_1,\ldots,t_n)=\frac{\Pr(|X_1|< t_1,\ldots,|X_n|<t)}{\prod_i \Pr(|X_i|<t_i)}$$
+is coordinate-wise nonincreasing on$ (0,\infty)^n$, in particular
+$S(t)=G(t,\ldots,t)$
+is nonincreasing on $(0,\infty)$.
+
+
+\bibliographystyle{agsm}
+\bibliography{ryantibs}
+
+\end{document}
+

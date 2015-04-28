@@ -1,0 +1,175 @@
+\documentclass{beamer}
+%\documentclass[handout]{beamer}
+
+\usepackage{tikz,fancyvrb,hyperref,multicol,relsize,verbatim,ulem}%,enumitem}
+%\usepackage{enumitem}
+\usepackage{mathrsfs,mathtools,framed}
+\usepackage[T1]{fontenc}
+
+
+\usetikzlibrary{shapes,arrows}
+
+
+%\usetheme{Warsaw}
+
+
+%\usecolortheme{beaver}
+
+
+\usefonttheme{professionalfonts}
+%\setbeamercolor{block}{bg=red, fg=white}
+\setbeamercolor{block title}{bg=blue!25}
+\setbeamercolor{block body}{bg=blue!15}
+
+
+\AtBeginSection[ ] {
+\begin{frame}<beamer>{ }
+\frametitle{Outline}
+\tableofcontents[currentsection]
+\end{frame} }
+
+
+
+\newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
+
+\renewcommand{\b}{\textbf}
+\newcommand{\bX}{X}
+\newcommand{\bS}{\mathbf{S}}
+\newcommand{\cX}{\mathcal{X}}
+\newcommand{\hJ}{\widehat{J}}
+\newcommand{\cI}{\mathcal{I}}
+\newcommand{\cQ}{\mathcal{Q}}
+\newcommand{\hcQ}{\widehat{\mathcal{Q}}}
+\renewcommand{\bar}{\overline}
+\newcommand{\proj}{\mathcal{P}}
+\newcommand{\cY}{\mathcal{Y}}
+%\newcommand{\cS}{\mathcal{S}}
+\newcommand{\cT}{\mathcal{T}}
+\newcommand{\pow}{\textnormal{Pow}}
+
+\newcommand{\bcol}[2]{{\usebeamercolor[fg]{#1} #2}}
+\newcommand{\bstrc}[1]{\bcol{structure}{#1}}
+\newcommand{\balrt}[1]{\bcol{alerted text}{#1}}
+
+%\usepackage{multimedia}
+\usepackage{../../mycommands}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cM}{\mathcal{M}}
+\newcommand{\cH}{\mathcal{H}}
+\newcommand{\mdl}{M}
+\newcommand{\fF}{\cM}
+\newcommand{\hM}{\widehat{M}}
+\newcommand{\sF}{\mathscr{F}}
+\newcommand{\hI}{\hat{I}}
+\renewcommand{\gv}{\;|\;}
+\newcommand{\Gv}{\;\;\big|\;\;}
+
+\newcommand*\mystrut{\vrule width0pt height0pt depth1.5ex\relax}
+\newcommand{\underlabel}{\underbracket[1pt][.5pt]{\mystrut \quad\;\; \sub \quad\;\; }}
+
+
+\title{Sequential Adaptive Model Selection}
+
+\author{Will Fithian\\~\\
+  {\small Joint with:}\\
+  Jonathan Taylor,\\ Rob Tibshirani,\\ Ryan Tibshirani}
+\date{\today}
+
+
+\begin{document}
+
+
+\frame{\titlepage}
+
+
+\section{Sequential Model Selection}
+
+\frame{\frametitle{ANOVA Tables}
+  
+}
+
+\frame{\frametitle{ANOVA Tables}
+  
+}
+
+\frame{\frametitle{Stopping Rules}
+  
+}
+
+
+\frame{\frametitle{Strong Stop}
+
+}
+
+\frame{\frametitle{Forward Stop}
+
+}
+
+
+\section{Existing Sequential Selection Procedures}
+
+
+\frame{\frametitle{Covariance Test}
+  
+}
+
+\frame{\frametitle{Covariance Test}
+
+}
+
+\frame{\frametitle{Spacings Test}
+
+}
+
+\frame{\frametitle{Spacings Test}
+
+}
+
+
+\section{Sequential Selection For Linear Regression}
+
+\frame{\frametitle{Post-Selection Inference}
+
+}
+
+\frame{\frametitle{Selection Variables}
+
+}
+
+\frame{\frametitle{Selected Model Vs Saturated Model}
+
+}
+
+\frame{\frametitle{Example: Forward Stepwise Linear Regression}
+
+}
+
+\frame{\frametitle{Comparison With Knockoffs}
+  
+}
+
+\section{Sequential Selection For Exponential Families}
+
+\frame{\frametitle{Generalization}
+
+}
+
+\frame{\frametitle{Principal Components Analysis}
+
+}
+
+\section{Simulation: Sparse Linear Regression}
+
+\frame{\frametitle{Generating Model}
+
+}
+
+\frame{\frametitle{Comparisons}
+
+}
+
+\frame{\frametitle{}
+
+}
+
+\end{document}
