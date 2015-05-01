@@ -124,7 +124,7 @@
 }
 
 \frame{\frametitle{Motivation: Exploratory Model Selection}
-  \bstrc{Given:} Data $Y\sim F$, $F$ unknown
+  \bstrc{General Setup:} Data $Y\sim F$, $F$ unknown
   \vskip+1em
   Use $Y$ to \bstrc{adaptively} generate sequence of nested models
   \[
@@ -167,7 +167,6 @@
 
 \section{Inference for One Step}
 
-
 \frame{\frametitle{Inference for Step $k$}
   At step $k$, construct valid $\phi_k(Y)$ to test
   \[
@@ -191,9 +190,59 @@
   \end{enumerate}
 }
 
-\frame{\frametitle{}
-  
 
+\frame{\frametitle{Fixed-Question Analysis}
+  Consider fixed candidate $q=(m_0,m_1)$ for $Q_k=(M_{k-1},M_k)$
+  \vskip+1em
+  Selection event:
+  \[
+  A_{k,q} = \{M_{k-1}(Y) = m_0, M_k(Y) = m_1\}
+  \]
+  FST (2014): \bstrc{selective level-$\alpha$ test} $\phi_{k,q}(y)$ controls
+  \[
+  \E_F\left[ \phi_{k,q}(Y) \mid Q_k(Y) = q\right] \leq \alpha, 
+  \quad \forall F \in m_0(q)  
+  \]
+  Doable in regression models (nested exp. fam. models)
+}
+
+\frame{\frametitle{Fixed-Question Analysis: Regression Case}
+  Define regression model with active set $E \sub p$
+  \[
+  M(E) \triangleq \left\{\cN_n\left(X_E\beta,\; \sigma^2I\right):\;
+    \beta\in \R^{|E|}, \sigma^2>0\right\}
+  \]
+  Assume $|E_k(Y)| \eqAS k$. 
+  $q$ for testing $H_0:\; \beta_j = 0$ in $M(E)$:
+  \note{assume method adds variable to active set at each step}
+  \[
+  q(E,j) \triangleq (M(E\setminus j), M(E)), \;\;\; j \in E \sub [p]
+  \]
+  Selection events for $k=|E|$
+  \[
+  A(E,j) \triangleq A_{q(E,j)} = \{E_k(Y) = E, j_k(Y) = j\}
+  \]
+  Forward Stepwise, LARS, LASSO: $A(E,j)$ is union of polytopes
+}
+
+\begin{comment}
+\frame{\frametitle{}
+  Selected-model analysis:
+  \[
+  Y \sim \exp\left\{\frac{1}{\sigma^2} y'X_{E_k}\beta
+    - \frac{1}{2\sigma^2}\|y\|^2\right\}\; 1\{y \in A_{k,q}\}
+  \]
+  Condition on ${X'}_{E\setminus j}y$:
+  \[
+  \L\left(Y \mid {X'}_{E\setminus j}Y, A_q\right)
+  \]
+  Tests for regression based on 
+  \[
+  \L_{\beta}( X_j'Y \gv)
+  \]
+}
+
+\frame{\frametitle{f}
 $\phi_{k,q}$ to for test of random $Q_k(Y)$: 
     $\phi_k(y) = \phi_{k,Q_k(y)}(y)$
     \begin{align*}
@@ -220,7 +269,7 @@ $\phi_{k,q}$ to for test of random $Q_k(Y)$:
     \]
   
 }
-
+\end{comment}
 
 \frame{\frametitle{Building Blocks}
   Test for a \bstrc{random} question $q_k(Y) = (M_{k-1}(Y), M_k(Y))$
@@ -255,6 +304,17 @@ $\phi_{k,q}$ to for test of random $Q_k(Y)$:
 
 
 \section{Sequential Hypothesis Testing}
+
+\frame{\frametitle{Things to Mention}
+  ``Simple Stop'' (controls FWER regardless of dependence?)
+  \vskip+1em
+  Options:\\
+  Method $\times$ \{ Regression, Ex.Fam., Generic \}
+  $\times$ \{ Saturated, Selected \}
+  $\times$ Selection variable
+  $\times$ Stopping rule
+  $\times$ ???
+}
 
 \frame{\frametitle{Stopping Rules: Non-Adaptive Setting}
   Observe $Y \sim F$
@@ -372,6 +432,56 @@ $\phi_{k,q}$ to for test of random $Q_k(Y)$:
   \sim \text{Unif}[0,1]^{d-k_0}
   \]
   
+}
+
+\frame{\frametitle{Relating the two}
+  For independent null $p$-values, condition on stuff up to $k-1$
+  \begin{block}{Lemma (FTTT 2015)}
+    Assume that for all $F,k,\alpha$,
+    \[
+    \P_F\left(p_k \leq \alpha \mid M_{[k-1]},p_{[k-1]}\right) 
+    \1\{F \in M_{k-1}\} \leqAS \alpha.
+    \]
+    Then, 
+    \[
+    \P_F\left(p_{k+1}\leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
+      \mid p_{[k]}, k_0(Y)=k\right) 
+    \leqAS \prod_{\ell=k+1}^d \alpha_\ell 
+    \]
+  \end{block}
+  Proof:
+  \[
+  \P_F\left(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) 
+  \leqAS \alpha_d
+  \]
+}
+
+\frame{\frametitle{Proof}
+  \[
+  \P_F(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) \leq \alpha_d
+  \]
+  
+  \begin{align*}
+    \P_F
+    &\left(p_{k+1} \leq \alpha_{k+1}, \;\;\ldots, 
+      \;\;p_d \leq \alpha_d
+      \mid M_{[k]}, p_{[k]}\right)\1\{F \in M_{k}\}\\
+    &= \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_d}
+    d\P_F\left(p_{k+1},\ldots, p_d \mid M_{[k]}, p_{[k]}\right)\\
+    &= \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_d}
+    \,d\P_F\left(p_d \mid p_{[d-1]},M_{[k]}\right)
+    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)\\
+    &\leq \alpha_d
+    \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_{d-1}}
+    \,d\P_F\left(p_{d-1} \mid p_{[d-2]},M_{[k]}\right)
+    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)\\
+    &\leq \cdots \leq  \prod_{\ell=k+1}^d \alpha_\ell 
+%    &\leq \alpha_d \int_0^{\alpha_{k+1}}\cdots\int_0^{\alpha_{d-1}}
+%    \,d\P_F\left(p_{d-1} \mid p_{[d-2]},M_{[k]}\right)
+%    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)
+  \end{align*}
+  \pause
+  Marginalize over $M_{[k]}$ to complete proof \qed
 }
 
 
