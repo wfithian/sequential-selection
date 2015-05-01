@@ -90,7 +90,7 @@
   $j_1,\ldots, j_d \in [p]=\{1,\ldots,p\}$
   \vskip+1em
   $\quad\imp$ sequence of \bstrc{active sets} 
-  $E_k = \{j_1,\ldots,j_k\}$
+  $E_k = j_{[k]} = \{j_1,\ldots,j_k\}$
   \[\emptyset \sub E_1 \sub \cdots \sub E_d\]
   $\quad\imp$ sequence of nested \bstrc{regression models} 
   \[
@@ -144,10 +144,6 @@
   adjusting for selection
   \vskip+1em
   \bstrc{Goal 2:} choose smallest adequate model $M_{k_0}$
-}
-
-\frame{\frametitle{What About Cross-Validation?}
-  
 }
 
 \frame{\frametitle{Which Null?}
@@ -310,165 +306,286 @@
 
 \section{Sequential Hypothesis Testing}
 
-\frame{\frametitle{Things to Mention}
-  ``Simple Stop'' (controls FWER regardless of dependence?)
-  \vskip+1em
-  Options:\\
-  Method $\times$ \{ Regression, Ex.Fam., Generic \}
-  $\times$ \{ Saturated, Selected \}
-  $\times$ Selection variable
-  $\times$ Stopping rule
-  $\times$ ???
+\frame{\frametitle{Stopping Rules}
+
 }
 
-\frame{\frametitle{Stopping Rules: Non-Adaptive Setting}
+\frame{\frametitle{Stopping Rules}
   Observe $Y \sim F$
   \vskip+1em
-  Given \bstrc{fixed} sequence of nested statistical models
+  Given \bstrc{adaptive} sequence of nested statistical models
   \[
-  M_0 \sub M_1 \sub \cdots \sub M_d % \qquad \text{(fixed, for now)}
+  M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) 
   \]
-  and $p$-values $p_k(Y), k=1,\ldots,d$ 
+  and $p$-values $p_{[d]}(Y)$
   \note{stochastically smaller}
   \vskip+1em
-  \bstrc{Completion index:} $k_0 = \min \{k:\; F \in M_k\}$ \pause
+  \bstrc{Completion index:} $k_0(Y) = \min \{k:\; F \in M_k\}$ \pause
   (first correct model)
   \vskip+1em
   \bstrc{Stopping rule:} $\hk(Y)$ estimator of $k_0$.
   \vspa
-  \bstrc{Goal 2a:} Control type I errors  $(\hk(Y) - k_0)_+$
+  \bstrc{Goal 2a:} Control type I errors  $(\hk - k_0)_+$
   \vskip+1em
-  \bstrc{Goal 2b:} Minimize type II errors $(k_0 - \hk(Y))_+$
+  \bstrc{Goal 2b:} Minimize type II errors $(k_0 - \hk)_+$
+}
+
+\frame{\frametitle{Simple Stop}
+  ``Obvious'' rule: stop first time $p_k > \alpha$
+  \[
+  \hk_{\text{simple}}(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
+    p_k > \alpha\right\} - 1
+  \]
+  For fixed $k_0$, controls \bstrc{familywise error rate:}
+  \[
+  \P\left[\hk_{\text{simple}}(Y) > k_0\right] \leq \alpha
+  \]
+  Proof:
+  \begin{align*}
+  \P\left[\hk_{\text{simple}} > k \right] 
+  &= \P[p_{k_0+1} \leq \alpha] \\
+  &\leq \alpha 
+  \end{align*}
+  \pause
+  Random $k_0$: need $p_k$ valid given $k_0 = k-1$\\
+  \vskip+1em
+  \quad ($F\in M_{k-1} \iff k_0 \;\balrt{\leq}\; k-1$)
 }
 
 \frame{\frametitle{Strong Stop}
-  G'Sell, Wager, Chouldechova, \& Tibshirani (2013)
+  G'Sell, Wager, Chouldechova, \& Tibshirani (2013):
   \[
-  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,m\} :\;
-    \exp\left(\sum_{i=k}^m \frac{\log p_i}{i}\right) 
-    \leq \frac{\alpha k}{m}\right\}
+  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    \exp\left(\sum_{i=k}^d \frac{\log p_i}{i}\right) 
+    \leq \frac{\alpha k}{d}\right\}
   \]
   Controls \bstrc{familywise error rate:}
   \[
   \P\left[\hk_S(Y) > k_0\right] \leq \alpha
   \]
-  under independence condition:
+  for fixed $k_0$, under independence condition:
   \[
-  (p_{k_0+1},\ldots,p_d) \mid (p_1,\ldots,p_k) 
+  (p_{k_0+1},\ldots,p_d) \mid (p_1, \ldots, p_{k_0}) 
   \sim \text{Unif}[0,1]^{d-k_0}
   \]
 }
 
-
-
 \frame{\frametitle{Forward Stop}
-  G'Sell, Wager, Chouldechova, \& Tibshirani (2013)
+  G'Sell, Wager, Chouldechova, \& Tibshirani (2013):
   \[
-  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,m\} :\;
+  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
     -\frac{1}{k}\sum_{i=1}^k \log(1-p_i) \leq \alpha\right\}
   \]
   Controls \bstrc{false discovery rate:}
   \[
   \E\left[\frac{(\hk_F(Y) - k_0)_+}{\hk_F(Y) \vee 1}\right] \leq \alpha
   \]
-  under independence condition:
+  for fixed $k_0$, under independence condition:
   \[
-  (p_{k_0+1},\ldots,p_d) \mid (p_1,\ldots,p_k) 
+  (p_{k_0+1},\ldots,p_d) \mid (p_1, \ldots, p_{k_0}) 
   \sim \text{Unif}[0,1]^{d-k_0}
   \]
 }
 
-
-\frame{\frametitle{Post-Selection Inference}
-  G'Sell et al. implicitly assume $M_k$ fixed for $1 \leq k \leq d$.
+\frame{\frametitle{Pathwise $p$-Values}
+  What do we need for \balrt{random} $k_0$?
   \vskip+1em
-  Adaptive variable selection $\imp$ \balrt{random} sequence
+  \bstrc{Simple Stop:} need
   \[
-  M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y)
+  \P(p_k \leq \alpha \mid k_0=k) \leqAS \alpha
   \]
-  Completion index $k_0(Y)$ is \balrt{random} (function of $M(Y)$)
-  \vskip+1em
-  $\L(p_k(Y))$ is \balrt{random} (uniform if $k > k_0(Y)$, otherwise not)
-  \vskip+1em
-  \balrt{NB:} $F$ is \balrt{not} random
-  \vskip+1em
-  What error rate \balrt{should} we control?
+  \bstrc{Strong \& Forward Stop:} need
+  \[
+  \P\left(p_{k+1}\leq \alpha_{k+1}, \ldots, 
+    p_d \leq \alpha_d
+    \mid p_{[k]},\; k_0(Y)=k\right) 
+  \leqAS \prod_{\ell=k+1}^d \alpha_\ell
+  \]
+  \bstrc{Single-Step:} before, we had
+  \[
+  \P_F\left(p_k \leq \alpha \mid M_{k-1},\; M_k,\; F\in M_{k-1}\right)
+  \leqAS \alpha
+  \]
+  \balrt{Not sufficient!} \pause What would be?
+  \note{so what more do we need to condition on at stage $k$ to get 
+    the kind of pathwise properties we want?}
 }
 
-
-\frame{\frametitle{Post-Selection Error Rates}
-  Error rate = expectation of loss $\Err(\hk(Y), k_0(Y))$
-  \[
-  \Err(\hk, k_0) = \left\{
-    \begin{matrix}
-      (\hk - k_0)_+/(\hk \vee 1) & \text{FDR}\\
-      1\{\hk > k_0\} & \text{FWER}\\
-      \cdots & \cdots
-    \end{matrix}
-  \right.
-  \]
-  Strongest adaptive error control guarantee:
-  \[
-  \E\left[\Err(\hk, k_0) \mid M_0,\ldots,M_d\right] \leq \alpha
-  \]
-  Implies
-  \[
-  \E\left[\Err(\hk, k_0) \mid k_0\right] \leq \alpha, 
-  \quad \text{ and } \quad
-  \E\left[\Err(\hk, k_0)\right] \leq \alpha
-  \]
-}
-
-\frame{\frametitle{Post-Selection $p$-Values}
-  We want \bstrc{strongest} adaptive guarantee
-  \[
-  \E\left[\Err(\hk, k_0) \mid M_0,\ldots,M_d\right] \leq \alpha
-  \]
-  for $\hk_F(p_1,\ldots,p_d)$ and $\hk_S(p_1,\ldots,p_d)$.
-  \vskip+1em
-  \bstrc{Goal:} Given arbitrary selection rule
-  \[
-  M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y),
-  \]
-  generate $p_1(Y),\ldots,p_d(Y)$ with 
-  \[
-  (p_{k_0+1},\ldots,p_d) 
-  \mid (M_1, \ldots, M_d, \;k_0, \;p_1, \ldots, p_{k_0}) 
-  \sim \text{Unif}[0,1]^{d-k_0}
-  \]
-  
-}
-
-\frame{\frametitle{Relating the two}
-  For independent null $p$-values, condition on stuff up to $k-1$
+\frame{\frametitle{Relating Single-Step to Pathwise}
+  Just need to condition on $M$, $p$ up to step $k-1$
   \begin{block}{Lemma (FTTT 2015)}
     Assume that for all $F,k,\alpha$,
     \[
-    \P_F\left(p_k \leq \alpha \mid M_{[k-1]},p_{[k-1]}\right) 
-    \1\{F \in M_{k-1}\} \leqAS \alpha.
+    \P_F\left(p_k \leq \alpha \mid M_{[k-1]}, \;p_{[k-1]}, 
+      \;F \in M_{k-1}\right) \leqAS \alpha.
     \]
     Then, 
     \[
-    \P_F\left(p_{k+1}\leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-      \mid p_{[k]}, k_0(Y)=k\right) 
+    \P_F\left(p_{k+1}\leq \alpha_{k+1}, \;\ldots, \;p_d \leq \alpha_d
+      \mid p_{[k]}, \;k_0(Y)=k\right) 
     \leqAS \prod_{\ell=k+1}^d \alpha_\ell 
     \]
   \end{block}
-  Proof:
+  \vspa
+  \balrt{Surprise:} selected model test (usually) gets this for free!
+  %Proof:
+  %\[
+  %\P_F\left(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) 
+  %\leqAS \alpha_d
+  %\]
+}
+
+\frame{\frametitle{Nested Exponential Families}
+  \bstrc{Special Case:} 
+  models are exponential families with nested suff. stats
   \[
-  \P_F\left(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) 
-  \leqAS \alpha_d
+  M_k:\; y \sim 
+  \exp\left\{ \sum_{\ell=0}^k \theta_\ell \,T(y;\;\gamma_\ell)
+    - \psi_{k}(\theta)\right\} f_0(y)
   \]
+  New suff. stat. at step $k$ selected adaptively 
+  ($\gamma_k = \gamma_k(Y)$) 
+  \vspa
+  \quad e.g., selected linear models with nested $E_k$
+  \begin{itemize}
+  \item $T_0(y) =  \|y\|^2$ \quad if $\sigma^2$ unknown
+  \item $T_k(y) = X_{j_k}'y$ \quad for $k \geq 1$
+  \end{itemize}
+  \vspa
+  \quad e.g., Wishart for nested PCA models
+}
+
+\frame{\frametitle{Assumptions}
+  \bstrc{1. Assume:} given $M_k=m_k$, 
+  path $M_{[k]}$ depends only on $T_{[k]}$
+  \vskip+1em
+  \quad \bstrc{``sub-path sufficiency principle''}
+  \vskip+0.5em
+  \quad \bstrc{Regression:} say, $E_3 = \{1,3,6\}$.
+  \vskip+0.25em
+  \qquad $\Rightarrow$ order of first 3 variables only depends 
+  on $X_{\{1,3,6\}}'Y$
+  \vskip+0.5em
+  \quad true for forward stepwise, LARS, LASSO
+  \vspa
+  
+  \bstrc{2. Assume:} 
+  \begin{itemize}
+  \item $p_{k,m_{k-1},m_k}$ function of $T_{[k]}$
+  \item $p_{k,m_{k-1},m_k}$ uniform given $T_{[k-1]}$
+  \end{itemize}
+  \vskip+0.5em
+  \quad true for UMPU or equal-tailed $p_k$ for \bstrc{selected model}
+  \vskip+0.5em
+  \quad \balrt{not} true for saturated model!
+}
+
+\frame{\frametitle{Result}
+  \begin{block}{Theorem (FTTT 2015)}
+    For nested exponential family models where assumptions 
+    1 \& 2 hold, single-step $p$-values satisfying
+    \[
+    \P_F\left(p_k \leq \alpha \mid M_{k-1}, M_k, 
+      \;F \in M_{k-1}\right) \leqAS \alpha
+    \]
+    also satisfy
+    \[
+    \P_F\left(p_{k+1}\leq \alpha_{k+1}, \;\ldots, \;p_d \leq \alpha_d
+      \mid p_{[k]}, \;k_0(Y)=k\right) 
+    \leqAS \prod_{\ell=k+1}^d \alpha_\ell 
+    \]
+  \end{block}
+  
+  \bstrc{Interpretation:} Selected model test + LASSO / LARS / Forward Stepwise + Simple / Strong / Forward Stop \balrt{works}
+  
 }
 
 \section{Simulation: Sparse Linear Regression}
 
 \frame{\frametitle{Generating Model}
-
+  Regression with $n=100, p=40$ 
+  \[Y \sim N(X\beta, I_n)\]
+  \vskip+1em
+  True $\beta_j = \left\{\begin{matrix}5 & j = 1,\ldots,7\\ 0 &
+      j>7\end{matrix}\right.$
+  \vskip+1em
+  % Use $\lambda = 2\E(\|X'\epsilon\|_\infty), \quad \epsilon \sim
+  % N(0,I)$ (Negahban et al., 2012)
+  % \vskip+1em
+  $X$ correlated Gaussian, $\rho = 0.3$, normalized ($\text{SNR}=5$)
+  \vskip+1em
+  \bstrc{Selection:} Forward stepwise path, $k=1,\ldots,40$
 }
 
-\frame{\frametitle{Comparisons}
+\frame{\frametitle{Power}
+  $p_k$ when $M_{k-1}$ is false: 
+  Saturated, \balrt{Selected}, \bstrc{Nominal} 
+  \begin{center}
+    \includegraphics[width=\textwidth]{../figs/simulation_snr_5_alpha_05_null_false.pdf}
+  \end{center}
+}
 
+\frame{\frametitle{Size}
+  $p_k$ when $M_{k-1}$ is true: 
+  Saturated, \balrt{Selected}, \bstrc{Nominal}
+  \begin{center}
+    \includegraphics[width=\textwidth]{../figs/simulation_snr_5_alpha_05_null_true.pdf}
+  \end{center}
+}
+
+\frame{\frametitle{Caveat Emptor}
+  $p_k$ when $j_k$ is a noise variable:
+  Saturated, \balrt{Selected}, \bstrc{Nominal}
+  \begin{center}
+    \includegraphics[width=\textwidth]{../figs/simulation_snr_5_alpha_05_noise_var.pdf}
+  \end{center}
+}
+
+\frame{\frametitle{Model Selection Performance}
+  Define
+  \[
+  V_{\text{mod}} = (\hat k - k_0)_+, 
+  \quad V_{\text{var}} =  \#\{\text{noise var.s included}\},
+  \quad R = \hat k
+  \]
+  Then
+  \[
+  \text{FDR}_{*} = \E[V_{*} / (R \vee 1)], \quad
+  \text{FWER}_{*} = \P[V_{*} > 0]
+  \]
+  % latex table generated in R 3.0.2 by xtable 1.7-1 package
+  % Fri May  1 09:29:28 2015
+  \begin{table}[ht]
+    \centering
+    \begin{tabular}{llcccc}
+      \hline
+      & & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ 
+      & $\text{FDR}_{\text{mod}}$ 
+      & $\text{FDR}_{\text{var}}$ \\ 
+      \hline
+      Selected & Simple & .290 & .000 & .002 & .039 \\ 
+      Selected & Forward & .559 & .027 & .020 & .066 \\ 
+      Selected & Strong & .041 & .014 & .008 & .042 \\ 
+      \hline
+      Saturated & Simple & .000 & .000 & .000 & .028 \\ 
+      Saturated & Forward & .014 & .000 & .000 & .030 \\ 
+      Saturated & Strong & .000 & .000 & .000 & .032 \\ 
+      \hline
+      Knockoffs & & .000 &  &  & .231 \\ 
+      \hline
+    \end{tabular}
+  \end{table}
+}
+
+\frame{\frametitle{Summary}
+  Takeaways:
+  \begin{enumerate}
+  \item Selected model is more powerful than saturated model 
+    when we have ``near ties''
+  \item Selected-model inference automatically gives independent
+    $p$-values\\
+    \quad (but not saturated-model inference)
+  \end{enumerate}
 }
 
 \frame{\frametitle{The End}
