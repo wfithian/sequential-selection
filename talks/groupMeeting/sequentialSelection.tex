@@ -77,6 +77,7 @@
 \frame{\titlepage}
 
 
+
 \section{Sequential Model Selection}
 
 
@@ -99,6 +100,8 @@
   M_k:\;Y \sim \cN_n(X_{E_k}\beta, \sigma^2 I_n)
   \]
   \bstrc{Goal:} choose $k$
+  \vskip+1em
+  \bstrc{Prior Work:} Taylor, Lockhart, Tibshirani, Tibshirani (2013); Loftus and Taylor (2014)
 }
 
 \frame{\frametitle{Motivation: Principal Components Analysis}
@@ -120,7 +123,9 @@
   \left(\lambda_0 I_m + \sum_{i=1}^k\lambda_i u_iu_i', 
     \;\;\;n-1\right)
   \]
-  \bstrc{Goal:} choose $k$
+  \bstrc{Goal:} choose $k$ 
+  \vskip+1em
+  \bstrc{Prior work:} Choi, Taylor, and Tibshirani (2014)
 }
 
 \frame{\frametitle{Motivation: Exploratory Model Selection}
@@ -130,7 +135,7 @@
   \[
   M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y)
   \]
-  \bstrc{Goal 1:} for $1 \leq k \leq d$, construct $p_k(Y)$ to test 
+  \bstrc{Goal 1:} for $k \in [d]$, construct $p_k(Y)$ to test 
   \[
   H_{0,k}:\; F \in M_{k-1}
   \quad \text{ vs. } \quad
@@ -139,6 +144,10 @@
   adjusting for selection
   \vskip+1em
   \bstrc{Goal 2:} choose smallest adequate model $M_{k_0}$
+}
+
+\frame{\frametitle{What About Cross-Validation?}
+  
 }
 
 \frame{\frametitle{Which Null?}
@@ -152,155 +161,151 @@
   \widetilde H_{0,k}:\; Y \sim 
   \cN(X_{[p]\setminus j_k}\beta, \;\;\sigma^2I_n)
   \]
-  Suppose $X_1$ signal, $X_2,\ldots,X_p$ noise, $X_1$ selected at step $k=10$
+  Suppose $X_1$ signal, $X_2,\ldots,X_p$ noise, $X_1$ selected at step $k=4$
   \vskip+1em
   We take \bstrc{model-centric} point of view: \\
-  models $M_1,\ldots,M_9$ are incorrect
-  $\imp$ want to select $M_{10}$
+  models $M_1,\ldots,M_3$ are incorrect
+  $\imp$ want to select $M_{4}$
   \vskip+1em
   Contrast with \bstrc{variable-centric} point of view 
   (e.g., knockoffs):\\ 
-  variables $j_1,\ldots,j_9$ are false discoveries
+  variables $j_1,\ldots,j_3$ are false discoveries
   \vskip+1em 
   Will revisit this question later...
 }
 
+\frame{\frametitle{Outline}
+  \begin{enumerate}
+  \item Inference for single step
+    \begin{itemize}
+    \item Selective $p$-values
+    \item Why selected model $\gg$ saturated model
+    \end{itemize}
+  \item Inference for full path
+    \begin{itemize}
+    \item Stopping rules based on $(p_1,\ldots,p_d)$
+    \item When are the $p_k$ independent?
+    \end{itemize}
+  \item Simulation
+  \end{enumerate}
+  \vspa
+  Focus: \bstrc{regression} models ($\sigma^2$ known or unknown)
+  \note{sigma^2 known or unknown}
+}
+
+
 \section{Inference for One Step}
 
+
 \frame{\frametitle{Inference for Step $k$}
-  At step $k$, construct valid $\phi_k(Y)$ to test
+  At step $k$, construct valid $p_k(Y)$ to test
   \[
   H_{0,k}:\; F \in M_{k-1}(Y)
   \quad \text{ vs. } \quad
   H_{1,k}:\; F \in M_k(Y) \setminus M_{k-1}(Y),
   \]
-  Want selective test $\phi_k(Y)$ for \bstrc{random question}
+  \bstrc{Selective $p$-value} for fixed models $(m_{k-1},m_k)$
   \[
-  Q_k(Y) = (M_{k-1}(Y), M_k(Y))
+  \P_F(p_{k,m_{k-1},m_k} \leq \alpha \mid M_{k-1}=m_{k-1},
+  \;M_k=m_k) \leq \alpha, \quad \forall F \in m_{k-1}
   \]
-  \vskip+1em
-  Game plan:
-  \begin{enumerate}
-  \item produce $\phi_{k,q}(y)$ for each fixed $q = (m_0, m_1)$
-  \item combine to get test of $Q_k(Y)$:
-    \[
-    \phi_k(y) = \phi_{k,Q_k(y)}(y)    
-    \]
-  \item convert tests to $p$-values
-  \end{enumerate}
+  Combine to get $p_k(y) = p_{k, M_{k-1}(y), M_k(y)}(y)$:
+  \[
+  \P_F\left(p_k \leq \alpha \mid M_{k-1}, \;M_k, 
+    \;F\in M_{k-1}\right) \leq \alpha
+  \]
+  \note{F not random, but the models and p values are}
+  How to get $p_{k,m_{k-1},m_k}$?
 }
-
 
 \frame{\frametitle{Fixed-Question Analysis}
-  Consider fixed candidate $q=(m_0,m_1)$ for $Q_k=(M_{k-1},M_k)$
+  Must condition on \bstrc{selection event}:
+  \[
+  A=\{M_{k-1}(Y) = m_{k-1}, M_k(Y) = m_k\}
+  \]
+  $A$ depends on selection rule
   \vskip+1em
-  Selection event:
-  \[
-  A_{k,q} = \{M_{k-1}(Y) = m_0, M_k(Y) = m_1\}
-  \]
-  FST (2014): \bstrc{selective level-$\alpha$ test} $\phi_{k,q}(y)$ controls
-  \[
-  \E_F\left[ \phi_{k,q}(Y) \mid Q_k(Y) = q\right] \leq \alpha, 
-  \quad \forall F \in m_0(q)  
-  \]
-  Doable in regression models (nested exp. fam. models)
+  Regression: $A$ is typically union of polytopes
+  \vskip+1em
+  Often, condition on finer \bstrc{selection variable}
+  \vskip+1em
+  \qquad e.g., condition on signs $\rightarrow$ one polytope
+  \vskip+1em
+  \qquad later: condition on $M_{[k]}$ and $p_{[k-1]}$ $\rightarrow$ 
+  control joint law
 }
 
-\frame{\frametitle{Fixed-Question Analysis: Regression Case}
-  Define regression model with active set $E \sub p$
-  \[
-  M(E) \triangleq \left\{\cN_n\left(X_E\beta,\; \sigma^2I\right):\;
-    \beta\in \R^{|E|}, \sigma^2>0\right\}
-  \]
-  Assume $|E_k(Y)| \eqAS k$. 
-  $q$ for testing $H_0:\; \beta_j = 0$ in $M(E)$:
-  \note{assume method adds variable to active set at each step}
-  \[
-  q(E,j) \triangleq (M(E\setminus j), M(E)), \;\;\; j \in E \sub [p]
-  \]
-  Selection events for $k=|E|$
-  \[
-  A(E,j) \triangleq A_{q(E,j)} = \{E_k(Y) = E, j_k(Y) = j\}
-  \]
-  Forward Stepwise, LARS, LASSO: $A(E,j)$ is union of polytopes
-}
-
-\begin{comment}
-\frame{\frametitle{}
-  Selected-model analysis:
-  \[
-  Y \sim \exp\left\{\frac{1}{\sigma^2} y'X_{E_k}\beta
-    - \frac{1}{2\sigma^2}\|y\|^2\right\}\; 1\{y \in A_{k,q}\}
-  \]
-  Condition on ${X'}_{E\setminus j}y$:
-  \[
-  \L\left(Y \mid {X'}_{E\setminus j}Y, A_q\right)
-  \]
-  Tests for regression based on 
-  \[
-  \L_{\beta}( X_j'Y \gv)
-  \]
-}
-
-\frame{\frametitle{f}
-$\phi_{k,q}$ to for test of random $Q_k(Y)$: 
-    $\phi_k(y) = \phi_{k,Q_k(y)}(y)$
-    \begin{align*}
-      \phi_k(y) &= \phi_{k,Q_k(y)}(y) \\
-      \Longrightarrow 
-      &\E_F\left[\phi_k(Y) \mid M_{k-1}(Y), M_k(Y)\right]
-      1\{F \in M_{k-1}(Y)\} \leq \alpha, \quad \forall F\\
-      \Longrightarrow 
-      &\E_F\left[\phi_k(Y) \mid 1\{F \in M_{k-1}(Y)\} \right]
-       \leq \alpha, \quad \forall F
-    \end{align*}
-    \note{note that $Q_k$ is random, not $F$}
-  \end{enumerate}
-  First, 
-  \[
-  q
-  \]    
-}
-
-\frame{\frametitle{Review: Post-Selection Inference}
+\frame{\frametitle{Regression Models}
+  At step $k$ add variable $j_k$, active set $E_k = \{j_1,\ldots,j_k\}$
+  \vskip+1em
+  Regression models for active set $E$, variable $j\in E$:
+  \begin{itemize}
+  \item \bstrc{Selected model:} test $H_0:\;\beta_j = 0$ in
     \[
-    \E_F\left[ \phi_{k,q}(Y) \mid Q_k(Y) = q\right] \leq \alpha, 
-    \quad \forall F \in m_0(q)
+    M:\; Y \sim \cN(X_E\beta, \;\sigma^2I), \quad (\sigma^2 \text{ kn.       / unkn.})
     \]
-  
+  \item \bstrc{Saturated model:} test $H_0:\;\eta_{j,E}'\mu = 0$ in 
+    \[
+    M:\; Y \sim \cN(\mu, \;\sigma^2I), \qquad (\sigma^2 \text{ known})\qquad
+    \]
+  \item \bstrc{Full model:} test $H_0:\; \beta=0$ in
+    \[
+    M:\; Y \sim \cN(X\beta, \;\sigma^2I), \quad (\sigma^2 \text{ kn. / unkn.})
+    \]
+  \end{itemize}
+  \note{null hypotheses nested only in selected model, 
+    otherwise just seq. of hyp in the same model. However,
+    saturated model tests are valid for the selected model null,
+    so we do have the option.}
 }
-\end{comment}
 
-\frame{\frametitle{Building Blocks}
-  Test for a \bstrc{random} question $q_k(Y) = (M_{k-1}(Y), M_k(Y))$
+\frame{\frametitle{Selected-Model Analysis}
+  Selected model for active set $E_k$:
+  \[
+  M_k:\;Y\mid A \sim \exp\left\{\frac{1}{\sigma^2} y'X_{E_k}\beta
+    - \frac{1}{2\sigma^2}\|y\|^2 - \psi_A(\beta,\sigma^2)\right\}\; 1\{y \in A\}
+  \]
+%  Let $T_k$ denote suff. stats for $M_k$:
+%  \[
+%  T_k(y) = \left(X_{E_k}'y, \|y\|^2\right) \quad \text{ if } \sigma^2 \text{unkn.}
+%  \]
+%  Test is based on 
+  Condition on $X_{E_{k-1}}'Y$ $\rightarrow$ tests based on
+  \[
+  \L_{\beta_j=0}\left( X_{j_k}'Y \mid Y\in A,\;X_{E_{k-1}}'Y, \; \balrt{\|Y\| ?}\right)
+  \]
+  Note:
+  \begin{itemize}
+  \item $M_k$ has one more suff stat than $M_{k-1}$
+    \note{so we add one ss to model and then test whether it helps}
+  \item $p_{k,m_{k-1},m_k}$ function of suff stats of $m_k$
+    \note{not true for saturated model}
+  \item $p_{k,m_{k-1},m_k}$ conditions on suff stats of $m_{k-1}$
+  \end{itemize}
+}
+
+\frame{\frametitle{Selected Model vs Saturated Model}
+  \bstrc{Simple setting:} $n = p = 2, X = I_2, \sigma^2=1$ known
   \vskip+1em
-  For fixed candidate \bstrc{question} $q=(H_0,M)$, \bstrc{selection event} is
-  \[
-  A_{k,q} = \left\{ y:\; Q_k(Y) = q \right\}
-  \]
-  Methods in Fithian, Sun, \& Taylor $\imp$ \bstrc{selective $p$-value}
-  \[
-  \L_F\left(p_{k,q}(Y) \mid Y \in A_{k,q}\right) = \text{Unif}[0,1], \quad \forall F \in H_0(q)
-  \]
-  ``Stitch together'' $p_{k,q}$ to test \bstrc{random} question 
-  $q_k(Y) = (M_{k-1}(Y), M_k(Y))$
-  \[
-  p_k(Y) = p_{k, q_k(Y)}(Y)
-  \]
+  $\mu = \binom{4}{4}$. First step of forward stepwise:
+  \vspa
+  \begin{center}
+  \includegraphics[width=.7\textwidth]{../figs/bivariateSelVSat.pdf}
+  \end{center}
+  \bstrc{Power:} 99.7\% vs. 59\% for $\alpha=.05$
 }
 
-\frame{\frametitle{Selected Model Vs Saturated Model}
-  
-}
-
-
-\frame{\frametitle{Selection Variables}
-  \bstrc{Recall:} sometimes, want to condition on more than $A_q$
+\frame{\frametitle{Selected Model vs Saturated Model}
+  \bstrc{Sel.:} $Y \sim \cN\left(\binom{\mu_1}{0}, \;I_2\right)$
+  $\rightarrow$ compare to $\L_{\mu=0}(Y_1 \mid A)$
   \vskip+1em
-
+  \bstrc{Sat.:} $Y \sim \cN\left(\binom{\mu_1}{\mu_2}, \;I_2\right)$
+  $\rightarrow$ compare to $\L_{\mu_1=0}(Y_1 \mid Y_2, \;A)$
+  \vspa
+  \includegraphics[width=.46\textwidth]{../figs/fullvred.pdf}
+  \hspace{.03\textwidth}
+  \includegraphics[width=.46\textwidth]{../figs/fullvredNulls.pdf}
 }
-
-
 
 
 \section{Sequential Hypothesis Testing}
@@ -454,76 +459,6 @@ $\phi_{k,q}$ to for test of random $Q_k(Y)$:
   \P_F\left(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) 
   \leqAS \alpha_d
   \]
-}
-
-\frame{\frametitle{Proof}
-  \[
-  \P_F(p_d \leq \alpha_d \mid p_{[d-1]}, k_0(Y)=k\right) \leq \alpha_d
-  \]
-  
-  \begin{align*}
-    \P_F
-    &\left(p_{k+1} \leq \alpha_{k+1}, \;\;\ldots, 
-      \;\;p_d \leq \alpha_d
-      \mid M_{[k]}, p_{[k]}\right)\1\{F \in M_{k}\}\\
-    &= \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_d}
-    d\P_F\left(p_{k+1},\ldots, p_d \mid M_{[k]}, p_{[k]}\right)\\
-    &= \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_d}
-    \,d\P_F\left(p_d \mid p_{[d-1]},M_{[k]}\right)
-    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)\\
-    &\leq \alpha_d
-    \idotsint\limits_{0\qquad 0}^{\;\alpha_{k+1}\quad \;\alpha_{d-1}}
-    \,d\P_F\left(p_{d-1} \mid p_{[d-2]},M_{[k]}\right)
-    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)\\
-    &\leq \cdots \leq  \prod_{\ell=k+1}^d \alpha_\ell 
-%    &\leq \alpha_d \int_0^{\alpha_{k+1}}\cdots\int_0^{\alpha_{d-1}}
-%    \,d\P_F\left(p_{d-1} \mid p_{[d-2]},M_{[k]}\right)
-%    \cdots d\P_F\left(p_{k+1} \mid p_{[k]},M_{[k]}\right)
-  \end{align*}
-  \pause
-  Marginalize over $M_{[k]}$ to complete proof \qed
-}
-
-
-\section{Existing Sequential Selection Procedures}
-
-
-\frame{\frametitle{Covariance Test}
-  
-}
-
-\frame{\frametitle{Covariance Test}
-  
-}
-
-\frame{\frametitle{Spacings Test}
-
-}
-
-\frame{\frametitle{Spacings Test}
-
-}
-
-
-\section{Sequential Selection For Linear Regression}
-
-
-\frame{\frametitle{Example: Forward Stepwise Linear Regression}
-  
-}
-
-\frame{\frametitle{Comparison With Knockoffs}
-  
-}
-
-\section{Sequential Selection For Exponential Families}
-
-\frame{\frametitle{Generalization}
-
-}
-
-\frame{\frametitle{Principal Components Analysis}
-
 }
 
 \section{Simulation: Sparse Linear Regression}
