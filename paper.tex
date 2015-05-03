@@ -56,7 +56,10 @@
 \newcommand{\hJ}{\widehat{J}}
 \newcommand{\bH}{\mathbf{H}}
 \newcommand{\bM}{\mathbf{M}}
+\newcommand{\tM}{\widetilde{M}}
+\newcommand{\tE}{\widetilde{E}}
 \newcommand{\hK}{\widehat{K}}
+\newcommand{\hk}{\hat{k}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
 
 
@@ -66,6 +69,7 @@
 \newcommand{\WFcomment}[1]{{\color{red}{(WF: \bf \sc #1) }}}
 
 \title{Adaptive Sequential Model Selection}
+\author{William Fithian, Jonathan Taylor, Rob Tibshirani, \and Ryan Tibshirani}
 \maketitle
 
 \begin{abstract}
@@ -73,134 +77,121 @@
 \end{abstract}
 
 
-
 \section{Introduction}
 
-In many data analysis problems, it is difficult to specify in advance a probabilistic model that is simultaneously expansive enough to adequately capture important characteristics of the sampling distribution, and parsimonious enough to yield precise and interpretable inferences. For example, in a linear regression problem, despite having measured thousands of covariates we commonly expect that only a few are actually relevant. That is, if the design matrix is $X\in \R^{n\times d}$, we expect that for some small subset $M\sub \{1,\ldots,d\}$ of the predictor variables, the model
+... and find the index of the smallest adequate model --- that is, the smallest model that cannot be falsified given available evidence.
+
+\begin{example}[Forward-Stepwise Linear Regression with the LASSO]
+  \citet{taylor2014exact}
+\end{example}
+
+\begin{example}[The LARS Algorithm in Regression]
+  \citet{taylor2014exact}
+\end{example}
+
+\begin{example}[Ever-Active Path in $\ell_1$-Regularized Methods]
+  \citet{taylor2014exact}
+\end{example}
+
+\begin{example}[Principal Components Analysis]
+  As a second motivating example, consider model selection for   principal components analysis. In that case we are given a data matrix $X \in \R^{n\times d}$, with which we form a sample covariance matrix
+\[
+S = \frac{1}{n-1} \sum_{i=1}^n(x_i - \bar x)^2
+\]
+The first $d$ principal component loadings are the first $d$ eigenvectors of $S$, which call $u_1,\ldots, u_d$. These induce a sequence of nested Wishart models:
+\[
+M_0 \sub M_1 \sub \cdots \sub M_d
+\]
+in which
 \begin{equation}
-  Y \sim N(X_M\beta^M, \sigma^2I_n)
+  M_k:\; (n-1) S \sim W_d\left(\lambda_0 I_d + \sum_{\ell=1}^k     \lambda_\ell u_i u_i', \;\;\; n-1\right).
 \end{equation}
-approximately holds. In this setting, a common goal is to find a small subset of variables that include $M$.
+This problem was studied in \citet{choi2014selecting}.
+\end{example}
 
-Analysis of variance (ANOVA) tables provide a classical tool for selecting from among a fixed sequence of nested linear models 
-\begin{equation}
-  \emptyset = M_0 \sub M_1 \sub \cdots \sub \{1,\ldots,d\},
-\end{equation}
-using $t$- or $F$-tests to compare each $M_k$ to the next larger proposed model $M_{k+1}$.
+\subsection{Generic Setting}
 
-In exploratory settings it is commonly impossible to specify a sequence of nested models in advance. Procedures abound for adaptively selecting a sequence of nested models, such as forward stepwise regression, LARS, the lasso, and many more \citep{ESL}. However, there are few accepted methods for choosing a final $M_k$ from among the sequence. In particular, using unadjusted $t$- or $F$-tests is no longer a valid option after adaptive selection. For example, if our algorithm begins by selecting the variable most correlated with $Y$, then the $t$-statistic for testing $M_1$ against $M_0$ is very likely to be large, even if $M_0$, the global null hypothesis, is true.
+More generically, we observe data $Y \in \cY$, with unknown sampling distribution $F$. We then use $Y$ to generate an adaptive sequence of $d$ nested models
+\[
+M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y).
+\]
+Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k\}$, the index of the first correct model. 
 
-Cross-validation treats $k$ as a tuning parameter and seeks a value $k$ that will produce a good predictive model. However, it does not yield statements of accuracy or inaccuracy for the models selected.
+We will consider two related problems. First, we will consider the problem of obtaining selective single-step $p$-values, where $p_k$ is a $p$-value for testing
+\[
+H_{0,k}:\; F\in M_{k-1}\quad \text{ vs. } \quad 
+H_{1,k}:\; F\in M_k\setminus M_{k-1},
+\]
+while adjusting for the fact that the models are chosen adaptively. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
 
-We propose a modular method for selecting a stopping rule based on the selective framework of \citet{fithian2014optimal}. Our method generalizes the ANOVA table to nested sequences of linear or other probabilistic models that are adaptively selected using $Y$. Given data $Y$, a nested model sequence, and the algorithm used to form the sequence, we return a $p$-values $p_k$ for the test at each step $k$. If $M_K$ is the first correct model (note $K$ is random because the sequence is), the resulting $p$-values $p_{K}, \ldots, p_d$ are independent and (stochastically larger than) uniform, conditional on the selected model sequence. By combining our $p$-values with the sequential testing methods of \citet{wager2014}, we can estimate $K$, and control the probability of selecting an index much bigger than the true $K$.
+The second half of the paper concerns {\em stopping rules} $\hk$, estimators of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including two powerful stopping rules proposed in \citet{gsell2013sequential}. These latter require guarantees on the joint law of the $p$-values. We will prove sufficient conditions for when the $p$-values are Gaussian.
 
-\WFcomment{Put in real data example?}
+Although we will focus most of our attention and examples on the case of selecting a set of predictors in linear regression, essentially all of our results apply in generic exponential family models.
 
-\WFcomment{Put in non-Gaussian example?}
+\subsection{Which Null Hypothesis Should We Test?}
 
-\section{The Problem of Sequential Model Selection}
+There is some ambiguity involved in deciding how to generalize $z$- and $t$-tests to the selective case. For example, \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$. As discussed at some length in \citet{fithian2014optimal}, there are several different models that 
 
-\subsection{Notation and Problem Setting}
+In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of major scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would be evidence for a causal effect of $X_1$ on the response.
 
-Assume that we observe data $Y\in\cY$, with unknown sampling distribution $F$. Our goal is to choose a suitable model for $F$ after using some algorithm to propose an adaptive sequence of nested models:
-\begin{equation}
-  M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub \cF.
-\end{equation}
-Specifically, for $k=1,\ldots,d$, we wish to test whether $M_k$ represents a meaningful improvement on $M_{k-1}$; e.g., test whether adding the $k$th selected variable improves the model with the first $k-1$ variables. Let $\bM(Y)$ denote the sequence $(M_0,\ldots,M_d)$, and define its {\em completion index} $K$ to be the index of the first model containing $F$:
-\begin{equation}
-  K(\bM) = \min \{k:\, F\in M_k\}.
-\end{equation}
-Let $N_k$ denote the event $\{F\in M_{k-1}(Y)\}\sub \cY$, the event that the null hypothesis is true for the test at stage $k$. That is, if $M_0$ and $M_1$ are false but $M_2$ is true, then $Y\notin N_0$ or $N_1$, but $Y\in N_2 \sub N_3 \sub \cdots$. Note $Y_k\in N_k$ if and only if $k>K$.
+If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarry chip. Then $\beta_{j,\text{Full}}$ is already fairly arbitrary, since we would be controlling for a different set of genes if we had purchased the chip from a different manufacturer.
 
-For example, suppose that we use the LARS algorithm to build up a linear regression model. Let $J_k(Y)$ be the index of the $k$th variable to have a nonzero coefficient in the LARS path, so that we add variables to the model in the order $X_{J_1}, X_{J_2}, \ldots, X_{J_d}$. It is natural to take model $M_k(Y)$ as
-\begin{equation}
-  M_k:\, Y \sim 
-  \cN\left(\alpha + X_{J_{1}} \beta_{J_{1}} + \cdots X_{J_k}\beta_{J_k}, 
-  \;\sigma^2I\right).
-\end{equation}
-%If the sequence $J_1,\ldots,J_d$ were deterministic instead of adaptive, then %we might construct an ANOVA table for testing whether there was sufficient %evidence to add each variable to the model in sequence. 
-If the true mean of $Y$ is linear in $X_{J_1}, X_{J_3},$ and $X_{J_5}$, then $K = 5$ and $Y\in N_k$ for $k=6,\ldots,d$.
+\WFcomment{Also say: Controlling for more variables could take us farther from a causal effect.}
 
-Once the algorithm for choosing the sequence $\bM(Y)$ has been specified, we will carry out tests for each comparison. The goal we have set for ourselves is meant to be analogous to sequential testing of ANOVA tables for a fixed sequence of models, though there certainly are other sequential model selection tasks that could be of interest.
+\WFcomment{Also say: }
 
+\section{Inference for One Step}
+
+\subsection{}
+
+\subsection{}
+
+\section{Sequential Inference}
 
 \subsection{Stopping Rules}
-For our purposes, a {\em stopping rule} $\hK(Y)$ is simply an estimate of the completion index $K$, which we could use to ultimately choose the model $M_{\hK}$ from the sequence.
 
-For our purposes, a good stopping rule is one that does not go on refining the model unnecessarily once it is already adequate; e.g. we might want
-\begin{equation}
-  \P(\hK > K \gv \bM) \leqAS \alpha, \quad \text{ or } \quad \E\left(\frac{(\hK - K)\vee 1}{\hK \vee 1} \gv \bM \right) \leqAS \alpha
-\end{equation}
-Although it might initally seem more natural to require $\P(\hK < K \gv \bM) \leq \alpha$ (i.e., that we choose an adequate model with high probability) this goal is typically infeasible as stated. For example, suppose that all the coefficients in a linear regression model are $\beta_j=\ep>0$. As $\ep\to 0$, it becomes impossible to distinguish the true model from the global null model $\beta=0$.
 
-In particular, we will focus on constructing a sequence of $p$-values $(p_1(Y),\ldots,p_d(Y))$. $p_k(Y)$ is a {\em conservative selective $p$-value} if
-\begin{equation}
-  \P_F\left(p_k(Y) \leq \alpha \gv \bM\right) \leqAS \alpha \text{ on } N_k.
-\end{equation}
-That is, conditional on the question asked, $p_k$ ought to be stochastically larger than uniform.
+\subsection{The Excluded-Variable Irrelevance Property}
 
-We say the sequence $(p_1,\ldots,p_d)$ are {\em jointly conservative selective $p$-values} if
-\begin{equation}
-  \P_F(p_k(Y) < \alpha_k, \forall k>K \gv \bM) \leqAS \prod_{k>K} \alpha_k, \quad \forall \alpha_1,\ldots, \alpha_d\in (0,1), F\in \cF
-\end{equation}
-Notice that $K$ is random but the conditional probability above still makes sense because $K$ is a function of $\bM$.
+We say that a selection algorithm $M_{[d]}(\cdot)$ has the {\em excluded-parameter irrelevance condition} (henceforth EPIC) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
 
-Joint conservatism of $p$-values is a minor generalization of requiring the null $p$-values to be mutually independent given the model sequence $\bM$.
+Ever-active coefficients in a regularization path are 
+\begin{proposition}
+  Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $k\in [d]$, let $P_k(\theta)$ denote a regularizing penalty to use at step $k$. Define
+%  \begin{align*}
+%    \hat\theta^{k}(Y) &\triangleq 
+%    \argmin_{\theta\in\Theta} -\log L(\theta; Y) + P_k(\theta) \\
+%    E_k(Y) &\triangleq \left\{j:\; \hat\theta_j^\ell \neq 0 
+%      \text{ for any \ell \leq k} \right\}\\ 
+%    M_k(Y) &\triangleq \{F\in M_\infty:\; 
+%    \theta_j = 0,\; \forall j \notin E_k\}
+%  \end{align*} 
+  Then $M_d(\cdot)$ satisfies EPIC.
+\end{proposition}
+\WFcomment{Need to be able to prune away the times when $M_k=M_{k-1}$; otherwise how do you construct $p_k$ for that time?}
+
+\begin{proof}
+  Let 
+\end{proof}
 
 \begin{proposition}
-  Suppose that, given $\bM$, the $(p_k)_{k>K}$ are conditionally uniform and mutually independent. Then $(p_k)$ are jointly conservative.
+  
 \end{proposition}
 
-A  benefit of having jointly conservative $p$-values is that we can apply the stopping rules of \citet{gsell2013sequential} to control error rates such as the model FDR and model FWER. The next section proposes a generic recipe for obtaining such $p$-values
-
-\subsection{A Sequential Selection Variable for Pathwise FDR}
-
-Define the {\em $k$th pathwise selection variable} as 
-\begin{equation}
-  S_k(Y) = (M_0,\ldots,M_k,p_1,\ldots,p_{k-1}).
-\end{equation}
-If for each $k$ the $p$-value $p_k$ is conservative conditional on $S_k$, then the $p$-value sequence $(p_k)$ is jointly conservative. 
-\begin{proposition}
-  Suppose that for each $k$, $p_k(Y)$ is conservative conditional on $S_k(Y)$ under $F\in M_k(Y)$. Then $(p_k)$ are jointly conservative given $\bM$.
-\end{proposition}
-
-Although conditioning on $S_k$ may appear daunting, in many cases it can be a simple matter, as we see next.
-
-\section{Simplifications in Exponential Family Models}
-
-\begin{model}[Exponential Family]\label{mod:exFam}
-  Assume that we have finitely many sufficient statistics $T_j(Y)$, and $F$ is in an exponential family after adding enough sufficient statistics to the model:
-  \begin{equation}
-    Y \sim \exp\left\{\sum_j \theta_j ' T_j(y) - \psi(\theta)\right\} h(y)
-  \end{equation}
-  Assume we add sufficient statistics to the model one at a time in the order $T_{J_0}, T_{J_1}, \ldots$, so that model $k$ is
-  \begin{equation}
-    Y \sim \exp\left\{\theta_{J_0} ' T_{J_0}(y) + \theta_{J_1}'T_{J_1}(y) + \cdots + \theta_{J_k}'T_{J_k}(y) - \psi(\cdot)\right\} h(y)
-  \end{equation}
-\end{model}
-
-Our running Example~\ref{ex:linReg} is a simple case of Model~\ref{mod:exFam}. In that case,
+Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
 \begin{align*}
-  \theta_0 = 1/2\sigma^2, &\qquad T_0(Y) = \|Y\|^2,\\
-  \theta_j = \beta_j/\sigma^2, &\qquad 
-T_j(Y) = X_j'Y, \text{ for } j>0
+  \sF_{k,\ell} &= \sF(M_{[k]},p_{[\ell]})\\
+  \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
+  \sF_{1,1} \;\;\sub \cdots \sub\;\;
+  \sF_{d-1,d-1} \underlabel_{\text{selection } d} \sF_{d,d-1}
+  \underlabel_{\text{inference } d} \sF_{d,d}
 \end{align*}
 
-Another example is that of the Wishart, in which we have
-\begin{equation}
-  Y \sim \exp\left\{ \sum_{ij} \theta_{ij}y_{ij} - \psi(\theta)\right\}h(y)
-\end{equation}
 
-To obtain a $p$-value for testing the null hypothesis $M_{k-1}$ against the alternative $M_k \setminus M_{k-1}$, we will typically condition on $U_k=(T_1,\ldots, T_{k-1})$ simply as a way to eliminate $\zeta_k=(\theta_1,\ldots, \theta_{k-1})$ from the problem. In many cases, $p_{k-1}$ is a function only of $U_k$. If so, it is not necessary to condition explicitly on the previous $p$-values.
-
-
-\section{Simulation: Sequential Model Selection Using the Lasso Path}
+\section{Simulation: Sparse Linear Regression}
 
 
 
-\section{Discussion}
-
-We have seen that sequential selection of models --- the 
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}
