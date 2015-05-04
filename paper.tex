@@ -60,6 +60,7 @@
 \newcommand{\tE}{\widetilde{E}}
 \newcommand{\hK}{\widehat{K}}
 \newcommand{\hk}{\hat{k}}
+\newcommand{\cN}{\mathcal{N}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
 
 
@@ -69,7 +70,7 @@
 \newcommand{\WFcomment}[1]{{\color{red}{(WF: \bf \sc #1) }}}
 
 \title{Adaptive Sequential Model Selection}
-\author{William Fithian, Jonathan Taylor, Rob Tibshirani, \and Ryan Tibshirani}
+\author{William Fithian, Jonathan Taylor, Rob Tibshirani, and Ryan Tibshirani}
 \maketitle
 
 \begin{abstract}
@@ -175,10 +176,10 @@ Methods for one-step selective $p$-values are by now well-studied. \WFcomment{bi
 
 We illustrate the superior power of the selected-model test in early steps with an extended example.
 
-\begin{example}[Bivariate Regression]
+\begin{example}[Bivariate Regression]\label{ex:bivariate}
   Consider forward stepwise selection in a regression model with $n=p=2$, with identity design $X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}$ and known $\sigma^2=1$. We perform one step of forward stepwise and then test the null model with no variables against the model with one variable. 
 
-We will choose variable 1 first on the selection event $A=\{|Y_1| > |Y_2|\}$, which is shown in yellow in Figure~\ref{fig:condSets}. In that case,
+We will choose variable 1 first on the selection event $A=\{|Y_1| > |Y_2|\}$, which is shown in yellow in Figure~\ref{fig:bv_condSets}. In that case,
 \[
 M_0:\; Y\sim \cN(0,I_2), \quad\text{ and } 
 M_1:\; Y \sim \cN\left(\frac{\mu_1}{0}, \; I_2\right).
@@ -187,16 +188,73 @@ The selected-model test compares $Y_1$ to its distribution under $M_0$ condition
 
 By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Now, $\mu_2$ enters the problem as a nuisance parameter because the saturated-model test refuses to assume that $\mu_2=0$. To eliminate the nuisance parameter $\mu_2$, the saturated model test must condition on $Y_2$, and compare $Y_1$ to its null distribution given $A$ {\em and} the observed value of $Y_2$.
 
-Figure~\ref{fig:condSets} shows the conditioning sets for each model when $Y=(2.9,2.5)$. Next to it, Figure~\ref{fig:nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively.
+Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9,2.5)$. Next to it, Figure~\ref{fig:bv_nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
 \end{example}
 
-The case illustrated in Figure~\ref{fig:condSets} exhibits a phenomenon that has been remarked upon elsewhere in the literature of saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the winning variable may have a very weak $p$-value. \WFcomment{add references}. Figure~\ref{fig:}
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{.4\textwidth}
+    % source code: bivariateSelVSat.R
+    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_condSets.pdf}
+    \caption{\WFcomment{Copied directly from FST14; reword} 
+      For $Y=(2.9,2.5)$, the selected-model conditioning set is
+      $A=\{y:\;|y_1|>|y_2|\}$, a union of quadrants,
+      plotted in yellow. The saturated-model conditioning set
+      is ${\{y:\; y_2=2.5\}\cap A} = {\{y:\;y_2=2.5, |y_1|>2.5\}}$,
+      a union of rays, plotted in brown.}
+    \label{fig:bv_condSets}
+  \end{subfigure}
+  \hspace{.1\textwidth}
+  \begin{subfigure}[t]{.4\textwidth}
+    % source code: bivariateSelVSat.R
+    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_nullDists.pdf}
+    \caption{\WFcomment{Copied directly from FST14; reword} 
+      Conditional distributions of $Y_1$ under
+      $H_0:\mu_1 = 0$. Under the hypothesis
+      $\mu=0$, the realized  $|Y_1|$ is  quite large given $A$,
+      giving  $p$-value 0.015. By contrast, $|Y_1|$ is not too large
+      given $A \cap \{y:\; y_2=Y_2\}$, giving
+      $p$-value 0.3.}
+  \end{subfigure}
+  \caption{\WFcomment{Copied directly from FST14; reword} 
+    Contrast between the saturated-model and selected-model tests
+    in Example~\ref{ex:bivariate}, in which we fit a one-sparse model with
+    design matrix $\bX=I_2$. The selected-model test is based
+    on  $\L_0(Y_1 \gv A)$, whereas the saturated-model test is based
+    on $\L_0(Y_1  \gv  Y_2, A)$.}
+  \label{fig:bv_nullDists}
+\end{figure}
 
 
-While the selected-model $p$-value is not always smaller than the saturated-model $p$-value, the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:powCurves_0} shows the power curve for each test when $\mu_2=0$. While the selected-model test is more powerful, the difference between the two is relatively mild. The difference is much more pronounced when $\mu_2=4$, as shown in Figure~\ref{fig:powCurves_4}. 
+The case illustrated in Figure~\ref{fig:bv_condSets} exhibits a phenomenon that has been remarked upon elsewhere in the literature of saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the winning variable may have a very weak $p$-value. \WFcomment{add references}. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=\binom{4}{4}$, a very strong signal. While the selected model test has near perfect power, it is not uncommon for the saturated model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise exactly when there is a near tie between the variables.
 
+\begin{figure}
+  \centering
+  % source code: bivariateSelVSat.R
+  \includegraphics[width=.5\textwidth]{figs/bivariateSelVSat_rocCurve.pdf}
+  \caption{\WFcomment{Write caption here.}}
+  \label{fig:bv_rocCurve}
+\end{figure}
 
-\subsection{Sub-Path Sufficiency Principle}
+Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves_0} shows the power curve for each test when $\mu_2=0$. While the selected-model test is more powerful, the difference between the two is relatively mild. Interestingly, the difference is much more pronounced when $\mu_2=4$, as shown in Figure~\ref{fig:bv_powCurves_4}.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[t]{.4\textwidth}
+    % source code: bivariateSelVSat.R
+    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_0.pdf}
+    \caption{\WFcomment{Write caption here.}}
+    \label{fig:bv_powCurves_0}
+  \end{subfigure}
+  \hspace{.1\textwidth}
+  \begin{subfigure}[t]{.4\textwidth}
+    % source code: bivariateSelVSat.R
+    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_4.pdf}
+    \caption{\WFcomment{Write caption here.}}
+  \end{subfigure}
+  \caption{\WFcomment{Write caption here.}}
+   \label{fig:bv_powCurves_4}
+\end{figure}
 
 
 
@@ -205,34 +263,46 @@ While the selected-model $p$-value is not always smaller than the saturated-mode
 \subsection{Stopping Rules}
 
 
-\subsection{The Excluded-Variable Irrelevance Property}
+\subsection{Sub-Path Sufficiency Principle}
 
-We say that a selection algorithm $M_{[d]}(\cdot)$ has the {\em excluded-parameter irrelevance condition} (henceforth EPIC) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
+We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
 
-Ever-active coefficients in a regularization path are 
-\begin{proposition}
-  Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $k\in [d]$, let $P_k(\theta)$ denote a regularizing penalty to use at step $k$. Define
-%  \begin{align*}
-%    \hat\theta^{k}(Y) &\triangleq 
-%    \argmin_{\theta\in\Theta} -\log L(\theta; Y) + P_k(\theta) \\
-%    E_k(Y) &\triangleq \left\{j:\; \hat\theta_j^\ell \neq 0 
-%      \text{ for any \ell \leq k} \right\}\\ 
-%    M_k(Y) &\triangleq \{F\in M_\infty:\; 
-%    \theta_j = 0,\; \forall j \notin E_k\}
-%  \end{align*} 
-  Then $M_d(\cdot)$ satisfies EPIC.
+
+A model selection procedure derived from the ``ever-active'' coefficients of a regularized likelihood path always satisfies the SPSP. Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $r=0,\ldots,R$, let $P_r(\theta)$ denote a sequence of regularizing penalties, and define
+\begin{align}\label{eq:regPathDef_start}
+  \hat\theta^{r}(Y) &\triangleq 
+  \argmin_{\theta\in\Theta} -\log L(\theta; Y) + P_r(\theta) \\
+  \tE_r(Y) &\triangleq \left\{j:\; \hat\theta_j^s \neq 0 
+    \text{ for any } s \leq r \right\}
+\end{align}
+Note that while the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. Let $r(0)=0$, and for $k>0$ define
+\begin{equation}
+r(k) = \min\{s:\; \tE_s \neq \tE_{r(k-1)}\}.
+\end{equation}
+That is, the $r(k)$ are the indices where the active set changes. Let $E_k = \tE_{r(k)}$, and take
+\begin{equation}\label{eq:regPathDef_end}
+M_k \triangleq \{F\in M_\infty:\; \theta_j = 0,\; \forall j \notin E_k\}
+\end{equation}
+Model paths described in this way satisfy the SPSP, as we see next.
+
+\begin{proposition}[Regularized Likelihood Paths Satisfy SPSP]
+  Model paths specified as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
 \end{proposition}
-\WFcomment{Need to be able to prune away the times when $M_k=M_{k-1}$; otherwise how do you construct $p_k$ for that time?}
+\WFcomment{Actually, you just keep the times when the model changes... Need to recast notation a bit; indices of $\lambda$ (or $P$, here) need not match up with indices of model.}
 
 \begin{proof}
   Let 
 \end{proof}
 
-\begin{proposition}
-  
+\begin{proposition}[Forward Stepwise Paths Satisfy SPSP]
+  \WFcomment{Generalized forward stepwise}
 \end{proposition}
 
-Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
+\begin{proof}
+  Let
+\end{proof}
+
+\WFcomment{This is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
 \begin{align*}
   \sF_{k,\ell} &= \sF(M_{[k]},p_{[\ell]})\\
   \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
@@ -241,11 +311,16 @@ Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\
   \underlabel_{\text{inference } d} \sF_{d,d}
 \end{align*}
 
+\subsection{}
+
+
 
 \section{Simulation: Sparse Linear Regression}
 
 
+\section{Simulation: Principal Components Analysis}
 
+\WFcomment{Can we do this one?}
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}

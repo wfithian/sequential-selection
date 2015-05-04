@@ -136,11 +136,12 @@ par(xaxs="i",mar=c(4.1,4.1,0.2,0.7))
 plot(ecdf(pvals[,2]),xlim=c(0,1),main="",xlab=expression(p[1]),ylab="CDF")
 plot(ecdf(pvals[,1]),col="red",add=T)
 lines(c(max(pvals[,1]),1),c(1,1),col="red")
-legend("bottomright",legend=c("Saturated","Selected"),col=1:2,lty=1)
+abline(h=1,col="gray",lty=2)
+legend("bottomright",legend=c("Saturated","Selected"),col=1:2,lty=1,bg="white")
 dev.off()
 
 # Now, try for a grid of mu values
-mu1.vals <- c(seq(0,.1,.02),seq(.01,8,.2))
+mu1.vals <- c(seq(0,.1,.02),seq(.2,8,.2))
 mu2.vals <- c(0,4)#seq(0,5,1)
 set.seed(1)
 B <- 1E5
@@ -156,18 +157,13 @@ for(mu2 in mu2.vals) {
     nrej.sat[as.character(mu1), as.character(mu2)] <-
       sum(saturated.test(y[,1], y[,2]))
   }
-  #cat("finished for mu2 = ", mu2, "\n")
+  cat("finished for mu2 = ", mu2, "\n")
 }
 
 
 library(splines)
 
 #mu2 = 4
-plot(mu1.vals,nrej.sat[,"0"]/B)
-points(mu1.vals,nrej.sel[,"0"]/B,col="red")
-y <- rtruncnorm(B, c(2,0))
-points(2,mean(saturated.test(y[,1], y[,2])),col="blue",pch=10)
-
 
 ## Smooth power function using logistic regression with splines
 resp.sat <- cbind(nrej.sat[,"4"],B-nrej.sat[,"4"])
@@ -179,7 +175,7 @@ pred <- c(-rev(mu1.vals),mu1.vals)
 sm.pow.sat <- glm(resp.sat ~ ns(pred,40), family=binomial)
 sm.pow.sel <- glm(resp.sel ~ ns(pred,40), family=binomial)
 
-pdf("../figs/bivariateSelVSat_powCurves_4.pdf",width=6,height=5)
+pdf("../figs/bivariateSelVSat_powCurves_4.pdf",width=4.5,height=4.3)
 par(xaxs="i",mar=c(4.1,4.1,3.1,0.7))
 plot(pred,predict(sm.pow.sat,type="response"),type="l",ylim=c(0,1),
      xlab=expression(mu[1]),ylab="Power",
@@ -191,16 +187,19 @@ legend("bottomright",lty=1,col=1:2,legend=c("Saturated","Selected"),
        bg="white")
 dev.off()
 
+# mu2 = 0
+
 resp.sat <- cbind(nrej.sat[,"0"],B-nrej.sat[,"0"])
 resp.sat <- rbind(resp.sat[nrow(resp.sat):1,], resp.sat)
 resp.sel <- cbind(nrej.sel[,"0"],B-nrej.sel[,"0"])
 resp.sel <- rbind(resp.sel[nrow(resp.sel):1,], resp.sel)
 pred <- c(-rev(mu1.vals),mu1.vals)
 
+sm.pow.sat <- glm(resp.sat ~ ns(pred,40), family=binomial)
+sm.pow.sel <- glm(resp.sel ~ ns(pred,40), family=binomial)
 
 
-# SOMETHING WRONG HERE!!!
-pdf("../figs/bivariateSelVSat_powCurves_0.pdf",width=6,height=5)
+pdf("../figs/bivariateSelVSat_powCurves_0.pdf",width=4.5,height=4.3)
 par(xaxs="i",mar=c(4.1,4.1,3.1,0.7))
 plot(pred,predict(sm.pow.sat,type="response"),type="l",ylim=c(0,1),
      xlab=expression(mu[1]),ylab="Power",
