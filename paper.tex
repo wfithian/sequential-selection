@@ -73,11 +73,13 @@
 \maketitle
 
 \begin{abstract}
-  
+  Many model selection algorithms produce a ``path'' of fits that can be veiwed as specifying a sequence of models of increasing complexity. Given such a sequence of models and the data set used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data, while accounting for the fact that the model path is determined adaptively using the data. Extending the tools of Fithian, Sun and Taylor (2014), we construct a $p$-value for each step in the sequence. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically. By combining our $p$-values with stopping rules proposed by \citet{gsell2013sequential}, we achieve adaptive control of the pathwise familywise error rate and false discovery rate.
 \end{abstract}
 
 
 \section{Introduction}
+
+... generates a sequence of increasingly complex models. Our goal is to choose the simplest model that is not falsified by the available data.
 
 ... and find the index of the smallest adequate model --- that is, the smallest model that cannot be falsified given available evidence.
 
@@ -136,15 +138,67 @@ In some cases the design matrix of the full model may represent a  scrupulously 
 
 If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarry chip. Then $\beta_{j,\text{Full}}$ is already fairly arbitrary, since we would be controlling for a different set of genes if we had purchased the chip from a different manufacturer.
 
-\WFcomment{Also say: Controlling for more variables could take us farther from a causal effect.}
+\WFcomment{Also say: Controlling for more variables could take us farther from a causal effect; furthermore, coefficient in larger model is much harder to interpret.}
 
-\WFcomment{Also say: }
 
 \section{Inference for One Step}
 
-\subsection{}
+To begin, we consider the problem of constructing a valid selective $p$-value for a particular step. At step $k$, we construct $p_k(Y)$ to test
+\[
+  H_{0,k}:\; F \in M_{k-1}(Y)
+  \quad \text{ vs. } \quad
+  H_{1,k}:\; F \in M_k(Y) \setminus M_{k-1}(Y).
+\]
+The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a fixed candidate pair $m_{k-1} \sub m_k$.
 
-\subsection{}
+The random variable  $p_{k,m_{k-1},m_k}(Y)$ is a valid {\em selective $p$-value} for the fixed candidate pair $(m_{k-1},m_k)$ if it is stochastically larger than uniform under the (fixed) null $m_{k-1}$, given that the pair $(m_{k-1},m_k)$ is selected. That is,
+\[
+\P_F\left(p_{k,m_{k-1},m_k}(Y) \leq \alpha \mid M_{k-1}(Y) = m_{k-1}\right) 
+\leq \alpha, \quad \forall F\in m_{k-1}, \alpha \in [0,1].
+\]
+Given selective $p$-values for each fixed candidate pair, we can construct a combined $p$-value for the random null $(M_{k-1},M_k)$: 
+\[
+p_k(y) = p_{k, M_{k-1}(y), M_k(y)}(y),
+\]
+which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
+\[
+\P_F\left(p_k \leq \alpha \mid M_{k-1}, \;M_k, 
+  \;F\in M_{k-1}\right) \leq \alpha, \quad \forall \alpha \in [0,1].
+\]
+Recall that, as usual, $F$ is not random, but $M_{k-1}$ is.
+
+Methods for one-step selective $p$-values are by now well-studied. \WFcomment{big list of references.} See \citet{fithian2014optimal} for a general treatment. 
+
+\subsection{Selective $p$-Values in Regression}
+
+\subsection{Selected- and Saturated-Model inference}
+
+We illustrate the superior power of the selected-model test in early steps with an extended example.
+
+\begin{example}[Bivariate Regression]
+  Consider forward stepwise selection in a regression model with $n=p=2$, with identity design $X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}$ and known $\sigma^2=1$. We perform one step of forward stepwise and then test the null model with no variables against the model with one variable. 
+
+We will choose variable 1 first on the selection event $A=\{|Y_1| > |Y_2|\}$, which is shown in yellow in Figure~\ref{fig:condSets}. In that case,
+\[
+M_0:\; Y\sim \cN(0,I_2), \quad\text{ and } 
+M_1:\; Y \sim \cN\left(\frac{\mu_1}{0}, \; I_2\right).
+\]
+The selected-model test compares $Y_1$ to its distribution under $M_0$ conditional on $A$, a test of $H_0:\;\mu_1=0$ in model $M_1$.
+
+By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Now, $\mu_2$ enters the problem as a nuisance parameter because the saturated-model test refuses to assume that $\mu_2=0$. To eliminate the nuisance parameter $\mu_2$, the saturated model test must condition on $Y_2$, and compare $Y_1$ to its null distribution given $A$ {\em and} the observed value of $Y_2$.
+
+Figure~\ref{fig:condSets} shows the conditioning sets for each model when $Y=(2.9,2.5)$. Next to it, Figure~\ref{fig:nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively.
+\end{example}
+
+The case illustrated in Figure~\ref{fig:condSets} exhibits a phenomenon that has been remarked upon elsewhere in the literature of saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the winning variable may have a very weak $p$-value. \WFcomment{add references}. Figure~\ref{fig:}
+
+
+While the selected-model $p$-value is not always smaller than the saturated-model $p$-value, the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:powCurves_0} shows the power curve for each test when $\mu_2=0$. While the selected-model test is more powerful, the difference between the two is relatively mild. The difference is much more pronounced when $\mu_2=4$, as shown in Figure~\ref{fig:powCurves_4}. 
+
+
+\subsection{Sub-Path Sufficiency Principle}
+
+
 
 \section{Sequential Inference}
 
