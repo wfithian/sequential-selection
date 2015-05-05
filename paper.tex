@@ -58,6 +58,8 @@
 \newcommand{\bM}{\mathbf{M}}
 \newcommand{\tM}{\widetilde{M}}
 \newcommand{\tE}{\widetilde{E}}
+\newcommand{\tV}{\widetilde{V}}
+\newcommand{\tR}{\widetilde{R}}
 \newcommand{\hK}{\widehat{K}}
 \newcommand{\hk}{\hat{k}}
 \newcommand{\cN}{\mathcal{N}}
@@ -260,10 +262,66 @@ Results in \citet{fithian2014optimal} show that the selected-model test is stric
 
 \section{Sequential Inference}
 
+Having discussed methods for constructing single-step $p$-values, we turn now to the problem of constructing a {\em stopping rule}; that is, an estimator $\hk$ of the completion index $k_0(Y)\in \{0,\ldots,d,\infty\}$. $M_k$ is ``rejected'' if and only if $\hk>k$. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. The number of type I errors, then, is $(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. Define $V=(\hk-k_0)_+$, the number of excess rejections.
+
+Note that the type I error $V$ is defined in a ``model-centric,'' as opposed to a ``variable-centric,'' fashion: in regression, our model-wise $V$ counts the number of true null {\em models} incorrectly rejected, instead of counting the number of noise variables included in the final model. We can define the (model-wise) familywise error rate (FWER) and false discovery rate (FDR) respectively as $\P_F(V >0)$ and $\E_F[V/(\hk \vee 1)]$. 
+
+We could have instead defined the ``variable-centric'' type I error $\tV$ as the number of noise variables incorrectly included in the final model, with $\tR$ denoting the total number of variables included. Here, by ``noise variable'' we mean one that has a non-zero coefficient in the full model. Using selective inference to control the variable-wise FWER $\P_\mu(\tV>0)$ and FDR $\E[\tV / (\tR \vee 1)]$ is an interesting topic for further study.
+
 \subsection{Stopping Rules}
 
+We will consider stopping rules that depend on the sequence $p_1,\ldots,p_d$ of $p$-values, which have been studied in the literature by \WFcomment{literature review here.} We will focus on three such stopping rules: simple stop, proposed by \WFcomment{whom?}, and the more refined strong stop and forward stop, proposed by \citet{gsell2013sequential}. 
 
-\subsection{Sub-Path Sufficiency Principle}
+While strong stop and forward stop tend to give more powerful stopping rules, they require independence among the $p$-values. Sections~\ref{sec:modelSPSP}--\ref{sec:pvalSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which selective $p$-values are mutually independent. We will see that, typically, selected-model $p$-values are sequentially independent while saturated-model $p$-values are not.
+
+\subsubsection{Basic Stop:}
+
+\WFcomment{Is there a better name for this? Can we find it in the literature?}
+
+The most obvious sequential procedure is to reject at each step until the first time $p_k > \alpha$, which we can formalize as
+\[
+\hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
+  p_k > \alpha\right\} - 1
+\]
+We will call this procedure ``basic stop.'' 
+
+If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
+\[
+\P(V>0) = \P(p_{k_0+1} \leq \alpha) \leq \alpha
+\]
+\WFcomment{Trivial, but no doubt someone else proved this first...}
+
+Selectively valid single-step $p$-values do not necessarily guarantee FWER control when $k_0$ is random. In that case, we need a bit more, but it is sufficient that we have type I error control for $p_k$ conditional on $k_0=k-1$; i.e., not just conditional on $M_{k-1}$ being a correct model, but given that $M_{k-1}$ is the {\em first} correct model.
+
+\subsubsection{Strong Stop:}
+
+\citet{gsell2013sequential} propose another method for controlling the model-wise FWER, which they called ``strong stop.'' Define
+\[
+  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    \exp\left(\sum_{i=k}^d \frac{\log p_i}{i}\right) 
+    \leq \frac{\alpha k}{d}\right\}
+\]
+Even if $p_k$ is a little larger than $\alpha$, say $\alpha=0.05$ and $p_k=0.06$, strong stop can still reject $M_{k-1}$ if the next three or four $p$-values are also relatively small.
+
+\citet{gsell2013sequential} show that if $k_0$ is fixed, then $\hk_S$ controls the FWER at level $\alpha$, as long as the null $p$-values are independent given the non-null ones. Specifically, they require that
+\[
+\P(p_{k_0+1} \leq \alpha_{k_0+1}, \ldots, p_d \leq \alpha_d
+\mid p_1, \ldots, p_{k_0}) \leq \prod_{\ell=k_0+1}^d \alpha_\ell
+\]
+
+
+\subsubsection{Forward Stop:}
+
+
+\subsection{Independent $p$-Values and Sufficiency Principles}
+
+
+\subsection{}
+
+\subsubsection{A Sub-Path Sufficiency Principle for SelectionAlgorithms}\label{sec:modelSPSP}
+
+
+\subsubsection{A Sub-Path Sufficiency Principle for SelectionAlgorithms}\label{sec:modelSPSP}
 
 We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
 
@@ -302,7 +360,7 @@ Model paths described in this way satisfy the SPSP, as we see next.
   Let
 \end{proof}
 
-\WFcomment{This is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
+\WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
 \begin{align*}
   \sF_{k,\ell} &= \sF(M_{[k]},p_{[\ell]})\\
   \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
