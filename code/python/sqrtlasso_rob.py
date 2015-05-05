@@ -3,6 +3,9 @@
 import sys
 sys.path.append('/home/jtaylo/.local/lib/python2.7/site-packages')
 
+# Usage example:
+# ./sqrtlasso_rob.py --X=X.csv --Y=Y.csv --lam=0.9 --outfile=results.csv
+
 from argparse import ArgumentParser
 
 import numpy as np, pandas as pd
