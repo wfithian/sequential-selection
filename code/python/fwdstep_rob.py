@@ -1,8 +1,9 @@
+#!/software/free/statdept/bin/python
+
 # These lines are specific to miller so that the python used is my local one
-#!/home/stow/swtree/python-2.7.3/bin/python2.7
 
 # Usage example:
-# ./fwdstep_rob.py --X=X.csv --Y=Y.csv --active=active.csv --outfile=results.csv --sigma=5.
+# ./fwdstep_rob.py --X=X.csv --Y=Y.csv --active=active.csv --outfile=results.csv --sigma=5. --outfile=results.csv
 
 import sys, os
 sys.path.append('/home/jtaylo/.local/lib/python2.7/site-packages')
@@ -49,6 +50,7 @@ def main():
         raise ValueError('sigma is needed to compute saturated p-values!')
 
     full_results = {}
+    print 'here'
     run(Y, X, args.sigma, active,
         full_results=full_results)
     pd.DataFrame(full_results).to_csv(args.outfile, index=False)
