@@ -60,8 +60,9 @@
 \newcommand{\tE}{\widetilde{E}}
 \newcommand{\tV}{\widetilde{V}}
 \newcommand{\tR}{\widetilde{R}}
-\newcommand{\hK}{\widehat{K}}
+\newcommand{\tL}{\widetilde{L}}
 \newcommand{\hk}{\hat{k}}
+\newcommand{\hr}{\hat{r}}
 \newcommand{\cN}{\mathcal{N}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
 
@@ -340,7 +341,9 @@ In fact, saturated-model $p$-values typically are not independent. Continuing wi
 \begin{table}[ht]
   \centering
   \begin{tabular}{l|ccccc|c}
-%    & & & $p_2$ & & & \\
+    \multicolumn{7}{c}{Saturated-Model $p$-Values 
+      (\% of $10^6$ Simulations)}\\
+    \hline
     \multicolumn{7}{c}{$p_2(Y)$}\\[5pt]
     ${\large p_1(Y)}$ & (0,0.2] & (0.2,0.4] & (0.4,0.6] & (0.6,0.8] & (0.8,1] & \textbf{Total} \\ 
     \hline
@@ -351,6 +354,7 @@ In fact, saturated-model $p$-values typically are not independent. Continuing wi
     (0.8,1] & 11.1 & 4.3 & 2.3 & 1.4 & 1.0 & 20.0 \\ 
     \hline
     \textbf{Total} & 19.9 & 20.0 & 20.0 & 20.1 & 20.0 & 100.0 \\ 
+    \hline
   \end{tabular}
   \caption{Two-way contingency table of saturated-model $p$-values $(p_1(Y), p_2(Y))$ for Example~\ref{ex:bivariate}, after binning into cells of height and width 0.2. We report the percentage of $p$-value pairs falling into each cell out of one million simulations from the global null hypothesis, $\mu=0$. Both $p$-values are marginally uniform but strongly dependent, with a correlation of $-48\%$.}
 \label{tab:bv_twoWayTable}
@@ -400,73 +404,118 @@ We also used the fact that, in the forward stepwise algorithm, if $m_k$ is the $
 
 \subsubsection{$p$-Values and the Sufficiency Principle}\label{sec:pvalSP}
 
-A $p$-value for testing model $M_{k-1}$ against $M_k$ satisfies the sufficiency principle if it is a function only of the sufficient statistics of $M_k$
+A $p$-value for testing model $M_{k-1}$ against $M_k$ satisfies the (conditional) {\em sufficiency principle} if, on the event $\{M_{k-1}=m_{k-1}, M_k=m_k\}$, it depends only on sufficient statistics of $M_k$. 
+
+Based on the law
+\[
+\L_{m_{k-1}}\left(T_k \;\;\mid\;\; T_{k-1},\; M_{k-1}=m_{k-1},\; M_k=m_k\right)
+\]
+
+If $T(Y)$ is a complete sufficient statistic, then any exact $p$-value must have the latter property.
+
 
 \subsubsection{A Sub-Path Sufficiency Principle for Model Selection Procedures}\label{sec:modelSPSP}
 
-We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
+We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, on the event $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. Again, if 
+
+It will be useful to introduce the following notation:
 
 \begin{model}[Generalized Sparse Model]\label{mod:genSparse}
-  Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^p$:
+  Let $M$ be a model parameterized by $\theta\in \Theta \sub \R^p$:
   \[
-  M_{\infty} = \{F_\theta:\; \theta \in \Theta\}.
+  M = \{F_\theta:\; \theta \in \Theta\}.
   \]
-  For subsets $E\sub [p]$ define the model $M_E$ with active coefficients $E$ as follows:
+  For subsets $E\sub [p]$ define the submodel with active coefficients $E$ as follows:
   \[
-  \Theta_E = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
+  \Theta(E) = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
   \quad M(E) = \{F_\theta:\; \theta\in \Theta_E\}.
   \]
+  Let $L(\theta; Y)$ denote the likelihood for model $M$.
 \end{model}
+Note that, although we will make no assumptions about the form of $M$, the results of this section are only useful in cases where we can actually construct single-step $p$-values. At present, that caveat largely restricts us to using exponential family models.
 
-
-In Model~\ref{mod:genSparse}, the {\em forward stepwise algorithm} proceeds as follows: we first set $E_0$ arbitrarily, then at step $k=1,\ldots,d$, we define
+In Model~\ref{mod:genSparse}, the {\em forward stepwise} algorithm proceeds as follows: we first set $E_0(Y)$ arbitrarily, then at step $k=1,\ldots,d$, we define
 \begin{align}\label{eq:forwardDef_start}
-j_k &= \argmax_j \max_{\theta\in\Theta_{E_{k-1}}} \ell(\theta; Y)\\
+j_k &= \argmax_j \;\;\sup \left\{L(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\} \\
 E_k &= E_{k-1} \cup \{j_k\}\\\label{eq:forwardDef_end}
 M_k &= M(E_k)
 \end{align}
 
+To make this definition more concrete, we can specialize it to several familiar examples:
+
+\begin{example}[Forward Stepwise Regression]
+In the case of linear regression with known $\sigma^2$, $p$ is the number of variables and $M$ is $\cN(X\beta, \;\sigma^2I)$. For active set $E \sub [p]$, $M(E)$ is the model $\cN(X_E\beta_E, \;\sigma^2I)$, and $E_0 = \emptyset$. Because the maximized log-likelihood for a linear regression is monotone in the residual sum of squares, the forward stepwise algorithm adds whichever variable reduces the residual sum of squares the most.
+
+For linear regression with unknown $\sigma^2$, there are $p+1$ parameters $(\beta, \sigma^2)$ and $E_0 = \{p+1\}$ because $\sigma^2$ is a parameter for every model.
+\end{example}
+
+\begin{example}[Principle Components Analysis]
+\WFcomment{Do this one.}  
+\end{example}
+
+All forward stepwise procedures satisfy the SPSP.
+
 \begin{proposition}[Forward Stepwise Satisfies SPSP]\label{prop:forwardSPSP}
-  The forward stepwise algorithm defined in (\ref{eq:forwardDef_start}--\ref{eq:forwardDef_end}) satisfies the SPSP.
+  The forward stepwise algorithm in Model~\ref{mod:genSparse} as defined in (\ref{eq:forwardDef_start}--\ref{eq:forwardDef_end}) satisfies the SPSP.
 \end{proposition}
 \begin{proof}
-  \WFcomment{Write proof.}
+  Let $A$ denote the event $\{M_k = M(E)\}$ for some fixed active set $E$. Letting $T(Y)$ be a sufficient statistic for $m_k$, the likelihood $L$ restricted to $\Theta(E) \times A$ is proportional to a function depending only on $T$. If $L_T$ is the likelihood of $T(Y)$, then
+\[
+L(\theta; y) = L_T(\theta; T(y)) \;L_{Y\mid T}(y), \;\; \text{ for } (\theta, y) \in  \Theta(E) \times A.
+\]
+Note that $L_{Y \mid T}(y)$ does not depend on $\theta$ since $T$ is sufficient for $M(E)$.
+
+For $y\in A$ and $\ell \leq k$, we have $E_\ell(y) \sub E$. This means that the maximizer in \eqref{eq:forwardDef_start} is attained for some $j\in E$. So, for $\ell \leq k$, on $A$,
+\begin{align}
+  j_\ell &= \argmax_{j\in E} \;\;\sup \left\{L(\theta; Y):\;
+    \theta\in\Theta(E_{\ell-1} \cup \{j\})\right\} \\
+  &= \argmax_{j\in E} \;\;\sup \left\{L_T(\theta; T(Y)):\;
+    \theta\in\Theta(E_{\ell-1} \cup \{j\})\right\}. \label{eq:onlyT}
+\end{align}
+Replacing $L$ with $L_T$ in~\eqref{eq:onlyT} is justified because $\Theta(E_{\ell - 1} \cup \{j\}) \sub \Theta(E)$ when $E_{\ell-1}\cup E$ and $j\in E$.
+
+Equation~\eqref{eq:onlyT} shows that $j_1,\ldots, j_{k-1}$ all depend on $Y$ only through $T(Y)$. As a result, it also follows that the sequence $M_{[k-1]}(Y)$ depends only of $T(Y)$.
 \end{proof}
 
-A model selection procedure derived from the ``ever-active'' coefficients of a regularized likelihood path always satisfies the SPSP. Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $r=0,\ldots,R$, let $P_r(\theta)$ denote a sequence of regularizing penalties, and define
+Another class of model selection procedures satisfying the SPSP is the sequence ``ever-active'' sets in regularized likelihood methods. For $r=0,1,\ldots$, let $P_r(\theta)$ denote a regularizing penalty, and define
 \begin{align}\label{eq:regPathDef_start}
-  \hat\theta^{r}(Y) &\triangleq 
+  \hat\theta^{r}(Y) &= 
   \argmin_{\theta\in\Theta} -\log L(\theta; Y) + P_r(\theta) \\
-  \tE_r(Y) &\triangleq \left\{j:\; \hat\theta_j^s \neq 0 
+  \tE_r(Y) &= \left\{j:\; \hat\theta_j^s \neq 0 
     \text{ for any } s \leq r \right\}
 \end{align}
-Note that while the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. Let $r(0)=0$, and for $k>0$ define
-\begin{equation}
-r(k) = \min\{s:\; \tE_s \neq \tE_{r(k-1)}\}.
-\end{equation}
-That is, the $r(k)$ are the indices where the active set changes. Let $E_k = \tE_{r(k)}$, and take
-\begin{equation}\label{eq:regPathDef_end}
-M_k \triangleq \{F\in M_\infty:\; \theta_j = 0,\; \forall j \notin E_k\}
-\end{equation}
 
-
-Model paths described in this way satisfy the SPSP, as we see next.
+While the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. We will take the sequence of {\em distinct} ever-active sets. Let $R_0=0$, and for $k>0$ let $R_k$ denote the (random) index where the active set actually changes:
+\begin{align}
+  R_k &= \min\{s:\; \tE_s \neq \tE_{R_{k-1}}\}\\
+  E_k &= \tE_{R_k}\\
+  \label{eq:regPathDef_end}
+  M_k &= M(E_k)
+\end{align}
+\WFcomment{Slightly sloppy definitions: note that $d$, the number of models, is random. $d$ could be 0 or could be infinite, depending on the data. Also, it isn't really necessary that the $r$ values be integers...}
 
 \begin{proposition}[Regularized Likelihood Paths Satisfy SPSP]\label{prop:regPathSPSP}
-  Model paths specified as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
-\end{proposition}
-\WFcomment{Actually, you just keep the times when the model changes... Need to recast notation a bit; indices of $\lambda$ (or $P$, here) need not match up with indices of model.}
-
-\begin{proof}
-  Let 
-\end{proof}
-
-\begin{proposition}[Forward Stepwise Paths Satisfy SPSP]
-  \WFcomment{Generalized forward stepwise}
+Ever-active model paths derived from regularized likelihood methods as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
 \end{proposition}
 
 \begin{proof}
-  Let
+  Again, let $A$ denote the event $\{M_k = M(E)\}$ for some fixed $E$, and define $T$ and $L_T$ as in the proof of Proposition~\ref{prop:forwardSPSP}. We can partition $A$ into subsets $A_r = A \cap \{R(k)=r\}$.
+
+On the event $A_r$, every $\hat\theta^s$ for $s\leq r$ is supported on $E$. That is, for $s \leq r$, we can write 
+\begin{equation}\label{eq:onlyT_Ar}
+  \hat\theta^{s} = 
+  \argmin_{\theta\in\Theta(E)} -\log L_T(\theta; T(Y)) + P_s(\theta) \quad \text{ on } A_r
+\end{equation}
+Equation~\label{eq:onlyT_Ar} guarantees that $M_{[k-1]}$ is a function of $T(Y)$ on $A_r$. That is, we can write
+\[
+M_{[k-1]}(Y) = M_{[k-1]}^r(T(Y)) \quad \text{ on } A_r
+\]
+It remains only to show that, on $A$, $R_k(Y)$ depends only on $T(Y)$; then we have
+\[
+M_{[k-1]}(Y) = M_{[k-1]}^{R(T)}(T) \quad \text{ on } A
+\]
+But $R_k$ is a function of $T$ on $A$ for the same reason: that $\hat\theta^s$ depends only on $T$ until other coefficients enter the model.
+\WFcomment{Would the proof be cleaner with $A_r$ defined as $A\cap \{R_k \leq r\}$?}
 \end{proof}
 
 \WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
@@ -546,25 +595,27 @@ If we combine the saturated-model or selected-model $p$-values with one of our t
 \end{itemize} 
 The last measure of performance is not explicitly controlled by any of the selective-inference methods, but we might nevertheless hope to perform reasonably. \WFcomment{Comment on results once they are correct. These numbers are wrong right now.}
 
+\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Simple should all be correct given screening since they condition on $p_{[k_0-1]}$.}
+
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
 \begin{table}[ht]
   \centering
   \begin{tabular}{llcccc}
     \hline
-    & & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ 
+    Method & Stopping Rule & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ 
     & $\text{FDR}_{\text{mod}}$ 
     & $\text{FDR}_{\text{var}}$ \\ 
     \hline
-    Selected & Simple & .290 & .000 & .002 & .039 \\ 
+    Selected & Basic & .290 & .000 & .002 & .039 \\ 
     Selected & Forward & .559 & .027 & .020 & .066 \\ 
     Selected & Strong & .041 & .014 & .008 & .042 \\ 
     \hline
-    Saturated & Simple & .000 & .000 & .000 & .028 \\ 
+    Saturated & Basic & .000 & .000 & .000 & .028 \\ 
     Saturated & Forward & .014 & .000 & .000 & .030 \\ 
     Saturated & Strong & .000 & .000 & .000 & .032 \\ 
     \hline
-    Knockoffs & & .000 &  &  & .231 \\ 
+    Knockoffs & & .000 & --- & --- & .231 \\ 
     \hline
   \end{tabular}
   \caption{\WFcomment{Comment on results once they are correct. These numbers are wrong right now.}}
