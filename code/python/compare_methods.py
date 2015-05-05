@@ -26,21 +26,21 @@ def simulate(n=100, p=40, rho=0.3, snr=5,
              full_results={},
              alpha=0.05):
 
-    X, y, beta, active, sigma = instance(n=n,
-                                         p=p,
-                                         rho=rho,
-                                         snr=snr)
+    X, y, _, active, sigma = instance(n=n,
+                                      p=p,
+                                      rho=rho,
+                                      snr=snr)
     full_results.setdefault('n', []).append(n)
     full_results.setdefault('p', []).append(p)
     full_results.setdefault('rho', []).append(rho)
     full_results.setdefault('s', []).append(len(active))
     full_results.setdefault('snr', []).append(snr)
 
-    return run(y, X, beta, sigma, active, 
+    return run(y, X, sigma, active, 
                do_knockoff=do_knockoff,
                full_results=full_results)
 
-def run(y, X, beta, sigma, active,
+def run(y, X, sigma, active,
         full_results={},
         do_knockoff=False,
         alpha=0.05):
@@ -137,8 +137,8 @@ def batch(outbase, nsim, **simulate_args):
         df = pd.DataFrame(full_results)
         df.to_csv(outbase + '.csv', index=False)
 
-if __name__ == "__main__":
-    batch('test', 20, p=10)
+#if __name__ == "__main__":
+    # batch('test', 20, p=10)
     #D = {};
      # batch('test', nsim=1000, p=40, snr=5)
     #simulate(p=10, full_results=D, do_knockoff=True) # batch('test', nsim=1000, p=40, snr=5)

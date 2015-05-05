@@ -92,6 +92,7 @@ def completion_index(selected, active_set):
     for i in range(len(selected)):
         if active_set.issubset(selected[:i]):
             return i-1
+    return len(selected)-1
 
 if __name__ == "__main__":
     from selection.algorithms.lasso import instance
