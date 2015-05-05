@@ -210,3 +210,45 @@ abline(h=0:1,lty=2,col="gray")
 legend("bottomright",lty=1,col=1:2,legend=c("Saturated","Selected"),
        bg="white")
 dev.off()
+
+
+
+###########################################
+### Dependence of Saturated-Model p-Values
+###########################################
+
+# Second-step p-value for bivariate normal. Note that the saturated and selected models are the same in the second step.
+p2 <- function(y1, y2) {
+  1 - (1-2*pnorm(-abs(y2))) / (1-2*pnorm(-abs(y1)))
+}
+
+set.seed(1)
+B <- 1E5
+y <- matrix(abs(rnorm(2*B)),B,2) # Signs don't matter for the p-values
+p.vals <- matrix(NA,B,2)
+ymax <- apply(y,1,max)
+ymin <- apply(y,1,min)
+saturated.p1 <- saturated.p(ymax,ymin)
+#selected.p1 <- selected.p(ymax)
+both.p2 <- p2(ymax,ymin)
+cor(saturated.p1, both.p2)
+#cor(selected.p1, both.p2)
+
+bin.2 <- function(p.vals) cut(p.vals,breaks=seq(0,1,.2))
+
+rounded <- data.frame(p1 = bin.2(saturated.p1), p2 = bin.2(both.p2))
+tbl <- xtabs(~p1 + p2, data = rounded)
+tbl <- cbind(tbl, Total=rowSums(tbl))
+tbl <- rbind(tbl, Total=colSums(tbl))
+xtable(100*tbl/B, digits=1, align="l|ccccc|c")
+
+
+
+#rounded <- data.frame(p1 = bin.2(selected.p1), p2 = bin.2(both.p2))
+#tbl <- xtabs(~p1 + p2, data = rounded)
+#tbl <- cbind(tbl, Total=rowSums(tbl))
+#tbl <- rbind(tbl, Total=colSums(tbl))
+#xtable(100*tbl/B, digits=1, align="l|ccccc|c")
+
+
+image(xtabs(~rounded[,1] + rounded[,2]))
