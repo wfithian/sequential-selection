@@ -406,6 +406,32 @@ A $p$-value for testing model $M_{k-1}$ against $M_k$ satisfies the sufficiency 
 
 We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
 
+\begin{model}[Generalized Sparse Model]\label{mod:genSparse}
+  Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^p$:
+  \[
+  M_{\infty} = \{F_\theta:\; \theta \in \Theta\}.
+  \]
+  For subsets $E\sub [p]$ define the model $M_E$ with active coefficients $E$ as follows:
+  \[
+  \Theta_E = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
+  \quad M(E) = \{F_\theta:\; \theta\in \Theta_E\}.
+  \]
+\end{model}
+
+
+In Model~\ref{mod:genSparse}, the {\em forward stepwise algorithm} proceeds as follows: we first set $E_0$ arbitrarily, then at step $k=1,\ldots,d$, we define
+\begin{align}\label{eq:forwardDef_start}
+j_k &= \argmax_j \max_{\theta\in\Theta_{E_{k-1}}} \ell(\theta; Y)\\
+E_k &= E_{k-1} \cup \{j_k\}\\\label{eq:forwardDef_end}
+M_k &= M(E_k)
+\end{align}
+
+\begin{proposition}[Forward Stepwise Satisfies SPSP]\label{prop:forwardSPSP}
+  The forward stepwise algorithm defined in (\ref{eq:forwardDef_start}--\ref{eq:forwardDef_end}) satisfies the SPSP.
+\end{proposition}
+\begin{proof}
+  \WFcomment{Write proof.}
+\end{proof}
 
 A model selection procedure derived from the ``ever-active'' coefficients of a regularized likelihood path always satisfies the SPSP. Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $r=0,\ldots,R$, let $P_r(\theta)$ denote a sequence of regularizing penalties, and define
 \begin{align}\label{eq:regPathDef_start}
@@ -426,7 +452,7 @@ M_k \triangleq \{F\in M_\infty:\; \theta_j = 0,\; \forall j \notin E_k\}
 
 Model paths described in this way satisfy the SPSP, as we see next.
 
-\begin{proposition}[Regularized Likelihood Paths Satisfy SPSP]
+\begin{proposition}[Regularized Likelihood Paths Satisfy SPSP]\label{prop:regPathSPSP}
   Model paths specified as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
 \end{proposition}
 \WFcomment{Actually, you just keep the times when the model changes... Need to recast notation a bit; indices of $\lambda$ (or $P$, here) need not match up with indices of model.}
@@ -549,6 +575,10 @@ The last measure of performance is not explicitly controlled by any of the selec
 \section{Simulation: Principal Components Analysis}\label{sec:pca}
 
 \WFcomment{Can we do this one?}
+
+
+\section{Discussion}
+
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}
