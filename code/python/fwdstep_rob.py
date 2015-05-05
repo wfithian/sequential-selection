@@ -29,23 +29,27 @@ def main():
 
         ''')
     parser.add_argument('--X',
-                        help='Design matrix (CSV filename).')
+                        help='Design matrix (CSV filename). REQUIRED')
     parser.add_argument('--Y',
-                        help='Response (CSV filename).')
+                        help='Response (CSV filename). REQUIRED')
     parser.add_argument('--sigma',
-                        help='Noise standard deviation.', type=float)
+                        help='Noise standard deviation. REQUIRED', type=float)
     parser.add_argument('--active',
                         help='Active set (CSV filename). Necessary ' + 
-                        'to compute completion index. ASSUMES 1-BASED INDEXING!')    
+                        'to compute completion index. REQUIRED. ASSUMES 1-BASED INDEXING!')    
     parser.add_argument('--outfile',
                         help='Where to store output.')
 
-    args = parser.parse_args()
-    X = np.loadtxt(args.X, delimiter=',')
-    Y = np.loadtxt(args.Y, delimiter=',')
-    # ASSUMING 1-BASED INDEXING!!!!
-    active = np.loadtxt(args.active, delimiter=',').astype(np.int) - 1
-    
+    try: 			
+        args = parser.parse_args()
+        X = np.loadtxt(args.X, delimiter=',')
+        Y = np.loadtxt(args.Y, delimiter=',')
+        # ASSUMING 1-BASED INDEXING!!!!
+        active = np.loadtxt(args.active, delimiter=',').astype(np.int) - 1
+    except:
+        parser.print_help()
+        return 
+
     if args.sigma is None:
         raise ValueError('sigma is needed to compute saturated p-values!')
 
