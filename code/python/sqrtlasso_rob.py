@@ -37,13 +37,9 @@ def main():
     intervals = []
     pvalues = []
     if L.active is not None and args.outfile:
-        intervals = np.array(L.active_gaussian_intervals,
-                             np.dtype([('variable', np.int),
-                                       ('lower', np.float),
-                                       ('upper', np.float)]))
-        pvals = np.array(L.active_gaussian_pval,
-                             np.dtype([('variable', np.int),
-                                       ('pvalue', np.float)]))
+        intervals = L.active_gaussian_intervals
+        pvals = L.active_gaussian_pval
+
         if np.any(intervals['variable'] != pvals['variable']):
             raise ValueError('variable lists are different!')
 
@@ -51,7 +47,7 @@ def main():
                            'pvalue':pvals['pvalue'],
                            'lower':intervals['lower'],
                            'upper':intervals['upper']})
-        df.reindex(columns=['variable', 'pvalue', 'lower', 'upper'])
+        df = df.reindex(columns=['variable', 'pvalue', 'lower', 'upper'])
         df.to_csv(args.outfile, index=False)
     else:
         if not args.outfile:
