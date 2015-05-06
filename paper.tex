@@ -198,7 +198,7 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \centering
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
-    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_condSets.pdf}
+    %\includegraphics[width=\textwidth]{figs/bivariateSelVSat_condSets.pdf}
     \caption{\WFcomment{Copied directly from FST14; reword} 
       For $Y=(2.9,2.5)$, the selected-model conditioning set is
       $A=\{y:\;|y_1|>|y_2|\}$, a union of quadrants,
@@ -210,7 +210,7 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
-    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_nullDists.pdf}
+    %\includegraphics[width=\textwidth]{figs/bivariateSelVSat_nullDists.pdf}
     \caption{\WFcomment{Copied directly from FST14; reword} 
       Conditional distributions of $Y_1$ under
       $H_0:\mu_1 = 0$. Under the hypothesis
@@ -234,7 +234,7 @@ The case illustrated in Figure~\ref{fig:bv_condSets} exhibits a phenomenon that 
 \begin{figure}
   \centering
   % source code: bivariateSelVSat.R
-  \includegraphics[width=.5\textwidth]{figs/bivariateSelVSat_rocCurve.pdf}
+  %\includegraphics[width=.5\textwidth]{figs/bivariateSelVSat_rocCurve.pdf}
   \caption{\WFcomment{Write caption here.}}
   \label{fig:bv_rocCurve}
 \end{figure}
@@ -245,14 +245,14 @@ Results in \citet{fithian2014optimal} show that the selected-model test is stric
   \centering
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
-    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_0.pdf}
+    %\includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_0.pdf}
     \caption{\WFcomment{Write caption here.}}
     \label{fig:bv_powCurves_0}
   \end{subfigure}
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
-    \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_4.pdf}
+    %\includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_4.pdf}
     \caption{\WFcomment{Write caption here.}}
   \end{subfigure}
   \caption{\WFcomment{Write caption here.}}
@@ -568,7 +568,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
 \begin{figure}
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
+  %\includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
   \caption{CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The selected-model test is much more powerful than the saturated-model test. The nominal test appears powerful, but is not a correct $p$-value.}
   \label{fig:simulation_null_false}
 \end{figure}
@@ -576,7 +576,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
 \begin{figure}
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
+  %\includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
   \caption{CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$. The selected-model test is much more powerful than the saturated-model test. The nominal test is badly anti-conservative.}
   \label{fig:simulation_null_true}
 \end{figure}
@@ -584,7 +584,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
 \begin{figure}
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
+  %\includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
   \caption{CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
   \label{fig:simulation_noise_var}
 \end{figure}
