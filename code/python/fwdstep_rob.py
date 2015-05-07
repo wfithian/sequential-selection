@@ -54,9 +54,16 @@ def main():
         raise ValueError('sigma is needed to compute saturated p-values!')
 
     full_results = {}
-    print 'here'
+
     run(Y, X, args.sigma, active,
         full_results=full_results)
+
+    # change output variables to 1-based indices
+
+    for k in full_results.keys():
+        if 'variable_selected' in k:
+            full_results[k][0] = full_results[k][0] + 1
+
     pd.DataFrame(full_results).to_csv(args.outfile, index=False)
         
 if __name__ == "__main__":
