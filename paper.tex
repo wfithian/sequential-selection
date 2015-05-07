@@ -330,6 +330,10 @@ If $p_k$ is uniform then  $-\log(1-p_k)$ is an exponential random variable. If a
 \]
 is a Gamma random variable with mean $V/k$ and variance $V/k^2$. We stop the last time the estimate of FDR is less than $\alpha$. Forward stop requires the same condition independence condition~\eqref{eq:indepCond_random_k0} as strong stop does.
 
+
+
+\begin{comment}
+
 \subsection{Saturated- and Selected-Model $p$-Values in Regression}
 
 If we wish to use strong stop and forward stop, we need the $p$-values to satisfy~\eqref{eq:indepCond_random_k0}, but there is no guarantee that single-step selective $p$-values are independent of each other.
@@ -558,7 +562,7 @@ For example, in linear regression after selecting variables via the lasso, \cite
 We say that $p_{k,m_{k-1},m_k}$ is a selective $p$-value with respect to selection variable $S(Y)$ if it is uniform under $F\in m_k$ given $S$. 
 
 To achieve joint error control properties among different tests, we may need to condition on a finer variable.
-
+\end{comment}
 
 \section{Simulation: Sparse Linear Regression}\label{sec:sparseReg}
 
@@ -598,7 +602,6 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \caption{CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
   \label{fig:simulation_noise_var}
 \end{figure}
-
 
 Figure~\ref{fig:simulation_null_true} shows the distribution of $p_k$ for $k = 8, \ldots, 17$, given that the null hypothesis tested at step $k$ is correct (i.e., that $k_0< k$). Because the correct model is seven-sparse, $k=8$ is the first index for which the null can possibly be true. Both selective $p$-values are uniform by construction, but the nominal $p$-values are highly anti-conservative, as expected.
 
