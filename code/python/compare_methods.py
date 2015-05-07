@@ -46,7 +46,7 @@ def run(y, X, sigma, active,
         alpha=0.05):
 
     n, p = X.shape
-    results = compute_pvalues(y, X, sigma)
+    results, FS = compute_pvalues(y, X, sigma)
     completion_idx = completion_index(results['variable_selected'], active)
     full_results.setdefault('completion_idx', []).append(completion_idx)
 
@@ -106,7 +106,7 @@ def run(y, X, sigma, active,
         full_results.setdefault('%s_%s_V_model' % (pval_name, rule_name), []).append(V_model)
         full_results.setdefault('%s_%s_screen' % (pval_name, rule_name), []).append(screen)
 
-    return full_results
+    return full_results, FS
 
 
 def batch(fbase, nsim=100, n=100, p=40, rho=0.3, snr=4):

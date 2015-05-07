@@ -3,7 +3,7 @@ import pandas as pd
 from selection.algorithms.forward_step import forward_stepwise
 from scipy.stats import norm as ndist
 
-def compute_pvalues(y, X, sigma=1.):
+def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
     """
     Parameters
     ----------
@@ -36,7 +36,7 @@ def compute_pvalues(y, X, sigma=1.):
     FS = forward_stepwise(X, y, covariance=sigma**2 * np.identity(n))
     results = []
 
-    for i in range(min(n, p)):
+    for i in range(min([n, p, maxstep])):
         FS.next()
         var_select, pval_select = FS.model_pivots(i+1, alternative='twosided',
                                                   which_var=[FS.variables[-1]],
@@ -58,7 +58,7 @@ def compute_pvalues(y, X, sigma=1.):
     return pd.DataFrame({'variable_selected': results[0].astype(np.int),
                          'selected_pvalue': results[1],
                          'saturated_pvalue': results[2],
-                         'nominal_pvalue': results[3]})
+                         'nominal_pvalue': results[3]}), FS
 
 def completion_index(selected, active_set):
     """
@@ -96,6 +96,6 @@ def completion_index(selected, active_set):
 
 if __name__ == "__main__":
     from selection.algorithms.lasso import instance
-    X, y, beta, active, sigma = instance(p=10, snr=4, rho=0.3)
-    R = compute_pvalues(y, X, sigma=sigma)
+    X, y, beta, active, sigma = instance(n=100, p=40, snr=5, rho=0.3)
+    R, FS = compute_pvalues(y, X, sigma=sigma, maxstep=20)
     print completion_index(R['variable_selected'], active)
