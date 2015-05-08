@@ -87,7 +87,8 @@ def run(y, X, sigma, active,
 
     for pval, rule_ in product(['selected_pvalue',
                                 'saturated_pvalue',
-                                'nominal_pvalue'],
+                                'nominal_pvalue',
+                                'maxT_pvalue'],
                                zip([simple_stop, 
                                     strong_stop,
                                     forward_stop],
@@ -108,39 +109,28 @@ def run(y, X, sigma, active,
 
     return full_results, FS
 
-
-def batch(fbase, nsim=100, n=100, p=40, rho=0.3, snr=4):
-    value = []
-    for _ in range(nsim):
-        try:
-            value.append(run_one(n=n, p=p, rho=rho, snr=snr, alpha=0.05))
-        except:
-            pass
-        if not os.path.exists(fbase + '.npy'):
-            V = np.hstack(value)
-            np.save(fbase + '.npy', V)
-            mlab.rec2csv(V, fbase + '.csv')
-        else:
-            V = np.load(fbase + '.npy')
-            V = np.hstack([V] + value[-1:])
-            np.save(fbase + '.npy', V)
-            mlab.rec2csv(V, fbase + '.csv')
-            
-        print np.mean(V['forward_selected_screen']), np.mean(V['forward_saturated_screen']), V.shape
-
 def batch(outbase, nsim, **simulate_args):
 
     full_results = {}
     simulate_args['full_results'] = full_results
-    for _ in range(nsim):
-        simulate(**simulate_args)
-        df = pd.DataFrame(full_results)
-        df.to_csv(outbase + '.csv', index=False)
+    for i in range(nsim):
+        try:
+            print 'run %d' % (i+1)
+            simulate(**simulate_args)
+            df = pd.DataFrame(full_results)
+            df.to_csv(outbase + '.csv', index=False)
+        except:
+            pass
 
-#if __name__ == "__main__":
-    # batch('test', 20, p=10)
-    #D = {};
-     # batch('test', nsim=1000, p=40, snr=5)
-    #simulate(p=10, full_results=D, do_knockoff=True) # batch('test', nsim=1000, p=40, snr=5)
-    #simulate(p=10, full_results=D, do_knockoff=True) # batch('test', nsim=1000, p=40, snr=5)
-    #D
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+    parser = ArgumentParser(
+        description= '''
+Run a batch of simulations.
+        ''')
+    parser.add_argument('--nsim',
+                        help='How many simulations to run.', type=int)
+    parser.add_argument('--outbase',
+                        help='Where to store results')
+    args = parser.parse_args()
+    batch(args.outbase, args.nsim, do_knockoff=True)
