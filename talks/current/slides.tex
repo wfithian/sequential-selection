@@ -139,25 +139,32 @@
   \[
   H_{0,k}:\; F \in M_{k-1}
   \quad \text{ vs. } \quad
-  H_{1,k}:\; F \in M_k \setminus M_{k-1},
+  H_{1,k}:\; F \in M_\infty \setminus M_{k-1},
   \]
-  adjusting for selection
+  while adjusting for selection
   \vskip+1em
   \bstrc{Goal 2:} choose smallest adequate model $M_{k_0}$
 }
 
 \frame{\frametitle{Which Null?}
-  Regression case: Should we test \bstrc{selected model} null
+  Regression case: Should we test \bstrc{complete} null
   \[
   H_{0,k}:\; F\in M_{k-1} \iff 
-  Y \sim \cN(X_{E_{k-1}}\beta, \;\;\sigma^2I_n)
+  Y \sim \cN(X_{E_{k-1}}\beta, \;\;\sigma^2I_n),
+  \]
+  or \bstrc{incremental} null
+  \[
+  H_{0,k}:\; Y \sim \cN(X_{E_{k-1}}\beta, \;\;\sigma^2I_n) 
+  \text{ with } (X_E^\dagger\mu)_j = 0 \iff 
+  Y \sim \cN(X_{E_{k-1}}\beta, \;\;\sigma^2I_n),  
   \]
   or \bstrc{full model} null
   \[
   \widetilde H_{0,k}:\; Y \sim 
   \cN(X_{[p]\setminus j_k}\beta, \;\;\sigma^2I_n)
   \]
-  Suppose $X_1$ signal, $X_2,\ldots,X_p$ noise, $X_1$ selected at step $k=4$
+  Suppose $X_1$ signal, $X_2,\ldots,X_p$ noise, $X_1$ 
+  selected at step $k=4$
   \vskip+1em
   We take \bstrc{model-centric} point of view: \\
   models $M_1,\ldots,M_3$ are incorrect
@@ -334,19 +341,19 @@
   \bstrc{Goal 2b:} Minimize type II errors $(k_0 - \hk)_+$
 }
 
-\frame{\frametitle{Simple Stop}
+\frame{\frametitle{Basic Stop}
   ``Obvious'' rule: stop first time $p_k > \alpha$
   \[
-  \hk_{\text{simple}}(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
+  \hk_{\text{basic}}(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
     p_k > \alpha\right\} - 1
   \]
   For fixed $k_0$, controls \bstrc{familywise error rate:}
   \[
-  \P\left[\hk_{\text{simple}}(Y) > k_0\right] \leq \alpha
+  \P\left[\hk_{\text{basic}}(Y) > k_0\right] \leq \alpha
   \]
   Proof:
   \begin{align*}
-  \P\left[\hk_{\text{simple}} > k \right] 
+  \P\left[\hk_{\text{basic}} > k \right] 
   &= \P[p_{k_0+1} \leq \alpha] \\
   &\leq \alpha 
   \end{align*}
@@ -394,7 +401,7 @@
 \frame{\frametitle{Pathwise $p$-Values}
   What do we need for \balrt{random} $k_0$?
   \vskip+1em
-  \bstrc{Simple Stop:} need
+  \bstrc{Basic Stop:} need
   \[
   \P(p_k \leq \alpha \mid k_0=k) \leqAS \alpha
   \]
@@ -547,11 +554,11 @@
       & $\text{FDR}_{\text{mod}}$ 
       & $\text{FDR}_{\text{var}}$ \\ 
       \hline
-      Selected & Simple & .290 & .000 & .002 & .039 \\ 
+      Selected & Basic & .290 & .000 & .002 & .039 \\ 
       Selected & Forward & .559 & .027 & .020 & .066 \\ 
       Selected & Strong & .041 & .014 & .008 & .042 \\ 
       \hline
-      Saturated & Simple & .000 & .000 & .000 & .028 \\ 
+      Saturated & Basic & .000 & .000 & .000 & .028 \\ 
       Saturated & Forward & .014 & .000 & .000 & .030 \\ 
       Saturated & Strong & .000 & .000 & .000 & .032 \\ 
       \hline
@@ -674,7 +681,7 @@
     \]
   \end{block}
   
-  \bstrc{Interpretation:} Selected model test + LASSO / LARS / Forward Stepwise + Simple / Strong / Forward Stop \balrt{works}
+  \bstrc{Interpretation:} Selected model test + LASSO / LARS / Forward Stepwise + Basic / Strong / Forward Stop \balrt{works}
   
 }
 \end{comment}
