@@ -1,7 +1,66 @@
+from copy import copy
+
 import numpy as np
 import pandas as pd
 from selection.algorithms.forward_step import forward_stepwise
+from selection.distributions.discrete_family import discrete_family
+from selection.constraints.affine import gibbs_test
 from scipy.stats import norm as ndist
+
+def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
+    """
+    Sample from constraints, reporting largest
+    inner product with T.
+
+    Parameters
+    ----------
+
+    FS : selection.algorithms.forward_step.forward_stepwise
+
+    """
+    n, p = FS.X.shape
+
+    projection = P = FS.P[-1]
+
+    # recomputing this is a little wasteful
+
+    if P is not None:
+        RX = FS.X-P(FS.X)
+    else:
+        RX = FS.X
+    scale = np.sqrt((FS.X**2).sum(0))
+
+    if len(FS.variables) > 1:
+        con = copy(FS.constraints())
+        linear_part = FS.X[:,FS.variables[:-1]]
+        observed = np.dot(linear_part.T, FS.Y)
+        LSfunc = np.linalg.pinv(linear_part)
+        conditional_con = con.conditional(linear_part.T,
+                                          observed)
+
+        _, Z, W, _ = gibbs_test(conditional_con,
+                                FS.Y,
+                                LSfunc[-1],
+                                alternative='twosided',
+                                sigma_known=True,
+                                burnin=burnin,
+                                ndraw=ndraw,
+                                UMPU=False,
+                                how_often=-1,
+                                use_random_directions=False,
+                                use_constraint_directions=False)
+
+    else: # first step
+
+        Z = np.random.standard_normal((ndraw, n)) * sigma
+        W = np.ones(ndraw)
+
+    null_statistics = np.fabs(np.dot(Z, RX) / scale[None,:]).max(1)
+    dfam = discrete_family(null_statistics, W)
+    observed = np.fabs(np.dot(RX.T, FS.Y) / scale).max()
+    pvalue = dfam.cdf(0, observed)
+    pvalue = max(2 * min(pvalue, 1 - pvalue), 0)
+    return pvalue
 
 def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
     """
@@ -37,6 +96,9 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
     results = []
 
     for i in range(min([n, p, maxstep])):
+        # maxT computed before next constraints
+        # are added
+        pval_maxT = maxT(FS, sigma)
         FS.next()
         var_select, pval_select = FS.model_pivots(i+1, alternative='twosided',
                                                   which_var=[FS.variables[-1]],
@@ -52,13 +114,14 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
         LSfunc = np.linalg.pinv(FS.X[:,FS.variables])
         Z = np.dot(LSfunc[-1], FS.Y) / (np.linalg.norm(LSfunc[-1]) * sigma)
         pval_nominal = 2 * ndist.sf(np.fabs(Z))
-        results.append((var_select, pval_select, pval_saturated, pval_nominal))
+        results.append((var_select, pval_select, pval_saturated, pval_nominal, pval_maxT))
             
     results = np.array(results).T
     return pd.DataFrame({'variable_selected': results[0].astype(np.int),
                          'selected_pvalue': results[1],
                          'saturated_pvalue': results[2],
-                         'nominal_pvalue': results[3]}), FS
+                         'nominal_pvalue': results[3],
+                         'maxT_pvalue': results[4]}), FS
 
 def completion_index(selected, active_set):
     """
