@@ -80,7 +80,7 @@ wait_until_accept = function(A, R, PY, sigma) {
         if(max(A %*% Z) < 0) {
             return(count)
         }
-	if(count > 100000) {
+	if(count >= 100000) {
             return(count) # give up...
         }
    }
@@ -107,5 +107,5 @@ for (i in 1:100) {
 print('maxT step 12')
 print(1. / mean(maxT12))
 
-print('maxT step8 under global null with same model, to get one point...')
+print('maxT step8 under global null with same model, to get one point... 100000 means it gave up')
 print(wait_until_accept(A7, R8, P8Y0, sigma))
