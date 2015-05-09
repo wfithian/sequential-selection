@@ -3,8 +3,98 @@ X = read.table("X_100_200.csv", sep=',')
 D = X
 X = as.matrix(X) 
 Y = as.matrix(read.table("y_100.csv", sep=','))
+Y0 = as.matrix(read.table("y0_100.csv", sep=','))
 variables = as.matrix(read.table("variables.csv", sep=','))
+variables0 = as.matrix(read.table("variables0.csv", sep=','))
 D$Y = Y
+
+print("step 8")
+print(variables[1:8])
+X8 = X[,variables[1:7]]
+print("step 8 null")
+print(variables[1:8])
+X08 = X[,variables0[1:7]]
+P8 = X8 %*% solve(t(X8) %*% X8) %*% t(X8)
+P08 = X08 %*% solve(t(X08) %*% X08) %*% t(X08)
+A7 = as.matrix(read.table("A_step7.csv", sep=','))
+A07 = as.matrix(read.table("A0_step7.csv", sep=','))
+A8 = as.matrix(read.table("A_step8.csv", sep=','))
+
+print("step 12")
+print(variables[1:12])
+X12 = X[,variables[1:11]]
+P12 = X12 %*% solve(t(X12) %*% X12) %*% t(X12)
+A11 = as.matrix(read.table("A_step11.csv", sep=','))
+
+sigma = as.numeric(read.table("sigma.csv"))
+
+n = nrow(X)
+p = ncol(X)
+R8 = diag(rep(1,n)) - P8
+R08 = diag(rep(1,n)) - P08
+R12 = diag(rep(1,n)) - P12
+
+P8Y = P8 %*% Y
+P8Y0 = P08 %*% Y0
+P12Y = P12 %*% Y
+
+# here is the null distribution
+
+null_sample = function(R, PY, sigma) {
+     n = nrow(R)
+     Z = PY + R %*% rnorm(n) * sigma
+     return(Z)
+}
+
+# how many tries until we accept
+
+wait_until_accept = function(A, R, PY, sigma) {
+    count = 0
+    while(TRUE) {
+        count = count + 1
+        Z = null_sample(R, PY, sigma)
+        if(max(A %*% Z) < 0) {
+            return(count)
+        }
+	if(count >= 100000) {
+            return(count) # give up...
+        }
+   }
+}
+
+
+maxT_sample = c()
+for (i in 1:100) {
+    maxT_sample = c(maxT_sample, wait_until_accept(A7, R8, P8Y, sigma))
+}
+
+print('maxT step8')
+print(1. / mean(maxT_sample))
+
+print('does it satisfy the constraints')
+print(max(A07 %*% Y0))
+for (i in 1:5) {
+    print('waiting for null step 8, maxT')
+    print(wait_until_accept(A07, R08, P8Y0, sigma))
+}
+
+maxT_identify_sample = c()
+for (i in 1:100) {
+    maxT_identify_sample = c(maxT_identify_sample, wait_until_accept(A8, R8, P8Y, sigma))
+}
+print('maxT step 8, identifying variable')
+print(1. / mean(maxT_identify_sample))
+
+maxT12 = c()
+for (i in 1:100) {
+    maxT12 = c(maxT12, wait_until_accept(A11, R12, P12Y, sigma))
+}
+print('maxT step 12')
+print(1. / mean(maxT12))
+
+
+# using step
+
 
 BICmodel = step(lm(Y ~ 1, data=D), scope=list(upper= ~ V1 + V2 + V3 + V4 + V5 + V6 + V7 + V8 + V9 + V10 + V11 + V12 + V13 + V14 + V15 + V16 + V17 + V18 + V19 + V20 + 
                                                    V21 + V22 + V23 + V24 + V25 + V26 + V27 + V28 + V29 + V30 + V31 + V32 + V33 + V34 + V35 + V36 + V37 + V38 + V39 + 
@@ -37,75 +127,3 @@ AICmodel = step(lm(Y ~ 1, data=D), scope=list(upper= ~ V1 + V2 + V3 + V4 + V5 + 
 
 print("AIC")
 print(AICmodel)
-
-print("step 8")
-print(variables[1:8])
-X8 = X[,variables[1:7]]
-P8 = X8 %*% solve(t(X8) %*% X8) %*% t(X8)
-A7 = as.matrix(read.table("A_step7.csv", sep=','))
-A8 = as.matrix(read.table("A_step8.csv", sep=','))
-
-print("step 12")
-print(variables[1:12])
-X12 = X[,variables[1:11]]
-P12 = X12 %*% solve(t(X12) %*% X12) %*% t(X12)
-A11 = as.matrix(read.table("A_step11.csv", sep=','))
-
-sigma = as.numeric(read.table("sigma.csv"))
-
-n = nrow(X)
-p = ncol(X)
-R8 = diag(rep(1,n)) - P8
-R12 = diag(rep(1,n)) - P12
-
-P8Y = P8 %*% Y
-P8Y0 = P8 %*% rnorm(n) * sigma
-P12Y = P12 %*% Y
-
-# here is the null distribution
-
-null_sample = function(R, PY, sigma) {
-     n = nrow(R)
-     Z = PY + R %*% rnorm(n) * sigma
-     return(Z)
-}
-
-# how many tries until we accept
-
-wait_until_accept = function(A, R, PY, sigma) {
-    count = 0
-    while(TRUE) {
-        count = count + 1
-        Z = null_sample(R, PY, sigma)
-        if(max(A %*% Z) < 0) {
-            return(count)
-        }
-	if(count >= 100000) {
-            return(count) # give up...
-        }
-   }
-}
-
-maxT_sample = c()
-for (i in 1:100) {
-    maxT_sample = c(maxT_sample, wait_until_accept(A7, R8, P8Y, sigma))
-}
-print('maxT step8')
-print(1. / mean(maxT_sample))
-
-maxT_identify_sample = c()
-for (i in 1:100) {
-    maxT_identify_sample = c(maxT_identify_sample, wait_until_accept(A8, R8, P8Y, sigma))
-}
-print('maxT step 8, identifying variable')
-print(1. / mean(maxT_identify_sample))
-
-maxT12 = c()
-for (i in 1:100) {
-    maxT12 = c(maxT12, wait_until_accept(A11, R12, P12Y, sigma))
-}
-print('maxT step 12')
-print(1. / mean(maxT12))
-
-print('maxT step8 under global null with same model, to get one point... 100000 means it gave up')
-print(wait_until_accept(A7, R8, P8Y0, sigma))
