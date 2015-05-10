@@ -128,20 +128,24 @@ We will consider two related problems. First, we will consider the problem of ob
 H_{0,k}:\; F\in M_{k-1}\quad \text{ vs. } \quad 
 H_{1,k}:\; F\in M_\infty\setminus M_{k-1},
 \]
-while adjusting for the fact that the models are chosen adaptively. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
+while adjusting for the fact that the models are chosen adaptively. In most of our development we will make few formal assumptions about the form of the candidate models. Still, our results are only useful in cases where we can actually construct single-step $p$-values. At present, that means our applications are largely restricted to exponential family models.
 
-The second half of the paper concerns {\em stopping rules} $\hk$, estimators of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including two powerful stopping rules proposed in \citet{gsell2013sequential}. These latter require guarantees on the joint law of the $p$-values. We will prove sufficient conditions for when the $p$-values are Gaussian.
+Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
 
-Although we will focus most of our attention and examples on the case of selecting a set of predictors in linear regression, essentially all of our results apply in generic exponential family models.
+Section~\ref{sec:sequential} concerns {\em stopping rules} $\hk$, estimators of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including two powerful stopping rules proposed in \citet{gsell2013sequential}. These latter require guarantees on the joint law of the $p$-values. We will prove sufficient conditions for when the $p$-values are Gaussian.
 
 \subsection{Which Null Hypothesis Should We Test?}
-
 
 Note that the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric,'' as opposed to a ``variable-centric,'' fashion: in regression, our model-wise $V$ counts the number of true null {\em models} incorrectly rejected, instead of counting the number of noise variables included in the final model. We can define the (model-wise) familywise error rate (FWER) and false discovery rate (FDR) respectively as $\P_F(V >0)$ and $\E_F[V/(\hk \vee 1)]$. 
 
 We could have instead defined the ``variable-centric'' type I error $\tV$ as the number of noise variables incorrectly included in the final model, with $\tR$ denoting the total number of variables included. Here, by ``noise variable'' we mean one that has a non-zero coefficient in the full model. Using selective inference to control the variable-wise FWER $\P_\mu(\tV>0)$ and FDR $\E[\tV / (\tR \vee 1)]$ is an interesting topic for further study.
 
-There is some ambiguity involved in deciding how to generalize $z$- and $t$-tests to the selective case. For example, \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$. As discussed at some length in \citet{fithian2014optimal}, there are several different models that 
+There is some ambiguity involved in deciding how to generalize $z$- and $t$-tests to the selective case. For example, \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression under the upper model $M_\infty:\; Y\sim \cN(\mu, \sigma^2 I)$:
+\begin{description}
+\item[Complete Null:] The previous model, $M_{k-1}$, is correct; i.e., that $\mu = X_{E_{k-1}}\beta$ for some $\beta$.
+\item[Incremental Null:] $M_{k-1}$ may not be correct, but $M_k$ is no improvement: i.e., that $X_EX_E\mu = \proj_{X_{E_{k-1}}}\mu$
+\end{description}
+. \citet{fithian2014optimal} discusses several different tests 
 
 In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of major scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would be evidence for a causal effect of $X_1$ on the response.
 
@@ -268,15 +272,15 @@ Results in \citet{fithian2014optimal} show that the selected-model test is stric
 
 
 
-\section{Sequential Inference}
+\section{Sequential Inference}\label{sec:sequential}
 
 Having discussed methods for constructing single-step $p$-values, we turn now to the problem of constructing a {\em stopping rule}; that is, an estimator $\hk$ of the completion index $k_0(Y)\in \{0,\ldots,d,\infty\}$. $M_k$ is ``rejected'' if and only if $\hk>k$. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. The number of type I errors, then, is $(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. 
 
 \subsection{Stopping Rules}
 
-We will consider stopping rules that depend on the sequence $p_1,\ldots,p_d$ of $p$-values, which have been studied in the literature by \WFcomment{literature review here.} We will focus on three such stopping rules: simple stop, proposed by \WFcomment{whom?}, and the more refined strong stop and forward stop, proposed by \citet{gsell2013sequential}. 
+We will consider stopping rules that depend on the sequence $p_1,\ldots,p_d$ of $p$-values, which have been studied in the literature by \WFcomment{literature review here.} We will focus on three such stopping rules: Basic Stop, proposed by \WFcomment{whom?}, and the more refined Strong Stop and Forward Stop, proposed by \citet{gsell2013sequential}. 
 
-While strong stop and forward stop tend to give more powerful stopping rules, they require independence among the $p$-values. Sections~\ref{sec:pValsIndep}--\ref{sec:modelSSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which selective $p$-values are mutually independent. We will see that, typically, selected-model $p$-values are sequentially independent while saturated-model $p$-values are not.
+While Strong Stop and Forward Stop tend to give more powerful stopping rules, they require independence among the $p$-values. Sections~\ref{sec:pValsIndep}--\ref{sec:modelSSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which selective $p$-values are mutually independent. We will see that, typically, selected-model $p$-values are sequentially independent while saturated-model $p$-values are not.
 
 \subsubsection{Basic Stop:}
 
@@ -287,7 +291,7 @@ The most obvious sequential procedure is to reject at each step until the first 
 \hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
   p_k > \alpha\right\} - 1
 \]
-We will call this procedure {\em basic stop}. 
+We will call this procedure {\em Basic Stop}. 
 
 If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
 \[
@@ -483,7 +487,6 @@ It will be useful to introduce the following notation:
       \mathrm{ otherwise.}\end{matrix}\right. 
   \]
 \end{model}
-Although we will make no formal assumptions about the form of $M_\infty$, the results of this section are only useful in cases where we can actually construct single-step $p$-values. At present, that caveat  largely restricts us to using exponential family models.
 
 In Model~\ref{mod:genSparse}, the {\em forward stepwise} algorithm proceeds as follows: we first set $E_0(Y)$ arbitrarily, then at step $k=1,\ldots,d$, we define
 \begin{align}\label{eq:forwardDef_start}
