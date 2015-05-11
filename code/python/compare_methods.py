@@ -24,7 +24,9 @@ def summary(variables, pvalues, active, rule, alpha):
 def simulate(n=100, p=40, rho=0.3, snr=5,
              do_knockoff=False,
              full_results={},
-             alpha=0.05):
+             alpha=0.05,
+             maxstep=np.inf,
+             compute_maxT_identify=True):
 
     X, y, _, active, sigma = instance(n=n,
                                       p=p,
@@ -38,15 +40,20 @@ def simulate(n=100, p=40, rho=0.3, snr=5,
 
     return run(y, X, sigma, active, 
                do_knockoff=do_knockoff,
-               full_results=full_results)
+               full_results=full_results,
+               maxstep=maxstep,
+               compute_maxT_identify=compute_maxT_identify)
 
 def run(y, X, sigma, active,
         full_results={},
         do_knockoff=False,
-        alpha=0.05):
+        alpha=0.05,
+        maxstep=np.inf,
+        compute_maxT_identify=True):
 
     n, p = X.shape
-    results, FS = compute_pvalues(y, X, sigma)
+    results, FS = compute_pvalues(y, X, sigma, maxstep=maxstep,
+                                  compute_maxT_identify=compute_maxT_identify)
     completion_idx = completion_index(results['variable_selected'], active)
     full_results.setdefault('completion_idx', []).append(completion_idx)
 
@@ -85,7 +92,7 @@ def run(y, X, sigma, active,
         full_results.setdefault('knockoff_V', []).append(knockoff_V)
         full_results.setdefault('knockoff_screen', []).append(knockoff_screen)
 
-    for pval, rule_ in product(['selected_pvalue',
+    for pval, rule_ in product(['maxT_identify_pvalue',
                                 'saturated_pvalue',
                                 'nominal_pvalue',
                                 'maxT_pvalue'],

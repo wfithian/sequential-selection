@@ -30,9 +30,9 @@ def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
         RX = FS.X
     scale = np.sqrt((FS.X**2).sum(0))
 
-    if len(FS.variables) > 1:
+    if len(FS.variables) >= 1:
         con = copy(FS.constraints())
-        linear_part = FS.X[:,FS.variables[:-1]]
+        linear_part = FS.X[:,FS.variables]
         observed = np.dot(linear_part.T, FS.Y)
         LSfunc = np.linalg.pinv(linear_part)
         conditional_con = con.conditional(linear_part.T,
@@ -62,7 +62,8 @@ def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
     pvalue = max(2 * min(pvalue, 1 - pvalue), 0)
     return pvalue
 
-def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
+def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
+                    compute_maxT_identify=True):
     """
     Parameters
     ----------
@@ -78,6 +79,11 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
         The covariance matrix is
         `sigma**2 * np.identity(X.shape[0])`.
         Defauts to 1.
+
+    compute_maxT_identify : bool
+        If True, compute the maxT test having identified
+        the variable and sign (i.e. conditioning
+        on the variable added and its sign).
 
     Returns
     -------
@@ -96,29 +102,38 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf):
     results = []
 
     for i in range(min([n, p, maxstep])):
+
         # maxT computed before next constraints
         # are added
+
         pval_maxT = maxT(FS, sigma)
+
+        # take a step of FS
+
         FS.next()
-        var_select, pval_select = FS.model_pivots(i+1, alternative='twosided',
-                                                  which_var=[FS.variables[-1]],
-                                                  saturated=False,
-                                                  burnin=2000,
-                                                  ndraw=8000)[0]
-        pval_saturated = FS.model_pivots(i+1, alternative='twosided',
+        
+        if compute_maxT_identify:
+            pval_maxT_identify = FS.model_pivots(i+1, alternative='twosided',
+                                          which_var=[FS.variables[-1]],
+                                          saturated=False,
+                                          burnin=2000,
+                                          ndraw=8000)[0][1]
+        else:
+            pval_maxT_identify = np.random.sample()
+        var_select, pval_saturated = FS.model_pivots(i+1, alternative='twosided',
                                          which_var=[FS.variables[-1]],
-                                         saturated=True)[0][1]
+                                         saturated=True)[0]
 
         # now, nominal ones
 
         LSfunc = np.linalg.pinv(FS.X[:,FS.variables])
         Z = np.dot(LSfunc[-1], FS.Y) / (np.linalg.norm(LSfunc[-1]) * sigma)
         pval_nominal = 2 * ndist.sf(np.fabs(Z))
-        results.append((var_select, pval_select, pval_saturated, pval_nominal, pval_maxT))
+        results.append((var_select, pval_maxT_identify, pval_saturated, pval_nominal, pval_maxT))
             
     results = np.array(results).T
     return pd.DataFrame({'variable_selected': results[0].astype(np.int),
-                         'selected_pvalue': results[1],
+                         'maxT_identify_pvalue': results[1],
                          'saturated_pvalue': results[2],
                          'nominal_pvalue': results[3],
                          'maxT_pvalue': results[4]}), FS
