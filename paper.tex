@@ -271,7 +271,6 @@ Results in \citet{fithian2014optimal} show that the selected-model test is stric
 \end{figure}
 
 
-
 \section{Sequential Inference}\label{sec:sequential}
 
 Having discussed methods for constructing single-step $p$-values, we turn now to the problem of constructing a {\em stopping rule}; that is, an estimator $\hk$ of the completion index $k_0(Y)\in \{0,\ldots,d,\infty\}$. $M_k$ is ``rejected'' if and only if $\hk>k$. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. The number of type I errors, then, is $(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. 
@@ -578,6 +577,86 @@ But $\hat\theta^{(E,r)}$ depends only on $T(Y)$. Therefore, on $A$, we can recon
 
 \end{comment}
 
+\section{Computation}
+
+As usual, we have reduced computation of the $p$-value at step $k$ to a sampling problem. Whatever our test statistic at step $k$, we must compute its distribution under the null model $M_{k-1}$.
+
+Happily, the polytope to condition on has only $2p$ constraints in forward stepwise regression, as we see next.
+
+\begin{theorem}
+  Assume the model path $M_{[d]}$ is obtained by forward stepwise 
+  linear regression. Then, for a candidate active set $E$ of size $k$, 
+  the set $A = \{E_k = E, \;X_E'Y = u\}$ is characterized 
+  exactly by the constraints $X_E'Y=u$ and
+  \[
+  v_j^-(E,u) < X_j'Y < v_j^+(E,u), \quad\forall j \notin E,
+  \]
+  for $v_j^-$ and $v_j^+$ given explicitly in
+  Equations~(\ref{eq:vMinus_FS}--\ref{eq:vPlus_FS}).
+  Thus, $A$ corresponds exactly to 
+  a set with $2(p-k)$ linear inequality constraints and $k$
+  linear equality constraints on $Y$.
+\end{theorem}
+
+\begin{proof}
+  At stage $i < k$, the next variable to enter is the one with maximal correlation with the residual vector; i.e.
+  \[
+  j_{i+1} = \argmax_{j \notin E_i} 
+  \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|}
+  \]
+  The crucial observation is that, 
+  once we know the $k$th active set 
+  $E_k$ and its sufficient statistics
+  $X_{E_k}'Y$, we know the entire 
+  path of fitted models up to step $k$.
+  On the set $\{E_k=E\}$, all of the quantities 
+  $j_{i+1}$, $E_i$, $\hat\beta^i$, and $\proj_{E_i}^\perp$
+  depend only on $X_E'Y$. For brevity, write
+  \[
+  C_i^* = \max_{j \notin E_i} 
+  \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|}.
+  \]
+  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $i$th 
+  variable added.
+
+  If $X_E'Y$ is fixed at $u$, and $j \notin E$, then the condition for 
+  $X_j$ {\em not} to enter at step $i+1 < k$ is
+  \[
+  \frac{\left| X_j' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|} 
+  \leq C_i^*,
+  \]
+  or equivalently,
+  \begin{equation}\label{eq:noEnterBounds_FS}
+    X_j' X_{E_i}\hat\beta^i -
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|
+    \;\;\;\leq\;\;\;
+    X_j'Y
+    \;\;\;\leq\;\;\;
+    X_j' X_{E_i}\hat\beta^i +
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|, 
+  \end{equation}
+  so the set $A$ is equivalent to 
+  Equation~\eqref{eq:noEnterBounds_FS} holding
+  for every $i < k$ and $j \notin E$. Nominally, this gives $2k(p-k)$
+  linear inequality constraints to satisfy, but most of them are
+  non-binding. On $A$, the upper and lower bounds
+  in~\eqref{eq:noEnterBounds_FS}
+  are all known functions of $E$ and $u$, so we can set
+  \begin{align}\label{eq:vMinus_FS}
+    v_j^-(E,u) &= \max_{0 \leq i < k} \;\;X_j' X_{E_i}\hat\beta^i -
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\| \\
+    \label{eq:vPlus_FS}
+    v_j^+(E,u) &= \min_{0 \leq i < k} \;\;X_j' X_{E_i}\hat\beta^i +
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|.
+  \end{align}  
+\end{proof}
+
+As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$ regularized exponential family models including the graphical LASSO, group LASSO, and...
+\WFcomment{Fill in this proof.}
+
 \section{Simulation: Sparse Linear Regression}\label{sec:sparseReg}
 
 Next we compare several model selection procedures in simulation. We simlate from a linear regression model with $n=100$ observations and $p=40$ variables. The design matrix $X\in\R^{n\times p}$ is a random Gaussian design with pairwise correlations of 0.3 between predictor variables.
@@ -634,7 +713,7 @@ If we combine the saturated-model or selected-model $p$-values with one of our t
 \end{itemize} 
 The last measure of performance is not explicitly controlled by any of the selective-inference methods, but we might nevertheless hope to perform reasonably. \WFcomment{Comment on results once they are correct. These numbers are wrong right now.}
 
-\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Simple should all be correct given screening since they condition on $p_{[k_0-1]}$.}
+\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Basic should all be correct given screening since they condition on $p_{[k_0-1]}$.}
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
