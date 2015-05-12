@@ -577,7 +577,7 @@ But $\hat\theta^{(E,r)}$ depends only on $T(Y)$. Therefore, on $A$, we can recon
 
 \end{comment}
 
-\section{Computation}
+\section{Computation}\label{sec:computation}
 
 As usual, we have reduced computation of the $p$-value at step $k$ to a sampling problem. Whatever our test statistic at step $k$, we must compute its distribution under the null model $M_{k-1}$.
 
@@ -654,8 +654,59 @@ Happily, the polytope to condition on has only $2p$ constraints in forward stepw
   \end{align}  
 \end{proof}
 
-As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$ regularized exponential family models including the graphical LASSO, group LASSO, and...
-\WFcomment{Fill in this proof.}
+As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$ regularized exponential family models including the graphical LASSO, group LASSO, and... \WFcomment{more? group LASSO not really $\ell_1$ penalty, but the result is true for group LASSO}
+
+\begin{theorem}
+  Assume that $M_\infty$ is an exponential family model
+  of the form
+  \[
+  Y \sim \exp\{ \theta'U(y) - \psi(\theta) \}\,d\nu(y),
+  \]
+  with $\Theta \sub \R^p$ convex, and assume
+  that the model path $M_{[d]}$ is given 
+  by the ever-active set for the $\ell_1$-penalized problem
+  \begin{equation}\label{eq:regProblem}
+  \hat\theta^r = \argmin_{\theta\in \Theta} 
+  -\ell(\theta) + \lambda_r\|\theta\|_1,
+  \end{equation}
+  for some sequence $\lambda_r > 0$.
+
+  Then, for a candidate active set $E$ of size $k$, 
+  the set $A = \{E_k = E, \;U_E = u\}$ is characterized 
+  exactly by the constraints $U_E = u$ and
+  \[
+  v_j^-(E,t) \leq U_j(Y) \leq v_j^+(E,t), \quad\forall j \notin E,
+  \]
+  for $v_j^-$ and $v_j^+$ given explicitly in
+  Equations~(\ref{eq:vMinus_L1}--\ref{eq:vPlus_L1}).
+  Thus, $A$ corresponds exactly to 
+  a set with $2(p-k)$ linear inequality constraints and $k$
+  linear equality constraints on $U(Y)$.
+\end{theorem}
+
+\begin{proof}
+  Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
+  \[
+  \hat\theta^r = \hat\theta^{(E,r)}
+  \]
+  for every $r \leq R_k$, so we know the entire path of fits up to and including $R_k$. But then, excluding variable $j \notin E$ at Lagrange parameter $\lambda_r$ is equivalent to
+  \[
+  \lambda_r \geq 
+  \left| \pardd{\ell(\hat\theta^r)}{\theta_j} \right|
+  = \left|U_j - \E_{\hat\theta^r}[U_j]\right|
+  \]
+  On $A$, for $r \leq R_k$, 
+  $\E_{\hat\theta^r}[U_j]$ is a known function of $E$ and $u$,
+  so we can set
+  \begin{align}\label{eq:vMinus_L1}
+    v_j^-(E,u) &= \sup_{r \leq R_k} \;\; 
+    \E_{\hat\theta^r}[U_j] - \lambda_r \\
+    \label{eq:vPlus_L1}
+    v_j^+(E,u) &= \inf_{r \leq R_k} \;\;
+    \E_{\hat\theta^r}[U_j] + \lambda_r .
+  \end{align}
+\end{proof}
+
 
 \section{Simulation: Sparse Linear Regression}\label{sec:sparseReg}
 
