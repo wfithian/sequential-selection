@@ -143,7 +143,7 @@ We could have instead defined the ``variable-centric'' type I error $\tV$ as the
 There is some ambiguity involved in deciding how to generalize $z$- and $t$-tests to the selective case. For example, \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression under the upper model $M_\infty:\; Y\sim \cN(\mu, \sigma^2 I)$:
 \begin{description}
 \item[Complete Null:] The previous model, $M_{k-1}$, is correct; i.e., that $\mu = X_{E_{k-1}}\beta$ for some $\beta$.
-\item[Incremental Null:] $M_{k-1}$ may not be correct, but $M_k$ is no improvement: i.e., that $X_EX_E\mu = \proj_{X_{E_{k-1}}}\mu$
+\item[Incremental Null:] $M_{k-1}$ may not be correct, but $M_k$ is no improvement: i.e., that $X_EX_E^\dagger\mu = \proj_{E_{k-1}}\mu$
 \end{description}
 . \citet{fithian2014optimal} discusses several different tests 
 
@@ -164,12 +164,12 @@ To begin, we consider the problem of constructing a valid selective $p$-value fo
 \]
 The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a fixed candidate hypothesis $M\sub M_{\infty}$.
 
-The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ if it is stochastically larger than uniform under sampling distributions $F\in M$, given that $M$ is selected. That is,
+The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is stochastically larger than uniform under sampling distributions $F\in M$, given that $M$ is selected. That is,
 \[
 \P_F\left(p_{k,M}(Y) \leq \alpha \mid M_{k-1}(Y) = M\right) 
 \leq \alpha, \quad \forall F\in M, \alpha \in [0,1].
 \]
-Given selective $p$-values for each fixed candidate pair, we can construct a combined $p$-value for the random null $M_{k-1}(Y)$: 
+Given selective $p$-values for each fixed candidate pair, we can construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
 \[
 p_k(y) = p_{k, M_{k-1}(y)}(y),
 \]
@@ -178,15 +178,56 @@ which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
 \P_F\left(p_k \leq \alpha \mid M_{k-1}, 
   \;F\in M_{k-1}\right) \leq \alpha, \quad \forall \alpha \in [0,1].
 \]
-Recall that, as usual $M_{k-1}$ is random and not $F$.
+Recall that $M_{k-1}$ is random and not $F$.
 
 Methods for one-step selective $p$-values are by now well-studied. \WFcomment{big list of references.} See \citet{fithian2014optimal} for a general treatment. 
 
+
+\subsection{Selective $p$-Values in Exponential Families}
+
+
+
 \subsection{Selective $p$-Values in Regression}
 
+In linear regression, there are several tests that we might perform at step $k$ if we are , which generally use 
+
+\subsubsection{Saturated-Model Tests}
+Most of the work in selective inference for linear regression has focused on inference for least-squares parameters of the model $M_\infty:\; Y \sim \cN(\mu, \sigma^2I)$, with $\sigma^2$ assumed known. The saturated-model test for significance of variable $j_k$ after adjusting for the variables in $E_{k-1}$ tests whether the coefficient of $X_{j_k}$ is nonzero in the best linear model $X_{E_k}^\dagger Y$. 
+
+Let $\proj_{E_{k-1}}\mu$ denote the projection of $\mu$ onto the column space of $X_{E_{k-1}}$, and let $\eta = \proj_{E_{k-1}}^\perp X_{j_k}$. Saturated-model $p$-values test the null hypothesis $H_0:\;\eta'\mu = 0$. Because $M_\infty$ has $n$ parameters, we must  condition on $\proj_\eta^\perp Y$ to eliminate the effect of the nuisance parameters $\proj_\eta^\perp \mu$ from the problem. Thus, the test is based on
+\begin{equation}\label{eq:satModel}
+\L\left( \eta'Y \mid E_{k-1}, j_k, \proj_\eta^\perp Y \right).
+\end{equation}
+To carry out exact tests of this hypothesis, we must assume that $\sigma^2$ is known, or that an independent estimate is available.
+
+\WFcomment{References.} \citet{fithian2014optimal} call $M_\infty$ the {\em saturated model} because there is a parameter for every data point. They contrast tests based on $M_\infty$ with {\em selected-model} tests, which do not treat $\proj_\eta^\perp \mu$ as a nuisance parameter. 
 
 
-\subsection{Comparison of Selected- and Saturated-Model inference}
+\subsubsection{Selected-Model Tests}
+Selected-model inference~\citep{fithian2014optimal} presents a more powerful alternative to testing for inclusion of variable $j_k$. Selected-model tests are so called because they are based on the statistical model chosen by our selection procedure. In this case, the null model selected for testing at step $k$ is simply the model $M_{k-1}:\; Y \sim \cN(X_{E_{k-1}}\beta, \sigma^2 I)$.
+
+There is a UMPU test of the null $M_{k-1}$ against the alternative $M_{k}\setminus M_{k-1}$, which has one more degree of freedom than $M_{k-1}$. One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform the UMPU selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$. In that case, the test is based on
+\begin{equation}\label{eq:selModel_cond}
+\L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
+\end{equation}
+Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests often pay a heavy price for this extra conditioning.
+
+Although the tests in~\eqref{eq:selModel_cond} and~\eqref{eq:satModel} may appear to be based on different test statistics, they are actually not: because $\eta'Y = X_{j_k}'(Y - \proj_{E_{k-1}}Y)$, one test statistic is a deterministic affine function of the other after we condition on $X_{E_{k-1}}'Y$.
+
+It is not really necessary to condition on $j_k$: instead we could use
+\begin{equation}\label{eq:selModel_marg}
+\L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right),
+\end{equation}
+or even replace $X_{j_k}'Y$ with any other test statistic. Under the null hypothesis, the distribution of $Y$ is completely known once we condition on the value of $X_{E_{k-1}}'Y$, the complete sufficient statistic of $M_{k-1}$.
+
+We will see in Section~\ref{sec:pValsIndep} that conditioning on $j_k$ as in~\eqref{eq:selModel_cond} always results in independent sequential $p$-values, whereas tests of the form~\eqref{eq:selModel_marg} yield independent $p$-values only under certain conditions. Section~\ref{sec:pValsIndep} explores the conditions required to obtain independent sequential $p$-values. Carrying out a finer comparison of the two selected-model tests is an interesting direction for future work.
+
+Selected-model inference is more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable.
+
+However, there are several major benefits to selected-model inference that often justify its use. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known. Second, $p$-values for selected-model tests are independent under general conditions, allowing us to plug the $p$-values into powerful sequential stopping rules such as those developed by~\citet{gsell2013sequential}. Most importantly, as we will see, selected-model tests can be dramatically more powerful than saturated-model tests. See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the difference between saturated-model and selected-model tests.
+
+
+\subsection{Comparison of Selected- and Saturated-Model inference}\label{sec:bivariate}
 
 We illustrate the superior power of the selected-model test in early steps with an extended example.
 
@@ -654,7 +695,7 @@ Happily, the polytope to condition on has only $2p$ constraints in forward stepw
   \end{align}  
 \end{proof}
 
-As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$ regularized exponential family models including the graphical LASSO, group LASSO, and... \WFcomment{more? group LASSO not really $\ell_1$ penalty, but the result is true for group LASSO}
+As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$-regularized exponential family models including the graphical LASSO.
 
 \begin{theorem}
   Assume that $M_\infty$ is an exponential family model
@@ -706,6 +747,8 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
     \E_{\hat\theta^r}[U_j] + \lambda_r .
   \end{align}
 \end{proof}
+
+\WFcomment{Give more general characterization of when we can do it, including group lasso? QP? Generalized Lasso?}
 
 
 \section{Simulation: Sparse Linear Regression}\label{sec:sparseReg}
