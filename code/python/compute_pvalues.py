@@ -63,7 +63,9 @@ def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
     return pvalue
 
 def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
-                    compute_maxT_identify=True):
+                    compute_maxT_identify=True,
+                    burnin=2000,
+                    ndraw=8000):
     """
     Parameters
     ----------
@@ -116,8 +118,8 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
             pval_maxT_identify = FS.model_pivots(i+1, alternative='twosided',
                                           which_var=[FS.variables[-1]],
                                           saturated=False,
-                                          burnin=2000,
-                                          ndraw=8000)[0][1]
+                                          burnin=burnin,
+                                          ndraw=ndraw)[0][1]
         else:
             pval_maxT_identify = np.random.sample()
         var_select, pval_saturated = FS.model_pivots(i+1, alternative='twosided',

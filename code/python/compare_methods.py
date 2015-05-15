@@ -49,11 +49,15 @@ def run(y, X, sigma, active,
         do_knockoff=False,
         alpha=0.05,
         maxstep=np.inf,
-        compute_maxT_identify=True):
+        compute_maxT_identify=True,
+        burnin=2000,
+        ndraw=8000):
 
     n, p = X.shape
     results, FS = compute_pvalues(y, X, sigma, maxstep=maxstep,
-                                  compute_maxT_identify=compute_maxT_identify)
+                                  compute_maxT_identify=compute_maxT_identify,
+                                  burnin=burnin,
+                                  ndraw=ndraw)
     completion_idx = completion_index(results['variable_selected'], active)
     full_results.setdefault('completion_idx', []).append(completion_idx)
 
@@ -108,7 +112,7 @@ def run(y, X, sigma, active,
                                             active,
                                             rule, 
                                             alpha)
-        pval_name = pval.split('_')[0]
+        pval_name = pval.split('_')[:-1]
         full_results.setdefault('%s_%s_R' % (pval_name, rule_name), []).append(R)
         full_results.setdefault('%s_%s_V_var' % (pval_name, rule_name), []).append(V_var)
         full_results.setdefault('%s_%s_V_model' % (pval_name, rule_name), []).append(V_model)
