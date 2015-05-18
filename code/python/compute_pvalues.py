@@ -7,7 +7,8 @@ from selection.distributions.discrete_family import discrete_family
 from selection.constraints.affine import gibbs_test
 from scipy.stats import norm as ndist
 
-def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
+def maxT(FS, sigma=1, burnin=2000, ndraw=8000,
+         accept_reject_params=(100,15,2000)):
     """
     Sample from constraints, reporting largest
     inner product with T.
@@ -48,7 +49,8 @@ def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
                                 UMPU=False,
                                 how_often=-1,
                                 use_random_directions=False,
-                                use_constraint_directions=False)
+                                use_constraint_directions=False,
+                                accept_reject_params=accept_reject_params)
 
     else: # first step
 
@@ -58,14 +60,14 @@ def maxT(FS, sigma=1, burnin=2000, ndraw=8000):
     null_statistics = np.fabs(np.dot(Z, RX) / scale[None,:]).max(1)
     dfam = discrete_family(null_statistics, W)
     observed = np.fabs(np.dot(RX.T, FS.Y) / scale).max()
-    pvalue = dfam.cdf(0, observed)
-    pvalue = max(2 * min(pvalue, 1 - pvalue), 0)
+    pvalue = dfam.ccdf(0, observed)
     return pvalue
 
 def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
                     compute_maxT_identify=True,
                     burnin=2000,
-                    ndraw=8000):
+                    ndraw=8000,
+                    accept_reject_params=(100,15,2000)):
     """
     Parameters
     ----------
@@ -108,7 +110,8 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
         # maxT computed before next constraints
         # are added
 
-        pval_maxT = maxT(FS, sigma)
+        pval_maxT = maxT(FS, sigma, accept_reject_params=accept_reject_params,
+                         ndraw=ndraw, burnin=burnin)
 
         # take a step of FS
 
