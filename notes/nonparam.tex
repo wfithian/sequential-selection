@@ -1,0 +1,192 @@
+\documentclass{article}
+
+
+\usepackage[round]{natbib}
+\usepackage{amsmath,amssymb,amsthm,bm,enumerate,mathrsfs,mathtools}
+\usepackage{latexsym,color,verbatim,multirow}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\newcommand{\real}{\mathbb{R}}
+
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+
+\begin{document}
+
+
+\title{Nonparametric selective bootstrap}
+
+\maketitle
+
+\section{Non-bootstrap world}
+
+Suppose we have a model selection procedure $\hat{M}$ acting on sufficient
+statistics $Z$ choosing among a (finite) set of models. So, our selected model
+is $M=\hat{M}(Z)$. Our selected model suggests a hypothesis of interest that we want to test.
+
+We will apply $\hat{M}$ on data of the form
+$$
+\hat{Z}_n = \frac{1}{n} \sum_{i=1}^n y_i X_i = \frac{1}{n}X^Ty \in \real^p
+$$
+where $(y_i, X_i) \overset{\text{IID}}{\sim} F$. 
+
+Note that $Z$ is a statistical functional that we might write as
+$$
+Z(F) = E_{F}(yX)
+$$
+and what we really observe $\hat{Z}_n = Z(\hat{F}_n)$. 
+
+We want to carry out a selective test of
+$$
+H_0: \eta_{M}^T \gamma_M(F) = 0
+$$
+where $\eta_M \in \real^{p \times k}$ and $\gamma_M$ is some statistical
+function possibly different from $Z$. In principle it can depend
+on the model we have selected, but we will drop the $M$ from now on.
+{\bf We assume that $Z$ is measurable with respect to $\gamma$, i.e.
+$\gamma$ includes $Z$ as part of its coordinates or something. This means
+that it makes sense to talk about $\hat{M}$ evaluated
+on a sample of $\gamma$'s.}
+
+Above, we have chosen $\eta_M$ based on the outcome $\hat{M}(\hat{Z}_n)$. Following the general setup of the
+selected model framework, we just have to design
+a test for a fixed $M$.
+
+For large enough $n$, under our model $M$ suppose that
+$$
+\gamma(\hat{F}_n) \approx N(\gamma(F), n^{-1} \Sigma(F))
+$$
+where, for some distribution $G$ on $\real \times \real^p$
+$$
+\Sigma(G) = E_{G}\left((\gamma(\tilde{y},\tilde{X}) - \gamma(G))(\gamma(\tilde{y},\tilde{X}) - \gamma(G))^T \right)
+$$
+where $(\tilde{y}, \tilde{X})$ is a sample of size 1 from $G$.
+
+{\bf Note: as the functional
+we choose may depend on $M$, the normal approximation generally depends 
+on the selected model -- I am not going to emphasize that here.}
+
+If this is our reference distribution, we should base our distribution on the 
+conditional law of $\Sigma(F)^{-1}W | (I - \eta\eta^{\dagger})\Sigma(F)^{-1}W$ where
+$W \sim N(\gamma(F), n^{-1} \Sigma(F))$. This is because
+we know that, under $H_0:\eta^T\gamma(F)=0$
+this distribution does not depend on $(I-\eta\eta^{\dagger})\gamma(F)$ which
+is everything except what we wanted to test. 
+
+Set $P_{\eta}^{\perp}=I - \eta\eta^{\dagger}$.
+This 
+distribution has covariance
+$$
+n^{-1} \left(\Sigma(F)^{-1} - \Sigma(F)^{-1} P_{\eta}^{\perp} \left(P_{\eta}^{\perp} \Sigma(F)^{-1} P_{\eta}^{\perp} \right)^{\dagger}  P_{\eta}^{\perp} \Sigma(F)^{-1}  \right).
+$$
+Denote this covariance by $\Theta(\eta, \Sigma(F))$. 
+
+If $W \sim N(\gamma(F), n^{-1}\Sigma(F))$,
+this distribution can be realized by 
+$$
+\Sigma(F)^{-1} W - \Sigma(F)^{-1} P_{\eta}^{\perp} \left(P_{\eta}^{\perp} 
+\Sigma(F)^{-1} P_{\eta}^{\perp} \right)^{\dagger}  P_{\eta}^{\perp} W.
+$$
+This is an affine function of $W$ determined by $\eta, \Sigma(F)$ 
+call this affine function $A(\eta, \Sigma(F), W)$. 
+
+In summary, if $W \sim N(\gamma(F), n^{-1}\Sigma(F))$ 
+then under $H_0: \eta^T\gamma(F)=0$, asymptotically we have
+$$
+A(\eta, \Sigma(F), W) \sim N(0, n^{-1} \Theta(\eta, \Sigma(F))).
+$$
+
+
+{\bf Note that, if we can
+sample from this distribution, we know how to
+do a parametric selective test of $H_0:\eta_M^T\gamma(F)=0$.
+Also, I reiterate that the normal approximation could depend on $M$.
+}
+
+
+\section{Bootstrap test}
+
+We apply non-parametric bootstrap to the pairs 
+yielding samples
+$$
+y^{*,b} \in \real^n,  X^{*,b} \in \real^{n \times p}, \qquad 1 \leq  b \leq B
+$$
+and  bootstrapped sufficient statistics
+$$
+\gamma^{*,b} = \frac{1}{n} \gamma(y_i^{*,b}, X_i^{*,b}),  \qquad 1 \leq  b \leq B
+$$
+
+These are of course just evaluating $\gamma$ on 
+IID draws of size $n$ from $\hat{F}_n$. So,
+we can write
+$\gamma^{*,b} = \gamma(\hat{F}_n^{*,b})$
+where $\hat{F}_n^{*,b}$ is the empirical
+distribution function of sampling with replacement from the original data.
+
+For large enough $n$, the law of $\gamma(\hat{F}_n^{*,b})$ is hopefully going to be close
+to the Gaussian 
+$$
+\gamma(\hat{F}_n^{*,b}) | \hat{F}_n \sim N(\gamma(\hat{F}_n), n^{-1} \Sigma(\hat{F}_n))
+$$
+where
+$$
+\Sigma(\hat{F}_n) = \frac{1}{n} \sum_{i=1}^n \left(\gamma(y_i,X_i) - \bar{\gamma} \right)\left(\gamma(y_i,X_i) - \bar{\gamma} \right)^T
+$$
+and
+$$
+\bar{\gamma} = \frac{1}{n} \sum_{i=1}^n \gamma(y_i, X_i).
+$$
+
+(Again, the normal approximation may depend on the selected model.)
+
+Therefore, our unselective bootstrap should be giving samples from
+roughly $ N(\gamma(\hat{F}_n), n^{-1} \Sigma(\hat{F}_n))$. That is,
+taking $B$ very large:
+$$
+\frac{1}{B}\sum_{b=1}^B \eta^T \gamma(\hat{F}^{*,b}_n) \approx \eta^T\gamma(\hat{F}_n).
+$$
+This suggests we correct the unselective bootstrap by drawing
+$$
+\gamma(\hat{F}^{*,b}_n) - \eta \eta^{\dagger}\gamma(\hat{F}_n) | \hat{F}_n \approx N((I - \eta\eta^{\dagger})\gamma(\hat{F}_n) ,n^{-1} \Sigma(\hat{F}_n))
+$$
+and we see that
+$$
+A(\eta, \Sigma(\hat{F}_n), \gamma(\hat{F}^{*,b}_n) - \eta \eta^{\dagger} \gamma(\hat{F}_n)) | \hat{F}_n
+ \approx N(0 ,n^{-1} \Theta(\eta, \Sigma(\hat{F}_n))).
+$$
+As $n$ gets larger, $\Sigma(\hat{F}_n)$ will approach $\Sigma(F)$. In general,
+plugging in consistent estimates of variance is OK in selective inference (not sure
+if Xiaoying put it in the first paper, but definitely in the
+randomized setting we have a concrete statement about this). In Rob's example of $n=30$, the sample size might be too small still, but asymptotically
+I think it will be fine. Maybe a degrees of freedom correction will help.
+
+So,
+we draw nonparametric bootstrap samples
+$$
+\gamma(\hat{F}^{*,b}_n) - \eta \eta^{\dagger}\gamma(\hat{F}_n)
+$$
+keeping only those for which $\hat{M}(\gamma(\hat{F}^{*,b}_n) - \eta \eta^{\dagger}\gamma(\hat{F}_n)) = \hat{M}(\gamma(\hat{F}_n))$.
+For those that survive, we compute
+$$
+A(\eta, \Sigma(\hat{F}_n), \gamma(\hat{F}^{*,b}_n) - \eta \eta^{\dagger}\gamma(\hat{F}_n))
+$$
+and take a test statistic of our choosing.
+
+\section{No nuisance parameters}
+
+When there are no nuisance parameters (i.e. $\eta=I$ or we are make other assumptions about $Z(F)$), we do not need the
+function $A$. This is the example I tried this morning. In this
+case, $\gamma=Z$ and we just draw nonparametric bootstrap samples
+$$
+Z(\hat{F}^{*,b}_n) - \eta \eta^{\dagger}Z(\hat{F}_n)
+$$
+keeping the same ones and compute any test statistic of our 
+choosing on these bootstrap samples. 
+
+\end{document}
+
+
