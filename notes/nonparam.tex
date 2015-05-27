@@ -354,6 +354,10 @@ in matricial form which we are not using in this section.
 Morally, though, they use the residuals after having adjusted for $A$
 and see if there are any other important correlations remaining.
 
+{\bf Not sure this ``natural'' analog is the correct one.
+That is, it didn't use anything like the linear
+function $L$ in my abstract case. Hmm.....}
+
 A natural analog
 in the pairs bootstrap model is to look at the law of
 $$
@@ -480,8 +484,13 @@ with the proper mean under $H_0$ and asymptotically (in $n$) correct variance.
 The sampling scheme now draws samples from $\hat{G}^{*,m}_n$ retaining those 
 for which the selected model is the same. With these samples, one can standardize each entry of $\gamma_A(\hat{G}^{*,m}_n)$ by its bootstrap SD and finally compute the observed maxT.
 
+{\bf Again, not sure if this is the ``right'' thing to do as it didn't
+use the covariance structure of $yX$ under $\hat{F}_n$ to construct the test.}
+
+
 \bibliographystyle{alpha}
 \bibliography{nonparam}
+
 
 \end{document}
 
