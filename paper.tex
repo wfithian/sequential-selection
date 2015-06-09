@@ -77,11 +77,15 @@
 \maketitle
 
 \begin{abstract}
-  Many model selection algorithms produce a ``path'' of fits that can be veiwed as specifying a sequence of models of increasing complexity. Given such a sequence of models and the data set used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data, while accounting for the fact that the model path is determined adaptively using the data. Extending the tools of Fithian, Sun and Taylor (2014), we construct a $p$-value for each step in the sequence. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically. By combining our $p$-values with stopping rules proposed by \citet{gsell2013sequential}, we achieve adaptive control of the familywise error rate and false discovery rate.
+  Many model selection algorithms produce a ``path'' of fits specifying a sequence of models of increasing complexity. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data, while accounting for the fact that the model path is determined adaptively using the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}. The improvement in power can be dramatic for ``early steps'' in the path, when most of the signal has not yet been added to the model. To choose a model we apply stopping rules to the resulting $p$-values, achieving adaptive control of the familywise error rate and false discovery rate.
+
+Most of the stopping rules proposed in the literature assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values. We derive intuitive and general conditions for independence and show that our proposed construction yields independent $p$-values.
 \end{abstract}
 
 
 \section{Introduction}
+
+Many model selection procedures produce a path of fits 
 
 ... generates a sequence of increasingly complex models. Our goal is to choose the simplest model that is not falsified by the available data.
 
