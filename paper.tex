@@ -77,9 +77,9 @@
 \maketitle
 
 \begin{abstract}
-  Many model selection algorithms produce a ``path'' of fits specifying a sequence of models of increasing complexity. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data, while accounting for the fact that the model path is determined adaptively using the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}. The improvement in power can be dramatic for ``early steps'' in the path, when most of the signal has not yet been added to the model. To choose a model we apply stopping rules to the resulting $p$-values, achieving adaptive control of the familywise error rate and false discovery rate.
+  Many model selection algorithms produce a ``path'' of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically.
 
-Most of the stopping rules proposed in the literature assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values. We derive intuitive and general conditions for independence and show that our proposed construction yields independent $p$-values.
+To choose a model we feed the resulting $p$-values as inputs into sequential stopping rules proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving adaptive control of the familywise error rate or false discovery rate. These stopping rules assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values, a condition that is not satisfied by the $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values.
 \end{abstract}
 
 
@@ -136,7 +136,7 @@ while adjusting for the fact that the models are chosen adaptively. In most of o
 
 Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
 
-Section~\ref{sec:sequential} concerns {\em stopping rules} $\hk$, estimators of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including two powerful stopping rules proposed in \citet{gsell2013sequential}. These latter require guarantees on the joint law of the $p$-values. We will prove sufficient conditions for when the $p$-values are Gaussian.
+Section~\ref{sec:sequential} concerns {\em stopping rules}, i.e. estimators $\hk(Y)$ of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including powerful rules proposed in \citet{gsell2013sequential} and \citet{li2015accumulation}. These stopping rules provably control the familywise error rate or the false discovery rate given that the null $p$-values are independent of each other and of the non-null $p$-values. Section~\ref{sec:sequential} gives general conditions under which the single-step $p$-values are independent. Under weak conditions, selected-model $p$-values are independent. By contrast, saturated-model $p$-values generically produce non-independent null $p$-values.
 
 \subsection{Which Null Hypothesis Should We Test?}
 
@@ -151,9 +151,9 @@ There is some ambiguity involved in deciding how to generalize $z$- and $t$-test
 \end{description}
 . \citet{fithian2014optimal} discusses several different tests 
 
-In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of major scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would be evidence for a causal effect of $X_1$ on the response.
+In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of primary scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would constitute strong evidence for a causal effect of $X_1$ on the response.
 
-If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarry chip. Then $\beta_{j,\text{Full}}$ is already fairly arbitrary, since we would be controlling for a different set of genes if we had purchased the chip from a different manufacturer.
+If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarray chip, but if we had purchased the chip from a different manufacturer, we would have measured a different set of genes. Then, because the full-model coefficients are already artifacts of the somewhat arbitrary choice of which chip we bought, it is less clear that they are more scientifically interesting than the coefficients of a well-chosen submodel.
 
 \WFcomment{Also say: Controlling for more variables could take us farther from a causal effect; furthermore, coefficient in larger model is much harder to interpret.}
 
@@ -166,23 +166,24 @@ To begin, we consider the problem of constructing a valid selective $p$-value fo
   \quad \text{ vs. } \quad
   H_{1,k}:\; F \in M_\infty \setminus M_{k-1}(Y).
 \]
-The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a fixed candidate hypothesis $M\sub M_{\infty}$.
+The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
 
 The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is stochastically larger than uniform under sampling distributions $F\in M$, given that $M$ is selected. That is,
 \[
 \P_F\left(p_{k,M}(Y) \leq \alpha \mid M_{k-1}(Y) = M\right) 
 \leq \alpha, \quad \forall F\in M, \alpha \in [0,1].
 \]
-Given selective $p$-values for each fixed candidate pair, we can construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
+
+Given selective $p$-values for each fixed candidate $M$, we can construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
 \[
 p_k(y) = p_{k, M_{k-1}(y)}(y),
 \]
 which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
-\[
+\begin{equation}\label{eq:selectiveGuaranteePk}
 \P_F\left(p_k \leq \alpha \mid M_{k-1}, 
   \;F\in M_{k-1}\right) \leq \alpha, \quad \forall \alpha \in [0,1].
-\]
-Recall that $M_{k-1}$ is random and not $F$.
+\end{equation}
+Recall that in~\eqref{eq:selectiveGuaranteePk} $M_{k-1}$ is random and not $F$.
 
 Methods for one-step selective $p$-values are by now well-studied. \WFcomment{big list of references.} See \citet{fithian2014optimal} for a general treatment. 
 
@@ -196,15 +197,16 @@ Methods for one-step selective $p$-values are by now well-studied. \WFcomment{bi
 In linear regression, there are several tests that we might perform at step $k$ if we are , which generally use 
 
 \subsubsection{Saturated-Model Tests}
-Most of the work in selective inference for linear regression has focused on inference for least-squares parameters of the model $M_\infty:\; Y \sim \cN(\mu, \sigma^2I)$, with $\sigma^2$ assumed known. The saturated-model test for significance of variable $j_k$ after adjusting for the variables in $E_{k-1}$ tests whether the coefficient of $X_{j_k}$ is nonzero in the best linear model $X_{E_k}^\dagger Y$. 
+Most of the work in selective inference for linear regression has focused on inference for least-squares parameters of the model $M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I)$, with $\sigma^2$ assumed known. The saturated-model test for significance of variable $j_k$ after adjusting for the variables in $E_{k-1}$ tests whether the coefficient of $X_{j_k}$ is nonzero in the best linear approximation to $\mu$, $X_{E_k}^\dagger \mu$. 
 
-Let $\proj_{E_{k-1}}\mu$ denote the projection of $\mu$ onto the column space of $X_{E_{k-1}}$, and let $\eta = \proj_{E_{k-1}}^\perp X_{j_k}$. Saturated-model $p$-values test the null hypothesis $H_0:\;\eta'\mu = 0$. Because $M_\infty$ has $n$ parameters, we must  condition on $\proj_\eta^\perp Y$ to eliminate the effect of the nuisance parameters $\proj_\eta^\perp \mu$ from the problem. Thus, the test is based on
+Let $\proj_{E_{k-1}}\mu$ denote the projection of $\mu$ onto the column space of $X_{E_{k-1}}$, and let $\eta = \proj_{E_{k-1}}^\perp X_{j_k}$. Saturated-model $p$-values test the null hypothesis $H_0:\;\eta'\mu = 0$. Because $M_{\text{sat}}$ has $n$ parameters, we must  condition on $\proj_\eta^\perp Y$ to eliminate the effect of the nuisance parameters $\proj_\eta^\perp \mu$ from the problem. Thus, the test is based on
 \begin{equation}\label{eq:satModel}
 \L\left( \eta'Y \mid E_{k-1}, j_k, \proj_\eta^\perp Y \right).
 \end{equation}
 To carry out exact tests of this hypothesis, we must assume that $\sigma^2$ is known, or that an independent estimate is available.
 
-\WFcomment{References.} \citet{fithian2014optimal} call $M_\infty$ the {\em saturated model} because there is a parameter for every data point. They contrast tests based on $M_\infty$ with {\em selected-model} tests, which do not treat $\proj_\eta^\perp \mu$ as a nuisance parameter. 
+\WFcomment{References.} \citet{fithian2014optimal} call $M_{\text{sat}}$ the {\em saturated model} because there is a parameter for every data point. They contrast tests based on $M_{\text{sat}}$ with {\em selected-model} tests, which assume $\proj_\eta^\perp \mu=0$ rather than treating it as a nuisance parameter. 
+
 
 
 \subsubsection{Selected-Model Tests}
@@ -846,6 +848,17 @@ The last measure of performance is not explicitly controlled by any of the selec
 
 \section{Discussion}
 
+It is a commonplace that ``essentially all models are wrong, but some are useful'' \citep{box1987empirical}. In essence, a statistical model is useful if it is large enough to capture the most important features of the data, but still small enough that inference procedures can achieve adequate power and precision. Apart from theoretical considerations, the only way to know whether a model is large enough is to test whether it is, using available data.
+
+Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the most threat to our inferential conclusions, and how powerful are our tests against these most troublesome sources of misspecification? 
+
+Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
+
+
+
+\section*{Acknowledgments}
+
+The authors are grateful for stimulating and informative conversations with Stefan Wager, Lucas Janson, Trevor Hastie, ....
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}
