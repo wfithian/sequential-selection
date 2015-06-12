@@ -64,6 +64,7 @@
 \newcommand{\hk}{\hat{k}}
 \newcommand{\hr}{\hat{r}}
 \newcommand{\cN}{\mathcal{N}}
+\newcommand{\cJ}{\mathcal{J}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
 
 
@@ -119,28 +120,134 @@ in which
 This problem was studied in \citet{choi2014selecting}.
 \end{example}
 
-\subsection{Generic Setting}
+\subsection{Notation and Problem Setting}
 
 More generically, we observe data $Y \in \cY$, with unknown sampling distribution $F$. We then use $Y$ to generate an adaptive sequence of $d$ nested models
 \[
-M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y).
+M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
-Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k\}$, the index of the first correct model. 
+By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration.
 
-We will consider two related problems. First, we will consider the problem of obtaining selective single-step $p$-values, where $p_k$ is a $p$-value for testing
+Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. Our goal is to examine the data and output a {\em stopping rule}, i.e. an estimator $\hk(Y)$ of $k_0$. We consider $M_k$ to be ``rejected'' if $k < \hat k$, and ``accepted'' otherwise, so that $V=(\hat k - k_0)_+$ is the number of mistaken rejections.
+
+We will break the problem into two constituent subproblems. First, Section~\ref{sec:singleStep} will discuss how to obtain selective single-step $p$-values, where $p_k$ is a $p$-value for testing
 \[
 H_{0,k}:\; F\in M_{k-1}\quad \text{ vs. } \quad 
 H_{1,k}:\; F\in M_\infty\setminus M_{k-1},
 \]
-while adjusting for the fact that the models are chosen adaptively. In most of our development we will make few formal assumptions about the form of the candidate models. Still, our results are only useful in cases where we can actually construct single-step $p$-values. At present, that means our applications are largely restricted to exponential family models.
+adjusting for the fact that the models are chosen adaptively. In most of our development we will make few assumptions about what form the candidate models take. Still, our results are only useful in cases where we can actually construct single-step $p$-values. At present, this largely restricts our applications to exponential family models.
 
-Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
+Second, Section~\ref{sec:sequential} focuses on the sequential nature of the problem. \citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{[d]}$. These stopping rules provably control type I error rates like the familywise error rate $\P(V>0)$ or the false discovery rate $\E[V/(\hk \vee 1)]$, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. We will discuss general conditions under which single-step $p$-values are independent.
 
-Section~\ref{sec:sequential} concerns {\em stopping rules}, i.e. estimators $\hk(Y)$ of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including powerful rules proposed in \citet{gsell2013sequential} and \citet{li2015accumulation}. These stopping rules provably control the familywise error rate or the false discovery rate given that the null $p$-values are independent of each other and of the non-null $p$-values. Section~\ref{sec:sequential} gives general conditions under which the single-step $p$-values are independent. Under weak conditions, selected-model $p$-values are independent. By contrast, saturated-model $p$-values generically produce non-independent null $p$-values.
+
+\subsubsection{Linear Regression}
+
+Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. In this problem, we observe a random response $Y\in \R^n$ as well as a fixed design matrix $X\in \R^{n \times p}$, whose columns correspond to candidate predictors. For each {\em active set} $E \sub [p]$, there is a corresponding candidate model
+\[
+M(E):\; Y \sim \cN( X_E\beta, \sigma^2 I_n),
+\]
+which is a subset of the {\em full model}
+\[
+M_\infty:\; Y \sim \cN(X\beta, \sigma^2I_n).
+\]
+The error variance $\sigma^2$ may be known or unknown depending on the context.
+
+\subsubsection{Sparse Parametric Models}
+
+All of the specific examples considered in this paper will have a common form generalizing the linear regression problem above. Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^{\cJ}$:
+\[
+M_\infty = \{F_\theta:\; \theta \in \Theta\}.
+\]
+For any subset $E\sub \cJ$ define the sparse submodel with active coefficients $E$ as follows:
+\[
+\Theta(E) = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
+\quad M(E) = \{F_\theta:\; \theta\in \Theta_E\}.
+\]
+
+This setting includes linear regression problems with known or unknown $\sigma^2$ as special cases. A typical path algorithm returns a sequence of nested active sets 
+\[
+E_0(Y) \sub E_1(Y) \sub \cdots \sub E_d(Y),
+\]
+inducing the model path given by $M_k = M(E_k)$. 
+
+As an example, in forward stepwise regression with known $\sigma^2$, we might include an unknown intercept term $\beta_0$ in the global null model $M_0$, then at each step $k\geq 1$, add the predictor $j_k$ that reduces the residual sum of squares the most. In that case $E_0 = \{0\}$, and $E_k = E_{k-1} \cup \{j_k\}$ for $k\geq 1$.
+
+\subsubsection{Path Algorithms}
+
+We will be especially interested in two path algorithms in the sparse parametric setting: forward-stepwise paths and ever-active regularization paths.
+
+Let $\ell(\theta; Y)$ denote the log-likelihood for model
+$M_\infty$. The {\em forward stepwise} algorithm proceeds as follows: we begin with some fixed $E_0$, then at step $k=1,\ldots,d$, we define
+\begin{align}\label{eq:forwardDef_start}
+j_k &= \argmax_j \;\;\sup \left\{\ell(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\} \\
+E_k &= E_{k-1} \cup \{j_k\}\\\label{eq:forwardDef_end}
+M_k &= M(E_k).
+\end{align}
+That is, at each step we add to the model the one variable that would most increase the likelihood. In the case of linear regression, this amounts to adding the variable that maximally reduces the residual sum of squares. 
+
+Another class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. For $r=0,1,\ldots,m$, let $P_r(\theta)$ denote some regularization penalty, and define
+\begin{align}\label{eq:regPathDef_start}
+  \hat\theta^{r}(Y) &= 
+  \argmin_{\theta\in\Theta} -\ell(\theta; Y) + P_r(\theta) \\
+  \tE_r(Y) &= \left\{j:\; \hat\theta_j^s \neq 0 
+    \text{ for any } s \leq r \right\}
+\end{align}
+
+While the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. Thus, we will take the sequence of distinct ever-active sets. Formally, let $R_0=0$, and for $k\geq 1$ let $R_k$ denote the (random) index where the active set actually changes for the $k$th time. That is,
+\begin{align}
+  R_k &= \min\{s:\; \tE_s \neq \tE_{R_{k-1}}\}\\
+  E_k &= \tE_{R_k}\\
+  \label{eq:regPathDef_end}
+  M_k &= M(E_k)
+\end{align}
+
+The ever-active lasso path in linear regression is the most familiar example, in which we take $P_r(\beta) = r^{-1}\|\beta\|_1$, and the penalized log-likelihood criterion is
+\begin{equation}
+  \argmin \frac{n}{2}\log(2\pi\sigma^2) 
+  + \frac{1}{2\sigma^2}\|Y - X\beta\|_2^2 + \frac{1}{r}\|\beta\|_1
+\end{equation}
+If $\sigma^2$ is known, then $\hat\beta^{r}$ is the lasso solution with Lagrange parameter $\lambda^r = \sigma^{2}/r$. If $\sigma^2$ is unknown, it is the lasso solution for $\lambda^r = (\hat\sigma^r)^2/r$. Because $\hat\sigma^r = n^{-1/2}\|Y-X\hat\beta^r\|_2$ is decreasing in $r$, $\lambda^r$ is strictly decreasing in $r$.
+
+Because it is actually possible to solve the lasso at every value of the Lagrange parameter, it is not really necessary that $r$ only take on integer values. We can instead notionally take $r\in (0,\infty)$, and use a path algorithm like LARS \citep{larspaper} to find every point in the path where the lasso solution changes.
 
 \subsection{Which Null Hypothesis Should We Test?}
 
-Note that the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric,'' as opposed to a ``variable-centric,'' fashion: in regression, our model-wise $V$ counts the number of true null {\em models} incorrectly rejected, instead of counting the number of noise variables included in the final model. We can define the (model-wise) familywise error rate (FWER) and false discovery rate (FDR) respectively as $\P_F(V >0)$ and $\E_F[V/(\hk \vee 1)]$. 
+In our formulation of the problem, the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric'' fashion: at step $k$, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ is complete noise, adding it is not a mistake as long as there are other signal variables that have not yet been included. 
+
+In some circumstances, we might want to define a type I error at step $k$ differently. If so, we must choose a different null hypothesis to test. Let $\mu = \E Y$ and let $\nu(E)$ denote the residual after projecting $\mu$ onto the column space of $X_E$:
+\[
+\nu(E) = \mu - X_{E}X_{E}^\dagger\mu,
+\]
+where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. $\nu(E)$ is the portion of $\mu$ that is unexplained by $M(E)$.
+
+\citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
+\begin{description}
+\item[Complete Null:] $M_{k-1}$ is already correct; i.e., $H_k:\;\nu(E_{k-1}) = 0$
+\item[Incremental Null:] $M_{k-1}$ may be incorrect, but $M_k$ is no improvement; i.e., $H_k^I:\; \nu(E_{k-1}) \perp X_{j_k}$.
+\item[Full-Model Null:] The coefficient of $X_{j_k}$ is zero in the     full model; i.e., $H_k^F:\;\nu\left([p]\setminus \{j_k\}\right) \perp X_{j_k}$.
+\end{description}
+
+While the complete null is the strongest hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. 
+Defining 
+\begin{align}
+V^{\text{I}} &= \#\{k < k_0:\; H_k^I \text{ is true}\} \quad \text{ and } \\
+V^{\text{F}} &= \#\{k < k_0:\; H_k^F \text{ is true}\},
+\end{align}
+we can define an analogous FWER and FDR with respect to each of these alternative choices, and attempt to control these error rates.
+
+In this article we will concern ourselves primarily with testing the complete null, which conforms most naturally to our stated aim of choosing the least complex model that is not rejected by the data. Using selective inference to control the type I error for $H_k^F$ or $H_k^I$ is an interesting topic for further study.
+
+In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of primary scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would constitute strong evidence for a causal effect of $X_1$ on the response.
+
+If the full model enjoys no special scientific status, however, there is little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarray chip, but if we had purchased the chip from a different manufacturer, we would have measured a different set of genes. Because the full-model coefficients are already artifacts of the somewhat arbitrary choice of which chip we bought, there is no clear reason to regard them as more scientifically interesting than the coefficients of a well-chosen submodel.
+
+
+\begin{comment}
+As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
+
+Under weak conditions, selected-model $p$-values are independent. By contrast, saturated-model $p$-values generically produce non-independent null $p$-values.
+
+
 
 We could have instead defined the ``variable-centric'' type I error $\tV$ as the number of noise variables incorrectly included in the final model, with $\tR$ denoting the total number of variables included. Here, by ``noise variable'' we mean one that has a non-zero coefficient in the full model. Using selective inference to control the variable-wise FWER $\P_\mu(\tV>0)$ and FDR $\E[\tV / (\tR \vee 1)]$ is an interesting topic for further study.
 
@@ -151,14 +258,11 @@ There is some ambiguity involved in deciding how to generalize $z$- and $t$-test
 \end{description}
 . \citet{fithian2014optimal} discusses several different tests 
 
-In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of primary scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would constitute strong evidence for a causal effect of $X_1$ on the response.
-
-If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarray chip, but if we had purchased the chip from a different manufacturer, we would have measured a different set of genes. Then, because the full-model coefficients are already artifacts of the somewhat arbitrary choice of which chip we bought, it is less clear that they are more scientifically interesting than the coefficients of a well-chosen submodel.
-
 \WFcomment{Also say: Controlling for more variables could take us farther from a causal effect; furthermore, coefficient in larger model is much harder to interpret.}
+\end{comment}
 
 
-\section{Inference for One Step}
+\section{Inference for One Step}\ref{sec:singleStep}
 
 To begin, we consider the problem of constructing a valid selective $p$-value for a particular step. At step $k$, we construct $p_k(Y)$ to test
 \[
@@ -592,6 +696,13 @@ While the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1
   M_k &= M(E_k)
 \end{align}
 \WFcomment{Slightly sloppy definitions: note that $d$, the number of models, is random. $d$ could be 0 or could be infinite, depending on the data. Also, it isn't really necessary that the $r$ values be integers...}
+
+define the restricted log-likelihood
+\[
+\ell_E(\theta; Y) = \left\{\begin{matrix} \ell(\theta; \;Y) 
+    & \theta \in \Theta(E)\\ -\infty  & 
+    \mathrm{ otherwise.}\end{matrix}\right. 
+\]
 
 \begin{proposition}[Regularized Likelihood Paths Satisfy SSP]\label{prop:regPathSSP}
 Ever-active model paths derived from regularized likelihood methods as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
