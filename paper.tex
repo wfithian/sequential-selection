@@ -120,7 +120,7 @@ in which
 This problem was studied in \citet{choi2014selecting}.
 \end{example}
 
-\subsection{Notation and Problem Setting}
+\subsection{Notation and Problem Setting}\label{sec:genericSetting}
 
 More generically, we observe data $Y \in \cY$, with unknown sampling distribution $F$. We then use $Y$ to generate an adaptive sequence of $d$ nested models
 \[
@@ -176,6 +176,7 @@ As an example, in forward stepwise regression with known $\sigma^2$, we might in
 
 We will be especially interested in two path algorithms in the sparse parametric setting: forward-stepwise paths and ever-active regularization paths.
 
+\paragraph{Forward Stepwise}
 Let $\ell(\theta; Y)$ denote the log-likelihood for model
 $M_\infty$. The {\em forward stepwise} algorithm proceeds as follows: we begin with some fixed $E_0$, then at step $k=1,\ldots,d$, we define
 \begin{align}\label{eq:forwardDef_start}
@@ -185,6 +186,7 @@ M_k &= M(E_k).
 \end{align}
 That is, at each step we add to the model the one variable that would most increase the likelihood. In the case of linear regression, this amounts to adding the variable that maximally reduces the residual sum of squares. 
 
+\paragraph{Ever-Active Regularization Paths}
 Another class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. For $r=0,1,\ldots,m$, let $P_r(\theta)$ denote some regularization penalty, and define
 \begin{align}\label{eq:regPathDef_start}
   \hat\theta^{r}(Y) &= 
@@ -208,39 +210,58 @@ The ever-active lasso path in linear regression is the most familiar example, in
 \end{equation}
 If $\sigma^2$ is known, then $\hat\beta^{r}$ is the lasso solution with Lagrange parameter $\lambda^r = \sigma^{2}/r$. If $\sigma^2$ is unknown, it is the lasso solution for $\lambda^r = (\hat\sigma^r)^2/r$. Because $\hat\sigma^r = n^{-1/2}\|Y-X\hat\beta^r\|_2$ is decreasing in $r$, $\lambda^r$ is strictly decreasing in $r$.
 
-Because it is actually possible to solve the lasso at every value of the Lagrange parameter, it is not really necessary that $r$ only take on integer values. We can instead notionally take $r\in (0,\infty)$, and use a path algorithm like LARS \citep{larspaper} to find every point in the path where the lasso solution changes.
+Because it is actually possible to solve the lasso at every value of the Lagrange parameter, it is not really necessary that $r$ only take on integer values. We can instead notionally take $r\in (0,\infty)$, and use a path algorithm like LARS \citep{taylor2014exact} to find every point in the path where the lasso solution changes.
 
 \subsection{Which Null Hypothesis Should We Test?}
 
 In our formulation of the problem, the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric'' fashion: at step $k$, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ is complete noise, adding it is not a mistake as long as there are other signal variables that have not yet been included. 
 
-In some circumstances, we might want to define a type I error at step $k$ differently. If so, we must choose a different null hypothesis to test. Let $\mu = \E Y$ and let $\nu(E)$ denote the residual after projecting $\mu$ onto the column space of $X_E$:
+In some circumstances, we might want to define a type I error at step $k$ differently. If so, we must choose a different null hypothesis to test. Let $\mu = \E Y$ and let $\theta^E$ denote the {\em least-squares coefficients} of active set $E$ --- the coefficients of the best linear predictor for the design matrix $X_E$:
 \[
-\nu(E) = \mu - X_{E}X_{E}^\dagger\mu,
+\theta^E = X_E^\dagger \mu = \argmin_{\theta\in \R^{|E|}} \|\mu - X_E\theta\|_2^2,
 \]
-where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. $\nu(E)$ is the portion of $\mu$ that is unexplained by $M(E)$.
+where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. Write $\proj_E\mu = X_E^\dagger \theta^E$ for the projection of $\mu$ into the column space of $X_E$.
 
 \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
 \begin{description}
-\item[Complete Null:] $M_{k-1}$ is already correct; i.e., $H_k:\;\nu(E_{k-1}) = 0$
-\item[Incremental Null:] $M_{k-1}$ may be incorrect, but $M_k$ is no improvement; i.e., $H_k^I:\; \nu(E_{k-1}) \perp X_{j_k}$.
-\item[Full-Model Null:] The coefficient of $X_{j_k}$ is zero in the     full model; i.e., $H_k^F:\;\nu\left([p]\setminus \{j_k\}\right) \perp X_{j_k}$.
+\item[Complete Null:] $M_{k-1}$ is already correct; i.e.,
+\[
+H_k:\;\mu = X_{E_{k-1}} \theta^{E_{k-1}}
+\]
+
+\item[Incremental Null:] $M_{k-1}$ may be incorrect, but $M_k$ is no improvement. That is, 
+\[
+H_k^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0
+\]
+\item[Full-Model Null:] The coefficient of $X_{j_k}$ is zero in the     full model; that is, 
+\[
+H_k^{\text{full}}:\; \theta_{j_k}^{[p]} = 0.
+\]
 \end{description}
+See \citet{gsell2013false} for an in-depth discussion of the relative conceptual advantages and disadvantages between these approaches.
 
-While the complete null is the strongest hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. 
-Defining 
+While the complete null is the strongest hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. Defining 
 \begin{align}
-V^{\text{I}} &= \#\{k < k_0:\; H_k^I \text{ is true}\} \quad \text{ and } \\
-V^{\text{F}} &= \#\{k < k_0:\; H_k^F \text{ is true}\},
+V^{\text{inc}} &= \#\{k < k_0:\; H_k^{\text{inc}} \text{ is true}\} \quad \text{ and } \\
+V^{\text{full}} &= \#\{k < k_0:\; H_k^{\text{full}} \text{ is true}\},
 \end{align}
-we can define an analogous FWER and FDR with respect to each of these alternative choices, and attempt to control these error rates.
+we can define an analogous FWER and FDR with respect to each of these alternative choices, and attempt to control these error rates. For example, we can define
+\[
+\text{FDR}^{\text{full}} = \E[V^{\text{full}} / (\hk \vee 1)],
+\]
+as the false discovery rate with respect to the full-model null.
 
-In this article we will concern ourselves primarily with testing the complete null, which conforms most naturally to our stated aim of choosing the least complex model that is not rejected by the data. Using selective inference to control the type I error for $H_k^F$ or $H_k^I$ is an interesting topic for further study.
+In this article we will concern ourselves primarily with testing the complete null, which conforms most naturally to our stated aim of choosing the least complex model that is not rejected by the data, and is most easily generalized to the generic setting of Section~\ref{sec:genericSetting}. 
 
-In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of primary scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would constitute strong evidence for a causal effect of $X_1$ on the response.
+The incremental null is closely related to {\em saturated-model} tests for linear regression, as we will discuss further in Section~\ref{sec:singleStep}. While we could use the saturated-model framework to construct valid selective tests for $H_k^{\text{inc}}$, as proposed for LARS and lasso regression in \citet{taylor2014exact}, this will often result in a large reduction in power as well as introducing dependence between $p$-values at different steps. 
+
+The full-model null is the most different conceptually from the other two. It takes a ``variable-centric'' instead of ``model-centric'' point of view: any variable with a nonzero coefficient in the full model is a {\em signal variable} and the others are {\em noise variables}, and $V^{\text{full}}$ counts the number of noise variables incorrectly selected. 
+
+If the design matrix of the full model represents a scrupulously curated set of features, then the analyst may be primarily interested in inferences with respect to the full model. For example, the scientist may believe, due to theoretical considerations, that the linear model in $X_1, \ldots, X_p$ is fairly credible, and that a nonzero coefficient of $X_1$ after controlling for {\em all} of the other variables would constitute strong evidence for a causal effect of $X_1$ on the response. 
 
 If the full model enjoys no special scientific status, however, there is little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarray chip, but if we had purchased the chip from a different manufacturer, we would have measured a different set of genes. Because the full-model coefficients are already artifacts of the somewhat arbitrary choice of which chip we bought, there is no clear reason to regard them as more scientifically interesting than the coefficients of a well-chosen submodel.
 
+See \citet{barber2014controlling} for an exact method to control $\text{FDR}^{\text{full}}$. \WFcomment{many high-dim inference references}. Using selective inference to control type I error rates for $H_k^{\text{full}}$ is an interesting topic for further study.
 
 \begin{comment}
 As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
@@ -262,15 +283,15 @@ There is some ambiguity involved in deciding how to generalize $z$- and $t$-test
 \end{comment}
 
 
-\section{Inference for One Step}\ref{sec:singleStep}
+\section{Inference for One Step}\label{sec:singleStep}
 
-To begin, we consider the problem of constructing a valid selective $p$-value for a particular step. At step $k$, we construct $p_k(Y)$ to test
+In this section we will consider the problem of constructing a valid selective $p$-value for a single step in the path. At step $k$, we construct $p_k(Y)$ to test
 \[
   H_{0,k}:\; F \in M_{k-1}(Y)
   \quad \text{ vs. } \quad
   H_{1,k}:\; F \in M_\infty \setminus M_{k-1}(Y).
 \]
-The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
+As usual, the main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
 
 The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is stochastically larger than uniform under sampling distributions $F\in M$, given that $M$ is selected. That is,
 \[
@@ -278,7 +299,7 @@ The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ a
 \leq \alpha, \quad \forall F\in M, \alpha \in [0,1].
 \]
 
-Given selective $p$-values for each fixed candidate $M$, we can construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
+Once we have constructed selective $p$-values for each fixed candidate $M$, we can use them as building blocks to construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
 \[
 p_k(y) = p_{k, M_{k-1}(y)}(y),
 \]
@@ -289,71 +310,77 @@ which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
 \end{equation}
 Recall that in~\eqref{eq:selectiveGuaranteePk} $M_{k-1}$ is random and not $F$.
 
-Methods for one-step selective $p$-values are by now well-studied. \WFcomment{big list of references.} See \citet{fithian2014optimal} for a general treatment. 
-
-
-\subsection{Selective $p$-Values in Exponential Families}
-
-
+In principle, we can construct selective tests for exponential family models conditional on any selection event. See \citet{fithian2014optimal} for a general treatment.
 
 \subsection{Selective $p$-Values in Regression}
 
-In linear regression, there are several tests that we might perform at step $k$ if we are , which generally use 
+In linear regression, there are several tests that we might perform at step $k$. Let $E_{k-1}$ and $E_k$ denote the active sets for models $M_{k-1}$ and $M_k$ respectively. For simplicity we will assume that only one variable is added at step $k$, so that $E_k = E_{k-1} \cup j_k$.
 
 \subsubsection{Saturated-Model Tests}
-Most of the work in selective inference for linear regression has focused on inference for least-squares parameters of the model $M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I)$, with $\sigma^2$ assumed known. The saturated-model test for significance of variable $j_k$ after adjusting for the variables in $E_{k-1}$ tests whether the coefficient of $X_{j_k}$ is nonzero in the best linear approximation to $\mu$, $X_{E_k}^\dagger \mu$. 
 
-Let $\proj_{E_{k-1}}\mu$ denote the projection of $\mu$ onto the column space of $X_{E_{k-1}}$, and let $\eta = \proj_{E_{k-1}}^\perp X_{j_k}$. Saturated-model $p$-values test the null hypothesis $H_0:\;\eta'\mu = 0$. Because $M_{\text{sat}}$ has $n$ parameters, we must  condition on $\proj_\eta^\perp Y$ to eliminate the effect of the nuisance parameters $\proj_\eta^\perp \mu$ from the problem. Thus, the test is based on
+Many of the selective tests for linear regression use saturated-model tests. See for example \citet{lockhart2014significance}, \citet{taylor2013tests}, \citet{taylor2014exact}, \citet{lee2013exact}, and \citet{loftus2014significance}.
+
+The distinction between the incremental null and the complete null is closely related to the distinction between {\em saturated-model} tests and {\em selected-model} tests discussed in \citet{fithian2014optimal}. Define the saturated model as
+\[
+M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I_n),
+\]
+so named because there is a mean parameter for every observation. Because the parameter $\mu$ has the same dimension as the data $Y$, we must assume that $\sigma^2$ is known.
+
+Saturated-model tests assume only that $M_{\text{sat}}$ is true, and perform inference on linear functionals of $\mu$. For example, in linear regression after selecting active set $E$, we might construct confidence intervals for the coefficients $\theta^E$.
+
+In the context of sequential model selection, we can use the saturated-model framework to test the incremental null $H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$. The saturated model has $n$-dimensional sufficient statistic $Y$ and natural parameter $\mu$. Letting $\eta_k\in \R^n$ denote the vector for which $\theta_{j_k}^{E_k} = \eta_k'\mu$, the UMPU saturated-model test for $\theta_{j_k}^{E_k}$ is based on the distribution
 \begin{equation}\label{eq:satModel}
-\L\left( \eta'Y \mid E_{k-1}, j_k, \proj_\eta^\perp Y \right).
+\L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right),
 \end{equation}
-To carry out exact tests of this hypothesis, we must assume that $\sigma^2$ is known, or that an independent estimate is available.
-
-\WFcomment{References.} \citet{fithian2014optimal} call $M_{\text{sat}}$ the {\em saturated model} because there is a parameter for every data point. They contrast tests based on $M_{\text{sat}}$ with {\em selected-model} tests, which assume $\proj_\eta^\perp \mu=0$ rather than treating it as a nuisance parameter. 
-
-
+or equivalently on
+\begin{equation}\label{eq:satModelEquiv}
+\L\left( X_{j_k}'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right).
+\end{equation}
+The pair $(E_{k-1}, j_k)$ defines the selection event and $\proj_{\eta_k}^\perp Y$ eliminates the nuisance parameter $\proj_{\eta_k}^\perp \mu$.
 
 \subsubsection{Selected-Model Tests}
-Selected-model inference~\citep{fithian2014optimal} presents a more powerful alternative to testing for inclusion of variable $j_k$. Selected-model tests are so called because they are based on the statistical model chosen by our selection procedure. In this case, the null model selected for testing at step $k$ is simply the model $M_{k-1}:\; Y \sim \cN(X_{E_{k-1}}\beta, \sigma^2 I)$.
+Selected-model inference~\citep{fithian2014optimal} 
+represents a more powerful option when testing for inclusion of variable $j_k$. Selected-model tests are based on the statistical model chosen by our selection procedure. At step $k$, we test the selected null model $M(E_{k-1})$ against either the next model $M(E_k)$ or the upper model $M_\infty$. 
 
-There is a UMPU test of the null $M_{k-1}$ against the alternative $M_{k}\setminus M_{k-1}$, which has one more degree of freedom than $M_{k-1}$. One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform the UMPU selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$. In that case, the test is based on
+One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform the UMPU selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$. If $\sigma^2$ is known, the test is based on
 \begin{equation}\label{eq:selModel_cond}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
 \end{equation}
-Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests often pay a heavy price for this extra conditioning.
+Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests can pay a heavy price for this extra conditioning.
 
-Although the tests in~\eqref{eq:selModel_cond} and~\eqref{eq:satModel} may appear to be based on different test statistics, they are actually not: because $\eta'Y = X_{j_k}'(Y - \proj_{E_{k-1}}Y)$, one test statistic is a deterministic affine function of the other after we condition on $X_{E_{k-1}}'Y$.
-
-It is not really necessary to condition on $j_k$: instead we could use
+Instead of conditioning on the next model $M_k$, we could instead use
 \begin{equation}\label{eq:selModel_marg}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right),
 \end{equation}
-or even replace $X_{j_k}'Y$ with any other test statistic. Under the null hypothesis, the distribution of $Y$ is completely known once we condition on the value of $X_{E_{k-1}}'Y$, the complete sufficient statistic of $M_{k-1}$.
+or even replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. Under the null hypothesis, the distribution of $Y$ is completely known once we condition on the value of $X_{E_{k-1}}'Y$, the complete sufficient statistic of $M_{k-1}$.
 
-We will see in Section~\ref{sec:pValsIndep} that conditioning on $j_k$ as in~\eqref{eq:selModel_cond} always results in independent sequential $p$-values, whereas tests of the form~\eqref{eq:selModel_marg} yield independent $p$-values only under certain conditions. Section~\ref{sec:pValsIndep} explores the conditions required to obtain independent sequential $p$-values. Carrying out a finer comparison of the two selected-model tests is an interesting direction for future work.
+Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable. By contrast, selected-model tests typically require sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
 
-Selected-model inference is more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable.
+For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ would cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less compelling. We do not necessarily need a scientifically interpretable interval for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject and move on if $M(E_{k-1})$ is demonstrably incomplete.
 
-However, there are several major benefits to selected-model inference that often justify its use. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known. Second, $p$-values for selected-model tests are independent under general conditions, allowing us to plug the $p$-values into powerful sequential stopping rules such as those developed by~\citet{gsell2013sequential}. Most importantly, as we will see, selected-model tests can be dramatically more powerful than saturated-model tests. See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the difference between saturated-model and selected-model tests.
+There are several major benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known by conditioning on $\|Y\|^2$, the sufficient statistic corresponding to the natural parameter $1/2\sigma^2$. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and $\proj_{\eta_k}^\perp Y$ results in a degenerate conditional distribution for $\eta_k'Y$.  See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the distinctions between saturated-model and selected-model tests.
 
+Second, we will see in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}. Finally, and perhaps most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we will see next.
 
-\subsection{Comparison of Selected- and Saturated-Model inference}\label{sec:bivariate}
+\subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
 
-We illustrate the superior power of the selected-model test in early steps with an extended example.
+In this section we illustrate the superior power of the selected-model test in early steps with an extended example.
 
-\begin{example}[Bivariate Regression]\label{ex:bivariate}
-  Consider forward stepwise selection in a regression model with $n=p=2$, with identity design $X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}$ and known $\sigma^2=1$. We perform one step of forward stepwise and then test the null model with no variables against the model with one variable. 
+\begin{example}[Bivariate Regression with Identity Design]\label{ex:bivariate}
+  Consider forward stepwise selection in a regression model with $n=p=2$, with known $\sigma^2=1$ and identity design 
+\[
+X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}.
+\] 
 
-We will choose variable 1 first on the selection event $A=\{|Y_1| > |Y_2|\}$, which is shown in yellow in Figure~\ref{fig:bv_condSets}. In that case,
+The forward stepwise path and the lasso path both select $j_1=1$ if and only if $|Y_1|>|Y_2|$. The selection event $A_1=\{|Y_1| > |Y_2|\}$ is shown in yellow in Figure~\ref{fig:bv_condSets}. If $j_1=1$ then
 \[
 M_0:\; Y\sim \cN(0,I_2), \quad\text{ and } 
 M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, \; I_2\right).
 \]
-The selected-model test compares $Y_1$ to its distribution under $M_0$ conditional on $A$, a test of $H_0:\;\mu_1=0$ in model $M_1$.
 
-By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Now, $\mu_2$ enters the problem as a nuisance parameter because the saturated-model test refuses to assume that $\mu_2=0$. To eliminate the nuisance parameter $\mu_2$, the saturated model test must condition on $Y_2$, and compare $Y_1$ to its null distribution given $A$ {\em and} the observed value of $Y_2$.
+The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$ conditional on $A_1$, a test of $H_0:\;\mu_1=0$ in model $M_1$. By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. The saturated model test must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, and compare $Y_1$ to its null distribution given $A_1$ {\em and} the observed value of $Y_2$.
 
-Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9,2.5)$. Next to it, Figure~\ref{fig:bv_nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
+Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9, 2.5)$. Next to it, Figure~\ref{fig:bv_nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
 \end{example}
 
 \begin{figure}
@@ -361,64 +388,56 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_condSets.pdf}
-    \caption{\WFcomment{Copied directly from FST14; reword} 
-      For $Y=(2.9,2.5)$, the selected-model conditioning set is
-      $A=\{y:\;|y_1|>|y_2|\}$, a union of quadrants,
-      plotted in yellow. The saturated-model conditioning set
-      is ${\{y:\; y_2=2.5\}\cap A} = {\{y:\;y_2=2.5, |y_1|>2.5\}}$,
-      a union of rays, plotted in brown.}
+    \caption{The selected-model test conditions on $j_1=1$ (yellow region), while the saturated-model test also conditions on $Y_2=2.5$ to eliminate the nuisance variable $\mu_2$ (brown region).}
     \label{fig:bv_condSets}
   \end{subfigure}
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_nullDists.pdf}
-    \caption{\WFcomment{Copied directly from FST14; reword} 
-      Conditional distributions of $Y_1$ under
-      $H_0:\mu_1 = 0$. Under the hypothesis
-      $\mu=0$, the realized  $|Y_1|$ is  quite large given $A$,
-      giving  $p$-value 0.015. By contrast, $|Y_1|$ is not too large
-      given $A \cap \{y:\; y_2=Y_2\}$, giving
-      $p$-value 0.3.}
+    \caption{Conditional distributions of $Y_1$ under
+      $M_0:\; Y \sim \cN(0,I_2)$. The realized value $|Y_1|=2.9$ is
+      quite large given that $j_1=1$. By
+      contrast, $|Y_1|=2.9$ is not especially large once we 
+      also condition on $Y_2=2.5$.}
   \end{subfigure}
-  \caption{\WFcomment{Copied directly from FST14; reword} 
-    Contrast between the saturated-model and selected-model tests
-    in Example~\ref{ex:bivariate}, in which we fit a one-sparse model with
-    design matrix $\bX=I_2$. The selected-model test is based
-    on  $\L_0(Y_1 \gv A)$, whereas the saturated-model test is based
-    on $\L_0(Y_1  \gv  Y_2, A)$.}
+  \caption{Contrast between the saturated-model and selected-model
+    tests in Example~\ref{ex:bivariate}. The selected-model test is based on  $\L(Y_1 \gv j_1=1)$,  whereas the saturated-model test is based on $\L(Y_1  \gv Y_2, \; j_1=1)$. 
+    When $Y=(2.9, 2.5)$, the selected- and saturated-model $p$-values are 0.015 and 0.3, respectively.}
   \label{fig:bv_nullDists}
 \end{figure}
 
 
-The case illustrated in Figure~\ref{fig:bv_condSets} exhibits a phenomenon that has been remarked upon elsewhere in the literature of saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the winning variable may have a very weak $p$-value. \WFcomment{add references}. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=\binom{4}{4}$, a very strong signal. While the selected model test has near perfect power, it is not uncommon for the saturated model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise exactly when there is a near tie between the variables.
+Figure~\ref{fig:bv_condSets} illustrates a certain phenomenon occurring in saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the resulting $p$-value my be very weak~\citep{lockhart2014significance}. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=(4,4)$, a very strong signal. While the selected model test has near perfect power, it is not uncommon for the saturated model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise when there is a near tie between the variables.
 
 \begin{figure}
   \centering
   % source code: bivariateSelVSat.R
   \includegraphics[width=.5\textwidth]{figs/bivariateSelVSat_rocCurve.pdf}
-  \caption{\WFcomment{Write caption here.}}
+  \caption{Cumulative distribution function of $p_1(Y)$ for the selected- and saturated-model tests when $\mu=(4,4)$. Even though the signal is very strong, the saturated-model test results in large $p$-values in realizations like the one in Figure~\ref{fig:bv_nullDists}, where there is a near-tie between $|Y_1|$ and $|Y_2|$. By contrast, the selected-model test has nearly perfect power.}
   \label{fig:bv_rocCurve}
 \end{figure}
 
-Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves_0} shows the power curve for each test when $\mu_2=0$. While the selected-model test is more powerful, the difference between the two is relatively mild. Interestingly, the difference is much more pronounced when $\mu_2=4$, as shown in Figure~\ref{fig:bv_powCurves_4}.
+Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves} shows the power curve for each test when $\mu_2=0$ (left panel) and $\mu_2=4$ (right panel). While the selected-model test is more powerful when the selected model is correct, the difference between the two is relatively small. The difference is much more pronounced when $\mu_2=4$. 
+
+Note that if $\mu=(0,4)$, the incremental null is true, but the complete null is false. That is, the model $M_0 = M(\emptyset)$ is missing an important signal variable, but the missing variable is not $X_1 = (1,0)$. Because the saturated-model test is really a test of the incremental null, its power is $\alpha=0.05$. By contrast, the selected-model test rejects about half the time when $\mu=(0,4)$, successfully detecting the fact that $M_0$ is a poor fit to the data.
 
 \begin{figure}
   \centering
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_0.pdf}
-    \caption{\WFcomment{Write caption here.}}
-    \label{fig:bv_powCurves_0}
+    %\caption{\WFcomment{Write caption here.}}
+    %\label{fig:bv_powCurves_0}
   \end{subfigure}
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_4.pdf}
-    \caption{\WFcomment{Write caption here.}}
+    %\caption{\WFcomment{Write caption here.}}
   \end{subfigure}
-  \caption{\WFcomment{Write caption here.}}
-   \label{fig:bv_powCurves_4}
+  \caption{Power at level $\alpha=0.05$ for saturated- and selected-model tests at step 1, given that $j_1=1$. The power is plotted as a function of $\mu_1$, for two different values of $\mu_2$. When $\mu_2=0$, the selected-model test is strictly more powerful than the saturated-model test, but the difference is slight. By contrast, when $\mu_2=4$, the selected-model test is much more powerful. The dashed line shows $\alpha=0.05$.}
+   \label{fig:bv_powCurves}
 \end{figure}
 
 

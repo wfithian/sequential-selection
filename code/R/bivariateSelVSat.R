@@ -2,6 +2,8 @@
 # Make plots of the conditioning sets and null distributions
 #########################################
 
+setwd("~/Dropbox/git/sequential-selection/code")
+
 # Conditioning Sets
 pdf("../figs/bivariateSelVSat_condSets.pdf",height=4.3,width=4)
 par(mar=c(4.1,4.1,3.1,0.1))
@@ -12,7 +14,7 @@ polygon(c(0,10,10),c(0,10,-10),lty=2,col="#F4E918")
 polygon(c(0,-10,-10),c(0,10,-10),lty=2,col="#F4E918")
 abline(h=0)
 abline(v=0)
-text(2,.5,"A")
+text(2,.5,expression(A[1]))
 text(y+c(.3,-.4),labels="Y")
 lines(c(y[2],10),c(y[2],y[2]),lwd=2,col="brown")
 lines(c(-y[2],-10),c(y[2],y[2]),lwd=2,col="brown")
