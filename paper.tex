@@ -127,6 +127,7 @@ More generically, we observe data $Y \in \cY$, with unknown sampling distributio
 \[
 M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
+\WFcomment{should probably end with $M_{d-1}(Y)$. need to fix this   throughout paper.}
 By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. 
 
 Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. Our goal is to examine the data and output a {\em stopping rule}, i.e. an estimator $\hk(Y)$ of $k_0$. We consider $M_k$ to be ``rejected'' if $k < \hat k$, and ``accepted'' otherwise. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. 
@@ -161,7 +162,7 @@ M_\infty:\; Y \sim \cN(X\beta, \sigma^2I_n).
 \]
 The error variance $\sigma^2$ may be known or unknown depending on the context. The complete sufficient statistic for $M(E)$ is $X_E'Y$ if $\sigma^2$ is known, or else $\left(X_E'Y, \|Y\|^2\right)$.
 
-\subsubsection{Sparse Parametric Models}
+\subsubsection{Sparse Parametric Models}\label{sec:genSparse}
 
 All of the specific examples considered in this paper will have a common form generalizing the linear regression problem above. Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^{\cJ}$:
 \[
@@ -223,7 +224,7 @@ Because it is actually possible to solve the lasso at every value of the Lagrang
 
 \subsection{Which Null Hypothesis Should We Test?}
 
-\WFcomment{Shorten this section, move most of it to Discussion}
+\WFcomment{Shorten this section, move some of it to Discussion?}
 
 In our formulation of the problem, the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric'' fashion: at step $k$, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ is complete noise, adding it is not a mistake as long as there are other signal variables that have not yet been included. 
 
@@ -288,7 +289,7 @@ where $k_0$ is fixed.
 In our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$. We will thus require {\em conditional} independence of null $p$-values given $k_0$:
 \begin{equation}\label{eq:indepCond_random_k0}
   \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-  \mid p_1, \ldots, p_{k_0}, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
+  \mid p_1, \ldots, p_k, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
 \end{equation}
 
 The following proposition shows that~\eqref{eq:indepCond_random_k0} is the correct generalization of~\eqref{eq:indepCond_fixed_k0} to the random-hypothesis case.
@@ -338,7 +339,7 @@ In real applications, null $p$-values may be conservative instead of exactly uni
 \end{equation}
 If the null $p$-values are marginally uniform, then the conditions~\eqref{eq:indepCond_random_k0} and~\eqref{eq:stochLargeCond_random_k0} are equivalent. For most stopping rules $\hk$, the weaker condition~\eqref{eq:stochLargeCond_random_k0} is enough to guarantee control of whatever error rate holds under~\eqref{eq:indepCond_random_k0}. For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
 
-Sections~\ref{sec:pValsIndep}--\ref{sec:modelSSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
+Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
 
 \subsection{Stopping Rules for Ordered Testing}\label{sec:orderedProposals}
 
@@ -406,9 +407,9 @@ for which $M_{[k]}$ is measurable with respect to $\sF_k$. We say that $\sF_{[d]
   when $F\in M_{k-1}(Y)$, and
 \item $p_k(Y)$ is measurable with respect to $\sF_k$.
 \end{enumerate}
-If $p_k$ is exact, the first requirement is equivalent to requiring that $p_k$ is independent of $\sF_{k-1}$ on the event $F\in M_{k-1}(Y)$.
+If $p_k$ is exact, the first requirement is equivalent to requiring that $p_k$ is independent of $\sF_{k-1}$ on the event $F\in M_{k-1}(Y)$ (i.e., the event when $p_k$ is null).
 
-If we think of $\sF_k$ as representing information available at step $k$, then the first condition means that $p_k$ ``excludes'' whatever evidence may have accrued against the null by step $k-1$, and the second means that any information revealed after step $k$ plays no role in determining $p_k$. In that sense, $\sF_k$ forms a ``wall of separation'' between the $p$-values up to $k$ and the ones after $k$. As a result, separated $p$-values are independent on nulls.
+If we think of $\sF_k$ as representing information available at step $k$, then the first condition means that $p_k$ ``excludes'' whatever evidence may have accrued against the null by step $k-1$, and the second means that any information revealed after step $k$ plays no role in determining $p_k$. In that sense, $\sF_k$ forms a ``wall of separation'' between the $p$-values up to $k$ and the null $p$-values after $k$. As a result, separated $p$-values are independent on nulls.
 
 \begin{proposition}[Independence of 
   Separated $p$-Values]\label{prop:jointConserv}
@@ -563,15 +564,13 @@ If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p
 
 \section{Inference for One Step}\label{sec:singleStep}
 
-In this section we will consider the problem of constructing a valid selective $p$-value for a single step in the path. At step $k$, we construct $p_k(Y)$ to test
+Having derived conditions for independence, we turn now to the question of how to construct valid selective $p$-values for a single step in the path. At step $k$, we construct $p_k(Y)$ to test
 \[
-  H_{0,k}:\; F \in M_{k-1}(Y)
-  \quad \text{ vs. } \quad
-  H_{1,k}:\; F \in M_\infty \setminus M_{k-1}(Y).
+  H_{k}:\; F \in M_{k-1}(Y)
 \]
-As usual, the main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
+against the alternative $F \in M_\infty \setminus M_{k-1}(Y)$. As usual, the main complication arises from the fact that the null hypothesis is random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
 
-The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is stochastically larger than uniform under sampling distributions $F\in M$, given that $M$ is selected. That is,
+The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is conservative under sampling from $F\in M$, given that $M$ is selected. That is,
 \[
 \P_F\left(p_{k,M}(Y) \leq \alpha \mid M_{k-1}(Y) = M\right) 
 \leq \alpha, \quad \forall F\in M, \alpha \in [0,1].
@@ -586,27 +585,35 @@ which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
 \P_F\left(p_k \leq \alpha \mid M_{k-1}, 
   \;F\in M_{k-1}\right) \leq \alpha, \quad \forall \alpha \in [0,1].
 \end{equation}
-Recall that in~\eqref{eq:selectiveGuaranteePk} $M_{k-1}$ is random and not $F$.
+%Recall that in~\eqref{eq:selectiveGuaranteePk} $M_{k-1}$ is random and not $F$.
 
-In principle, we can construct selective tests for exponential family models conditional on any selection event. See \citet{fithian2014optimal} for a general treatment.
+One very useful strategy for constructing exact selective tests is to condition on the sufficient statistics of the null model. Because the law
+\[
+\L(Y \;\mid\; T_{k-1}, \; M_{k-1}=M)
+\]
+is known under any $F\in M$, we can construct selective tests by comparing the distribution of any test statistic $U(Y)$ to its known conditional distribution under the null. See \citet{fithian2014optimal} for a general treatment of selective tests in exponential family models.
+
+If we follow this strategy, then the reference distribution for $U(Y)$ is measurable with respect to $T_{k-1}$ and $M_{k-1}$; moreover, if $U(Y)$ is also measurable with respect to $(M_k, T_k)$, the next model in the path and its sufficient statistics, then $p_k$ is measurable with respect to $\sF_k$, and so the $p$-value sequence $p_{[d]}$ will be independent on nulls per Theorem~\ref{thm:suffCond}.
+
+For the remainder of this section we will focus on linear regression.
 
 \subsection{Selective $p$-Values in Regression}
 
-In linear regression, there are several tests that we might perform at step $k$. Let $E_{k-1}$ and $E_k$ denote the active sets for models $M_{k-1}$ and $M_k$ respectively. For simplicity we will assume that only one variable is added at step $k$, so that $E_k = E_{k-1} \cup j_k$.
+In linear regression, there are several types of selective test that we might contemplate performing at step $k$. Let $E_{k-1}$ and $E_k$ denote the active sets for models $M_{k-1}$ and $M_k$ respectively. For simplicity we will assume that only one variable is added at step $k$, so that $E_k = E_{k-1} \cup j_k$. It is relatively straightforward to generalize the developments in this section to the case where multiple variables are added at once.
 
 \subsubsection{Saturated-Model Tests}
 
-Many of the selective tests for linear regression use saturated-model tests. See for example \citet{lockhart2014significance}, \citet{taylor2013tests}, \citet{taylor2014exact}, \citet{lee2013exact}, and \citet{loftus2014significance}.
+Many of the selective tests for linear regression use the saturated-model framework. See for example \citet{lockhart2014significance}, \citet{taylor2013tests}, \citet{taylor2014exact}, \citet{lee2013exact}, and \citet{loftus2014significance}.
 
-The distinction between the incremental null and the complete null is closely related to the distinction between {\em saturated-model} tests and {\em selected-model} tests discussed in \citet{fithian2014optimal}. Define the saturated model as
+The distinction between the incremental null and the complete null is closely related to the distinction between {\em saturated-model} tests and {\em selected-model} tests. Define the saturated model as
 \[
 M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I_n),
 \]
 so named because there is a mean parameter for every observation. Because the parameter $\mu$ has the same dimension as the data $Y$, we must assume that $\sigma^2$ is known.
 
-Saturated-model tests assume only that $M_{\text{sat}}$ is true, and perform inference on linear functionals of $\mu$. For example, in linear regression after selecting active set $E$, we might construct confidence intervals for the coefficients $\theta^E$.
+Saturated-model tests assume only that $M_{\text{sat}}$ is true, and perform inference on linear functionals of $\mu$. For example, in linear regression after selecting active set $E$, we might construct confidence intervals for the least-squares coefficients $\theta^E$ of active set $E$.
 
-In the context of sequential model selection, we can use the saturated-model framework to test the incremental null $H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$. The saturated model has $n$-dimensional sufficient statistic $Y$ and natural parameter $\mu$. Letting $\eta_k\in \R^n$ denote the vector for which $\theta_{j_k}^{E_k} = \eta_k'\mu$, the UMPU saturated-model test for $\theta_{j_k}^{E_k}$ is based on the distribution
+In the context of sequential model selection, we can use the saturated-model framework to test the incremental null $H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$. The saturated model has $n$-dimensional sufficient statistic $Y$ and natural parameter $\mu$. Letting $\eta_k\in \R^n$ denote the vector for which $\theta_{j_k}^{E_k} = \eta_k'\mu$, the UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution
 \begin{equation}\label{eq:satModel}
 \L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right),
 \end{equation}
@@ -616,33 +623,71 @@ or equivalently on
 \end{equation}
 The pair $(E_{k-1}, j_k)$ defines the selection event and $\proj_{\eta_k}^\perp Y$ eliminates the nuisance parameter $\proj_{\eta_k}^\perp \mu$.
 
+While the test statistic $\eta_k'Y$ is measurable with respect to $\sF_k$, the reference distribution we compare it against is not. Specifically, $\proj_{\eta_k}^\perp Y$ is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values constructed as in~\eqref{eq:satModel} are in general {\em not} independent on nulls.
+
 \subsubsection{Selected-Model Tests}
 Selected-model inference~\citep{fithian2014optimal} 
-represents a more powerful option when testing for inclusion of variable $j_k$. Selected-model tests are based on the statistical model chosen by our selection procedure. At step $k$, we test the selected null model $M(E_{k-1})$ against either the next model $M(E_k)$ or the upper model $M_\infty$. 
+represents a more powerful option when testing for inclusion of variable $j_k$. While saturated-model inference always uses the same model $M_{\text{sat}}$, selected-model inference is based on the statistical model that is chosen by our selection procedure. In the sequential case this means that at step $k$, we test the selected null model $M(E_{k-1})$, against either the next selected model $M(E_k)$ or the upper model $M_\infty$.
 
-One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform the UMPU selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$. If $\sigma^2$ is known, the test is based on
+\paragraph{Conditioning on the Next Model}
+One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform a UMPU, equal-tailed, or one-sided selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$ conditional on both models. If $\sigma^2$ is known, the test is based on
 \begin{equation}\label{eq:selModel_cond}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
 \end{equation}
-Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests can pay a heavy price for this extra conditioning.
+Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and as we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests can pay a heavy price for this extra conditioning.
 
-Instead of conditioning on the next model $M_k$, we could instead use
+If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficient path algorithm, the $p$-values are always guaranteed to have independence on nulls. The test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, and so is the reference distribution, which depends on $E_{k-1}, j_k,$ and $T_{k-1} = X_{E_{k-1}}'Y$.
+
+\paragraph{The Max-$t$ and Next-$\lambda$ Tests}
+Instead of conditioning on the next model $M_k$, we could use
 \begin{equation}\label{eq:selModel_marg}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right),
 \end{equation}
-or even replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. Under the null hypothesis, the distribution of $Y$ is completely known once we condition on the value of $X_{E_{k-1}}'Y$, the complete sufficient statistic of $M_{k-1}$.
+or even replace $X_{j_k}'Y$ with any other test statistic $U(Y)$. As long as $U(Y)$ is measurable with respect to $(M_k, T_k)$, and the path algorithm is subpath-sufficient, the $p$-values are independent on nulls.
 
-Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable. By contrast, selected-model tests typically require sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
+Two specific examples are worth discussing in detail. First, consider the {\em selective max-$t$ test}, a generalization of the max-$t$ test of ~\citet{bujaxxxxmaxT}. Controlling for $E$, the $z$-statistic for coefficient $j\notin E$ is
+\begin{equation}
+  z_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
+  {\sigma\|\proj_{E}^\perp X_j\|_2},
+\end{equation}
+and the $t$-statistic is
+\begin{equation}
+  t_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
+  {\hat \sigma_{j,E} \|\proj_{E}^\perp X_j\|_2},
+  \qquad \text{where} \quad 
+  \hat \sigma_{j,E}^2(Y) = 
+  \frac{\|\proj_{E \cup \{j\}}^\perp Y\|_2^2}{n-|E|-1}.
+\end{equation}
+Note that $z_{j,E}$ is a monotonic function of $X_j'Y$ given $X_E'Y$, and $t_{j, E}$ is a monotonic function of $X_j'Y$ given $(X_E'Y, \|Y\|_2)$. Thus $z_{j,E}$ is measurable with respect 
+to $X_{E \cup \{j\}}'Y$ if $\sigma^2$ is known, and otherwise $t_{j,E}$ is measurable with respect to $(X_{E \cup \{j\}}'Y, \|Y\|_2)$.
 
-For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ would cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less compelling. We do not necessarily need a scientifically interpretable interval for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject and move on if $M(E_{k-1})$ is demonstrably incomplete.
+We can then define the max-$t$-statistic (respectively max-$z$-statistic) for active set $E$ as
+\begin{equation}\label{eq:maxT}
+  U_E(Y) = \max_{j \notin E} \left|t_{j,E}(Y)\right|,
+\end{equation}
+and use $U_{E_{k-1}}(Y)$ as our test statistic at step $k$.
 
-There are several major benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known by conditioning on $\|Y\|^2$, the sufficient statistic corresponding to the natural parameter $1/2\sigma^2$. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and $\proj_{\eta_k}^\perp Y$ results in a degenerate conditional distribution for $\eta_k'Y$.  See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the distinctions between saturated-model and selected-model tests.
+$U_{E_{k-1}}(Y)$ is $\sF_k$-measurable if and only if $j_k$ is the maximizer in~\eqref{eq:maxT}. Consequently, max-$t$ $p$-values are independent on nulls if they are used in tandem with forward-stepwise regression, where the next variable added is always the variable with the largest $t$-statistic.
 
-Second, we will see in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}. Finally, and perhaps most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we will see next.
+By contrast, the LASSO path does not in general add the variable with the largest $t$-statistic. In that case, we could use instead the {\em selective next-$\lambda$ test}, which uses test statistic
+\begin{equation}
+  U_k = \inf\{ \lambda:\; \hat\beta^\lambda \notin \beta(E_{k-1})\}.
+\end{equation}
+The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables, but not if we use forward-stepwise. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
+
 
 \subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
 
-In this section we illustrate the superior power of the selected-model test in early steps with an extended example.
+
+Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable. By contrast, selected-model tests typically require sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
+
+For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ could cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less important. We do not necessarily need a scientifically interpretable interval for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject $M_{k-1}$ and move on if it is demonstrably incompatible with the data.
+
+There are several major benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known by conditioning on $\|Y\|^2$, the sufficient statistic corresponding to the natural parameter $1/2\sigma^2$. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and $\proj_{\eta_k}^\perp Y$ results in a degenerate conditional distribution for $\eta_k'Y$.  See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the distinctions between saturated-model and selected-model tests.
+
+Second, we have seen in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}.
+
+Finally, and perhaps most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we illustrate now with an extended example.
 
 \begin{example}[Bivariate Regression with Identity Design]\label{ex:bivariate}
   Consider forward stepwise selection in a regression model with $n=p=2$, with known $\sigma^2=1$ and identity design 
