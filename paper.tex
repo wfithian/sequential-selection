@@ -60,10 +60,13 @@
 \newcommand{\tE}{\widetilde{E}}
 \newcommand{\tV}{\widetilde{V}}
 \newcommand{\tR}{\widetilde{R}}
-\newcommand{\hK}{\widehat{K}}
+\newcommand{\tL}{\widetilde{L}}
 \newcommand{\hk}{\hat{k}}
+\newcommand{\hr}{\hat{r}}
 \newcommand{\cN}{\mathcal{N}}
+\newcommand{\cJ}{\mathcal{J}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
+\newcommand{\Err}{\mathcal{E}}
 
 
 \newcommand*\mystrut{\vrule width0pt height0pt depth1.5ex\relax}
@@ -76,11 +79,15 @@
 \maketitle
 
 \begin{abstract}
-  Many model selection algorithms produce a ``path'' of fits that can be veiwed as specifying a sequence of models of increasing complexity. Given such a sequence of models and the data set used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data, while accounting for the fact that the model path is determined adaptively using the data. Extending the tools of Fithian, Sun and Taylor (2014), we construct a $p$-value for each step in the sequence. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically. By combining our $p$-values with stopping rules proposed by \citet{gsell2013sequential}, we achieve adaptive control of the familywise error rate and false discovery rate.
+  Many model selection algorithms produce a ``path'' of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically.
+
+To choose a model we feed the resulting $p$-values as inputs into sequential stopping rules proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving adaptive control of the familywise error rate or false discovery rate. These stopping rules assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values, a condition that is not satisfied by the $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values.
 \end{abstract}
 
 
 \section{Introduction}
+
+Many model selection procedures produce a path of fits 
 
 ... generates a sequence of increasingly complex models. Our goal is to choose the simplest model that is not falsified by the available data.
 
@@ -109,88 +116,594 @@ M_0 \sub M_1 \sub \cdots \sub M_d
 \]
 in which
 \begin{equation}
-  M_k:\; (n-1) S \sim W_d\left(\lambda_0 I_d + \sum_{\ell=1}^k     \lambda_\ell u_i u_i', \;\;\; n-1\right).
+  M_k:\; (n-1) S \sim W_d\left(\lambda_0 I_d + \sum_{i=1}^k     \lambda_i u_i u_i', \;\;\; n-1\right).
 \end{equation}
 This problem was studied in \citet{choi2014selecting}.
 \end{example}
 
-\subsection{Generic Setting}
+\subsection{Notation and Problem Setting}\label{sec:genericSetting}
 
 More generically, we observe data $Y \in \cY$, with unknown sampling distribution $F$. We then use $Y$ to generate an adaptive sequence of $d$ nested models
 \[
-M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y).
+M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
-Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k\}$, the index of the first correct model. 
+\WFcomment{should probably end with $M_{d-1}(Y)$. need to fix this   throughout paper.}
+By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. 
 
-We will consider two related problems. First, we will consider the problem of obtaining selective single-step $p$-values, where $p_k$ is a $p$-value for testing
+Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. Our goal is to examine the data and output a {\em stopping rule}, i.e. an estimator $\hk(Y)$ of $k_0$. We consider $M_k$ to be ``rejected'' if $k < \hat k$, and ``accepted'' otherwise. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. 
+
+The number of type I errors is $V=(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. Depending on the context we might want to control the familywise error rate (FWER) $\P(V>0)$, the false discovery rate (FDR) $\E[V/(\hk \vee 1)]$, or another error rate given by the expectation of some loss function $g$:
+\begin{equation}\label{eq:errRate}
+\Err_F(\hk(\cdot), g) = \E_F\left[ g\left(\hk(Y), k_0(Y)\right)\right]
+\end{equation}
+
+We will assume that for each candidate model $M$ there is a minimal sufficient statistic $T(Y; \,M)$, and write
 \[
-H_{0,k}:\; F\in M_{k-1}\quad \text{ vs. } \quad 
-H_{1,k}:\; F\in M_k\setminus M_{k-1},
+T_k(Y) = T(Y; M_k(Y)).
 \]
-while adjusting for the fact that the models are chosen adaptively. As we will see, {\em selected-model} tests can be dramatically more powerful than {\em saturated-model} tests at early steps in the model path when most of the signal variables have not yet entered the model.
 
-The second half of the paper concerns {\em stopping rules} $\hk$, estimators of $k_0$. We will consider several stopping rules that operate on the full sequence $p_{[d]}$, including two powerful stopping rules proposed in \citet{gsell2013sequential}. These latter require guarantees on the joint law of the $p$-values. We will prove sufficient conditions for when the $p$-values are Gaussian.
+We will break the problem into two constituent subproblems. First, Section~\ref{sec:singleStep} will discuss how to obtain selective single-step $p$-values, where $p_k$ is a $p$-value for testing
+\[
+H_{k}:\; F\in M_{k-1}(Y)
+\]
+against the alternative that $F\in M_\infty\setminus M_{k-1}$. The $p$-values must account for the fact that the models are chosen adaptively. In most of our development we will make few assumptions about what form the candidate models take. Still, our results are only useful in cases where we can actually construct single-step $p$-values. At present, this largely restricts our applications to exponential family models.
 
-Although we will focus most of our attention and examples on the case of selecting a set of predictors in linear regression, essentially all of our results apply in generic exponential family models.
+Second, Section~\ref{sec:sequential} focuses on the sequential nature of the problem. \citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{[d]}$. These stopping rules provably control certain error rates, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. We will discuss general conditions under which single-step $p$-values are independent.
+
+\subsubsection{Linear Regression}
+
+Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. In this problem, we observe a random response $Y\in \R^n$ as well as a fixed design matrix $X\in \R^{n \times p}$, whose columns correspond to candidate predictors. For each {\em active set} $E \sub [p]$, there is a corresponding candidate model
+\[
+M(E):\; Y \sim \cN( X_E\beta, \sigma^2 I_n),
+\]
+which is a subset of the {\em full model}
+\[
+M_\infty:\; Y \sim \cN(X\beta, \sigma^2I_n).
+\]
+The error variance $\sigma^2$ may be known or unknown depending on the context. The complete sufficient statistic for $M(E)$ is $X_E'Y$ if $\sigma^2$ is known, or else $\left(X_E'Y, \|Y\|^2\right)$.
+
+\subsubsection{Sparse Parametric Models}\label{sec:genSparse}
+
+All of the specific examples considered in this paper will have a common form generalizing the linear regression problem above. Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^{\cJ}$:
+\[
+M_\infty = \{F_\theta:\; \theta \in \Theta\}.
+\]
+For any subset $E\sub \cJ$ define the sparse submodel with active coefficients $E$ as follows:
+\[
+\Theta(E) = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
+\quad M(E) = \{F_\theta:\; \theta\in \Theta(E)\}.
+\]
+
+This setting includes linear regression problems with known or unknown $\sigma^2$ as special cases. A typical path algorithm returns a sequence of nested active sets 
+\[
+E_0(Y) \sub E_1(Y) \sub \cdots \sub E_d(Y),
+\]
+inducing the model path given by $M_k = M(E_k)$. 
+
+As an example, in forward stepwise regression with known $\sigma^2$, we might include an unknown intercept term $\beta_0$ in the global null model $M_0$, then at each step $k\geq 1$, add the predictor $j_k$ that reduces the residual sum of squares the most. In that case $E_0 = \{0\}$, and $E_k = E_{k-1} \cup \{j_k\}$ for $k\geq 1$.
+
+\subsubsection{Path Algorithms}
+
+We will be especially interested in two path algorithms in the sparse parametric setting: forward-stepwise paths and ever-active regularization paths.
+
+\paragraph{Forward Stepwise Paths}
+Let $\ell(\theta; Y)$ denote the log-likelihood for model
+$M_\infty$. The {\em forward stepwise} algorithm proceeds as follows: we begin with some fixed $E_0$, then at step $k=1,\ldots,d$, we define
+\begin{align}\label{eq:forwardDef_start}
+j_k &= \argmax_j \;\;\sup \left\{\ell(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\} \\
+E_k &= E_{k-1} \cup \{j_k\}\\\label{eq:forwardDef_end}
+M_k &= M(E_k).
+\end{align}
+That is, at each step we add to the model the one variable that would most increase the likelihood. In the case of linear regression, this amounts to adding the variable that maximally reduces the residual sum of squares. 
+
+\paragraph{Ever-Active Regularization Paths}
+Another class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. For $r=0,1,\ldots,m$, let $P_r(\theta)$ denote some regularization penalty, and define
+\begin{align}\label{eq:regPathDef_start}
+  \hat\theta^{r}(Y) &= 
+  \argmin_{\theta\in\Theta} -\ell(\theta; Y) + P_r(\theta) \\
+  \tE_r(Y) &= \left\{j:\; \hat\theta_j^s \neq 0 
+    \text{ for any } s \leq r \right\}
+\end{align}
+
+While the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. Thus, we will take the sequence of distinct ever-active sets. Formally, let $R_0=0$, and for $k\geq 1$ let $R_k$ denote the (random) index where the active set actually changes for the $k$th time. That is,
+\begin{align}
+  R_k &= \min\{s:\; \tE_s \neq \tE_{R_{k-1}}\}\\
+  E_k &= \tE_{R_k}\\
+  \label{eq:regPathDef_end}
+  M_k &= M(E_k)
+\end{align}
+
+The ever-active lasso path in linear regression is the most familiar example, in which we take $P_r(\beta) = r^{-1}\|\beta\|_1$, and the penalized log-likelihood criterion is
+\begin{equation}
+  \argmin \frac{n}{2}\log(2\pi\sigma^2) 
+  + \frac{1}{2\sigma^2}\|Y - X\beta\|_2^2 + \frac{1}{r}\|\beta\|_1
+\end{equation}
+If $\sigma^2$ is known, then $\hat\beta^{r}$ is the lasso solution with Lagrange parameter $\lambda^r = \sigma^{2}/r$. If $\sigma^2$ is unknown, it is the lasso solution for $\lambda^r = (\hat\sigma^r)^2/r$. Because $\hat\sigma^r = n^{-1/2}\|Y-X\hat\beta^r\|_2$ is decreasing in $r$, $\lambda^r$ is strictly decreasing in $r$.
+
+Because it is actually possible to solve the lasso at every value of the Lagrange parameter, it is not really necessary that $r$ only take on integer values. We can instead notionally take $r\in (0,\infty)$, and use a path algorithm like LARS \citep{taylor2014exact} to find every point in the path where the lasso solution changes.
 
 \subsection{Which Null Hypothesis Should We Test?}
 
-There is some ambiguity involved in deciding how to generalize $z$- and $t$-tests to the selective case. For example, \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$. As discussed at some length in \citet{fithian2014optimal}, there are several different models that 
+\WFcomment{Shorten this section, move some of it to Discussion?}
 
-In some cases the design matrix of the full model may represent a  scrupulously curated set of features, and the analysts may know in advance that inferences with respect to the full model are of major scientific interest. For example, the scientist may believe, due to theoretical considerations, that a nonzero coefficient of $X_1$ after controlling for $X_2,\ldots,X_p$ would be evidence for a causal effect of $X_1$ on the response.
+In our formulation of the problem, the type I error $V=(\hk-k_0)_+$ is defined in a ``model-centric'' fashion: at step $k$, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ is complete noise, adding it is not a mistake as long as there are other signal variables that have not yet been included. 
 
-If the full model has no special scientific status, however, then we see little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarry chip. Then $\beta_{j,\text{Full}}$ is already fairly arbitrary, since we would be controlling for a different set of genes if we had purchased the chip from a different manufacturer.
-
-\WFcomment{Also say: Controlling for more variables could take us farther from a causal effect; furthermore, coefficient in larger model is much harder to interpret.}
-
-
-\section{Inference for One Step}
-
-To begin, we consider the problem of constructing a valid selective $p$-value for a particular step. At step $k$, we construct $p_k(Y)$ to test
+In some circumstances, we might want to define a type I error at step $k$ differently. If so, we must choose a different null hypothesis to test. Let $\mu = \E Y$ and let $\theta^E$ denote the {\em least-squares coefficients} of active set $E$ --- the coefficients of the best linear predictor for the design matrix $X_E$:
 \[
-  H_{0,k}:\; F \in M_{k-1}(Y)
-  \quad \text{ vs. } \quad
-  H_{1,k}:\; F \in M_k(Y) \setminus M_{k-1}(Y).
+\theta^E = X_E^\dagger \mu = \argmin_{\theta\in \R^{|E|}} \|\mu - X_E\theta\|_2^2,
 \]
-The main complication arises from the fact that the null and alternative hypotheses are random. To simplify matters, we first consider deriving $p$-values for a fixed candidate pair $m_{k-1} \sub m_k$.
+where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. Write $\proj_E\mu = X_E^\dagger \theta^E$ for the projection of $\mu$ into the column space of $X_E$.
 
-The random variable  $p_{k,m_{k-1},m_k}(Y)$ is a valid {\em selective $p$-value} for the fixed candidate pair $(m_{k-1},m_k)$ if it is stochastically larger than uniform under the (fixed) null $m_{k-1}$, given that the pair $(m_{k-1},m_k)$ is selected. That is,
+\citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
+\begin{description}
+\item[Complete Null:] $M_{k-1}$ is already correct; i.e.,
 \[
-\P_F\left(p_{k,m_{k-1},m_k}(Y) \leq \alpha \mid M_{k-1}(Y) = m_{k-1}\right) 
-\leq \alpha, \quad \forall F\in m_{k-1}, \alpha \in [0,1].
+H_k:\;\mu = X_{E_{k-1}} \theta^{E_{k-1}}
 \]
-Given selective $p$-values for each fixed candidate pair, we can construct a combined $p$-value for the random null $(M_{k-1},M_k)$: 
+
+\item[Incremental Null:] $M_{k-1}$ may be incorrect, but $M_k$ is no improvement. That is, 
 \[
-p_k(y) = p_{k, M_{k-1}(y), M_k(y)}(y),
+H_k^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0
+\]
+\item[Full-Model Null:] The coefficient of $X_{j_k}$ is zero in the     full model; that is, 
+\[
+H_k^{\text{full}}:\; \theta_{j_k}^{[p]} = 0.
+\]
+\end{description}
+See \citet{gsell2013false} for an in-depth discussion of the relative conceptual advantages and disadvantages between these approaches.
+
+While the complete null is the strongest hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. Defining 
+\begin{align}
+V^{\text{inc}} &= \#\{k < k_0:\; H_k^{\text{inc}} \text{ is true}\} \quad \text{ and } \\
+V^{\text{full}} &= \#\{k < k_0:\; H_k^{\text{full}} \text{ is true}\},
+\end{align}
+we can define an analogous FWER and FDR with respect to each of these alternative choices, and attempt to control these error rates. For example, we can define
+\[
+\text{FDR}^{\text{full}} = \E[V^{\text{full}} / (\hk \vee 1)],
+\]
+as the false discovery rate with respect to the full-model null.
+
+In this article we will concern ourselves primarily with testing the complete null, which conforms most naturally to our stated aim of choosing the least complex model that is not rejected by the data, and is most easily generalized to the generic setting of Section~\ref{sec:genericSetting}. 
+
+The incremental null is closely related to {\em saturated-model} tests for linear regression, as we will discuss further in Section~\ref{sec:singleStep}. While we could use the saturated-model framework to construct valid selective tests for $H_k^{\text{inc}}$, as proposed for LARS and lasso regression in \citet{taylor2014exact}, this will often result in a large reduction in power as well as introducing dependence between $p$-values at different steps. 
+
+The full-model null is the most different conceptually from the other two. It takes a ``variable-centric'' instead of ``model-centric'' point of view: any variable with a nonzero coefficient in the full model is a {\em signal variable} and the others are {\em noise variables}, and $V^{\text{full}}$ counts the number of noise variables incorrectly selected. 
+
+If the design matrix of the full model represents a scrupulously curated set of features, then the analyst may be primarily interested in inferences with respect to the full model. For example, the scientist may believe, due to theoretical considerations, that the linear model in $X_1, \ldots, X_p$ is fairly credible, and that a nonzero coefficient of $X_1$ after controlling for {\em all} of the other variables would constitute strong evidence for a causal effect of $X_1$ on the response. 
+
+If the full model enjoys no special scientific status, however, there is little advantage in insisting that all inferences should adjust for every other predictor in the full design matrix $X$. For example, suppose that $X$ contains gene expression measurements for all genes that happened to be measured by a microarray chip, but if we had purchased the chip from a different manufacturer, we would have measured a different set of genes. Because the full-model coefficients are already artifacts of the somewhat arbitrary choice of which chip we bought, there is no clear reason to regard them as more scientifically interesting than the coefficients of a well-chosen submodel.
+
+See \citet{barber2014controlling} for an exact method to control $\text{FDR}^{\text{full}}$. \WFcomment{many high-dim inference references}. Using selective inference to control type I error rates for $H_k^{\text{full}}$ is an interesting topic for further study.
+
+\section{Sequential Inference}\label{sec:sequential}
+
+An ordered hypothesis testing procedure takes in a sequence of $p$-values $p_1, \ldots, p_d$ for null hypotheses $H_{1}, \ldots, H_{d}$, and outputs a decision $\hk$ to reject the initial block $H_{1}, \ldots, H_{\hk}$ and accept the remaining hypotheses. We will assume throughout that the hypotheses are nested with $H_{k-1} \sub H_k$. Section~\ref{sec:orderedProposals} outlines several proposals for ordered testing and discusses what error rates they control and under what conditions. 
+
+We focus on proposals from \citet{gsell2013sequential} and \citet{li2015accumulation}, all of which assume that the null hypotheses $H_{1}, \ldots, H_{d}$ are fixed, and that the null $p$-values are independent of each other and of the non-null $p$-values. Specifically, they assume that
+\begin{equation}\label{eq:indepCond_fixed_k0}
+\P(p_{k_0+1} \leq \alpha_{k_0+1}, \ldots, p_d \leq \alpha_d
+\mid p_1, \ldots, p_{k_0}) = \prod_{i=k_0+1}^d \alpha_i,
+\end{equation}
+where $k_0$ is fixed.
+
+In our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$. We will thus require {\em conditional} independence of null $p$-values given $k_0$:
+\begin{equation}\label{eq:indepCond_random_k0}
+  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
+  \mid p_1, \ldots, p_k, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
+\end{equation}
+
+The following proposition shows that~\eqref{eq:indepCond_random_k0} is the correct generalization of~\eqref{eq:indepCond_fixed_k0} to the random-hypothesis case.
+\begin{proposition}
+  Let $\hk$ be a stopping rule that operates on sequences
+  $p_{[d]}(Y)$ of $p$-values for ordered hypotheses $H_{[d]}(Y)$. 
+  For some function $g$, let 
+  \[
+  \Err(\hk,g) = \E\left[ g\left(\hk(Y), k_0(Y)\right)\right],
+  \]
+  
+  Suppose that the rule $\hk$ controls $\Err$ at $\alpha$ under
+  independence when $H_{[d]}$ are fixed. That is, suppose that
+  whenever $H_{[d]}$ are fixed and $p_{[d]}$
+  satisfy~\eqref{eq:indepCond_fixed_k0}, we have
+  \[
+  \Err(\hk, g) \leq \alpha
+  \]
+
+  Then, $\hk$ controls $\Err$ at $\alpha$
+  whenever $p_{[d]}$ satisfy~\eqref{eq:indepCond_random_k0}.
+\end{proposition}
+\begin{proof}
+  For any fixed $k_0$ and $q_1,\ldots, q_{k_0}$, we can construct a
+  problem with $\tilde p_k \sim \delta_{q_k}$ for $k\leq k_0$ and 
+  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. Then, for the
+  fixed hypotheses 
+  $\widetilde H_k:\; \tilde p_k \sim \text{Unif}[0,1]$, we have
+  \[
+  f(k_0, q_{[k_0]}) 
+  = \E\left[ g\left(\hk(\tilde p_1, \ldots, \tilde p_d),
+      k_0\right) \right],
+  \]
+  which is less than or equal to $\alpha$ by assumption.
+
+  But then, by the condition~\eqref{eq:indepCond_random_k0}, we have
+  \begin{align}
+    \Err(\hk,g) &\;=\; \E\left[ \;\E\left[ g\left(\hk(p_1,\ldots, p_d), k_0(Y)\right) \; \mid \; k_0(Y), \; p_{[k_0]}(Y)\right] \; \right]\\
+    &\;\leq\; \E\left[f(k_0, p_{[k_0]})\right] \;\leq\; \alpha.
+  \end{align}
+\end{proof}
+
+In real applications, null $p$-values may be conservative instead of exactly uniform. We can relax~\eqref{eq:indepCond_random_k0} to require only that the joint distribution of null $p$-values is stochastically larger than uniform:
+\begin{equation}\label{eq:stochLargeCond_random_k0}
+  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
+  \mid p_1, \ldots, p_{k_0}, \; k_0 = k) \leq \prod_{i=k+1}^d \alpha_i
+\end{equation}
+If the null $p$-values are marginally uniform, then the conditions~\eqref{eq:indepCond_random_k0} and~\eqref{eq:stochLargeCond_random_k0} are equivalent. For most stopping rules $\hk$, the weaker condition~\eqref{eq:stochLargeCond_random_k0} is enough to guarantee control of whatever error rate holds under~\eqref{eq:indepCond_random_k0}. For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
+
+Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
+
+\subsection{Stopping Rules for Ordered Testing}\label{sec:orderedProposals}
+
+\begin{comment}
+\subsubsection{BasicStop}
+The most obvious procedure is simply to reject at each step until the first time that $p_k > \alpha$, which we can formalize as
+\[
+\hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
+  p_k > \alpha\right\} - 1
+\]
+We will call this procedure {\em BasicStop}. \WFcomment{Is there a better name for this? Can we find it in the literature?}
+
+If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
+\[
+\P(V>0) = \P(p_{k_0+1} \leq \alpha) \leq \alpha.
+\]
+
+Selectively valid single-step $p$-values do not necessarily guarantee FWER control when $k_0$ is random. In that case, we need a bit more, but it is sufficient that we have type I error control for $p_k$ conditional on $k_0=k-1$; i.e., not just conditional on $M_{k-1}$ being a correct model, but given that $M_{k-1}$ is the {\em first} correct model.
+\end{comment}
+
+\subsubsection{StrongStop}
+
+\citet{gsell2013sequential} propose another stopping rule that controls the FWER, which they called {\em strong stop}. Define
+\[
+  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    \exp\left(\sum_{i=k}^d \frac{\log p_i}{i}\right) 
+    \leq \frac{\alpha k}{d}\right\}
+\]
+Even if $p_k$ is a little larger than $\alpha$, say $\alpha=0.05$ and $p_k=0.06$, StrongStop can still reject $M_{k-1}$ if the next three or four $p$-values are also relatively small.
+
+\citet{gsell2013sequential} show that if the completion index $k_0$ is fixed, then $\hk_S$ controls the FWER at level $\alpha$, as long as the null $p$-values are independent given the non-null ones.
+
+\subsubsection{ForwardStop}
+
+\citet{gsell2013sequential} propose another stopping rule, {\em forward stop}, that controls the FDR:
+\[
+  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    -\frac{1}{k}\sum_{i=1}^k \log(1-p_i) \leq \alpha\right\}
+\]
+If $p_k$ is uniform then  $-\log(1-p_k)$ is an exponential random variable. If all of the null $p$-values are uniform and the others are zero, then only the null ones contribute to the sum, and
+\[
+\widehat{\text{FDR}}_k = -\frac{1}{k}\sum_{i=1}^k \log(1-p_i)
+\]
+is a Gamma random variable with mean $V/k$ and variance $V/k^2$. We stop the last time the estimate of FDR is less than $\alpha$. 
+
+\subsubsection{Accumulation Tests and HingeExp}
+
+\WFcomment{Discuss Rina's stuff.}
+
+\subsection{Conditions for Independence}\label{sec:pValsIndep}
+
+The single-step $p$-value $p_k$ is selectively valid for testing $H_k:\; F \in M_{k-1}(Y)$ against $M_\infty \setminus M_{k-1}$ if, for all $F\in M_\infty$,
+\[
+\P_F(p_k \leq \alpha \mid M_{k-1},\; F\in M_{k-1}) \leqAS \alpha.
+\]
+Valid single-step selective $p$-values are not necessarily independent on nulls, but there is a simple sufficient condition under which independence on nulls is guaranteed.
+
+Consider any filtration
+\[
+\sF_0 \sub \sF_1 \sub \cdots \sub \sF_d
+\]
+for which $M_{[k]}$ is measurable with respect to $\sF_k$. We say that $\sF_{[d]}$ {\em separates} the $p$-values $p_{[d]}$ if 
+\begin{enumerate}
+\item $p_k(Y)$ is conservative given $\sF_{k-1}$ 
+  when $F\in M_{k-1}(Y)$, and
+\item $p_k(Y)$ is measurable with respect to $\sF_k$.
+\end{enumerate}
+If $p_k$ is exact, the first requirement is equivalent to requiring that $p_k$ is independent of $\sF_{k-1}$ on the event $F\in M_{k-1}(Y)$ (i.e., the event when $p_k$ is null).
+
+If we think of $\sF_k$ as representing information available at step $k$, then the first condition means that $p_k$ ``excludes'' whatever evidence may have accrued against the null by step $k-1$, and the second means that any information revealed after step $k$ plays no role in determining $p_k$. In that sense, $\sF_k$ forms a ``wall of separation'' between the $p$-values up to $k$ and the null $p$-values after $k$. As a result, separated $p$-values are independent on nulls.
+
+\begin{proposition}[Independence of 
+  Separated $p$-Values]\label{prop:jointConserv}
+
+  Let $p_{[d]}$ be selective $p$-values for $M_{[d]}$, 
+  separated by $\sF_{[d]}$.
+
+  If the $p$-values are exact then $p_{k+1}, \ldots, p_d$ are
+  independent and uniform given $\sF_{k_0}$ on the event $\{k_0=k\}$.
+  If they are conservative, then for all
+  $\alpha_{k+1},\ldots,\alpha_d \in [0,1]$,
+  \begin{equation}\label{eq:jointConserv}
+  \P_F\left(p_{k+1}\leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d\;
+    \mid\; k_0 \leq k, \; \sF_k\right) \leqAS \prod_{i=k+1}^d
+  \alpha_i.
+  \end{equation}
+\end{proposition}
+
+\begin{proof}
+  We first prove~\eqref{eq:jointConserv}
+  by induction. Define $B_i = \{p_i \leq \alpha_i\}$. 
+  The base case is
+  \[
+  \P_F\left(B_d \mid \sF_{d-1}\right)1_{\{k_0 \leq d-1\}} \leqAS \alpha_d,
+  \]
+  which is true by construction of $p_d$. 
+  For the inductive case, note that the
+  conditional probability on the left-hand side
+  of~\eqref{eq:jointConserv} is
+  \begin{align*}
+    \P_F\left(B_{k+1}, \ldots, B_d
+      \mid \sF_k\right)1_{\{k_0 \leq k\}} 
+    &\eqAS \E_F\bigg[ 1_{B_{k+1}} 
+    \P_F\left(B_{k+2}, \ldots, B_d
+      \mid \sF_{k+1}\right)1_{\{k_0 \leq k+1\}}
+    \mid \sF_k\bigg]1_{\{k_0 \leq k\}}\\
+    &\leqAS \P_F\left[ B_{k+1}
+      \mid \sF_k\right]1_{\{k_0 \leq k+1\}}\prod_{i=k+2}^d \alpha_i
+    \quad\;\;\leqAS\;\; \prod_{i=k+1}^d \alpha_i
+  \end{align*}
+
+  If the $p_k$ are exact then the above 
+  inequalities become equalities, implying uniformity and joint independence.
+\end{proof}
+
+\subsubsection{The Sufficient Filtration}\label{sec:suffFilt}
+
+We will concern ourselves mainly with the {\em sufficient filtration} for the path $M_{[k]}$, defined as
+\[
+\sF_k^{\text{suff}} = \sF(M_{[k]}, T_k),
+\]
+We will suppress the superscript and use $\sF_k$ to mean $\sF_k^{\text{suff}}$ for the remainder of the article. 
+
+The sufficient filtration separates $p_{[d]}$ if and only if 
+\begin{enumerate}
+\item $p_k$ is conservative given $M_{[k-1]}$ and $T_{k-1}$, and
+\item $p_k$ is a function of $M_{[k]}$ and $T_k$.
+\end{enumerate}
+
+To be a valid selective $p$-value for a single step, $p_k$ only needs to be conservative conditional on $M_{k-1}$. In general, it is more stringent to additionally require that $p_k$ must also condition on $T_{k-1}$ as well as the entire subpath $M_{[k-1]}$. In most cases of interest, however, the ``extra'' conditioning is redundant, for two reasons. 
+
+First, most selective tests already condition on $T_{k-1}$ in order to eliminate nuisance parameters. Second, as we will show in Section~\ref{sec:SSP}, for most path algorithms of interest we have
+\begin{equation}\label{eq:SSP}
+\sF(M_k, \, T_k) = \sF(M_{[k]}, \, T_k).
+\end{equation}
+Thus, most single-step selective $p$-values we would contemplate using are already exact conditional on $\sF_{k-1}$.
+
+The second requirement, that $p_k$ be $\sF_k$-measurable, has more bite. For example, we will see in Section~\ref{sec:singleStep} that it excludes saturated-model tests in linear regression. By contrast, any UMPU selective test for $M_{k-1}$ against $M_k\setminus M_{k-1}$ is typically measurable with respect to $\sF_k$.
+
+
+\subsubsection{The Subpath Sufficiency Principle}\label{sec:SSP}
+
+
+We say that a path algorithm $M_{[d]}(\cdot)$ satisfies the {\em subpath sufficiency principle} (SSP) if~\eqref{eq:SSP} holds for every $k$. Equation~\eqref{eq:SSP} means that if we know $M_k(Y) = M$, then we can compute the entire subpath of models $M_{[k]}$ knowing only $T(Y, \, M)$, the sufficient statistic of model $M$. For example, given that four steps of forward stepwise linear regression yield the active set $E_4 = \{1,5,7,11\}$, the order in which these variables were included can be determined from $T_4 = X_{E_4}'Y$.
+
+For the generic sparse parametric model of Section~\ref{sec:genSparse}, the forward stepwise path satisfies the SSP, as do all ever-active regularization paths. 
+Define the restricted log-likelihood
+\begin{equation}
+\ell_E(\theta; Y) = \left\{\begin{matrix} 
+    \ell(\theta; \;Y) & \theta \in \Theta(E)\\ 
+    -\infty  & \mathrm{ otherwise.}\end{matrix}\right. 
+\end{equation}
+
+\begin{proposition}[Forward Stepwise Satisfies SSP]\label{prop:forwardSSP}
+  The forward stepwise path as defined in
+  (\ref{eq:forwardDef_start}--\ref{eq:forwardDef_end}) satisfies the 
+  sub-path sufficiency principle.
+\end{proposition}
+\begin{proof}
+  For some fixed step $k$ and active set $E$, 
+  let $A$ denote the event $\{M_k = M(E)\}$. 
+  On $A$, the restricted likelihood $\ell_E$ is proportional to a
+  function depending only on $T_k = T(Y; \;M(E))$:
+  \[
+  \ell_E(\theta; Y) = \ell_E^{T_k}(\theta; T_k) 
+  + \ell_E^{Y \mid T_k}(Y \mid T_k).
+  \]
+  The second term does not depend on $\theta$ 
+  because $T(Y; \;M(E))$ is sufficient for $M(E)$.
+
+  On $A$, we have $E_i(Y) \sub E$ for all $i=1,\ldots, k$, meaning   that the maximum in \eqref{eq:forwardDef_start} was attained by some $j\in E$ at every step. So, for $i \leq k$, we have
+\begin{align}
+  j_i &= \argmax_{j\in E} \;\;\sup \left\{\ell_E(\theta; Y):\;
+    \theta\in\Theta(E_{i-1} \cup \{j\})\right\} \\
+  &= \argmax_{j\in E} \;\;\sup \left\{\ell_E^T(\theta; T(Y)):\;
+    \theta\in\Theta(E_{i-1} \cup \{j\})\right\}. \label{eq:onlyT}
+\end{align}
+
+Equation~\eqref{eq:onlyT} shows that $j_1,\ldots, j_{k-1}$ all depend on $Y$ only through $T_k(Y)$. As a result, it also follows that the enitre sequence $M_{[k]}(Y)$ depends only on $T_k(Y)$.
+\end{proof}
+
+\begin{proposition}[Regularized Likelihood Paths Satisfy SSP]\label{prop:regPathSSP}
+Ever-active regularized likelihood paths as defined in 
+(\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the
+sub-path sufficiency principle.
+\end{proposition}
+
+\begin{proof}
+  Again, for fixed $k$ and $E$ let $A$ denote the event $\{M_k = M(E)\}$ for some fixed $E$, and define $T_k$ as in the proof of Proposition~\ref{prop:forwardSSP}. If we define
+\[
+\hat\theta^{(E,r)} = \argmin_{\theta\in\Theta(E)} -\ell_E^{T_k}(\theta; T(Y)) + P_r(\theta),
+\]
+then 
+\[
+\hat\theta^{(E,r)} \eqAS \hat\theta^{r} \text{ on } 
+A \cap 1_{\{r \leq R_k\}}.
+\]
+But $\hat\theta^{(E,r)}$ depends only on $T_k(Y)$. Therefore, on $A$, we can reconstruct the entire path of solutions once we know $T_k(Y)$.
+\end{proof}
+
+Collecting together the threads of this section, we can arrive at our main result: a fairly general sufficient condition for a $p$-value sequence to be independent on nulls.
+\begin{theorem}[Sufficient Condition for Independence on Nulls] \label{thm:suffCond}
+Assume that $T(Y; M)$ is a complete sufficient statistic for each candidate model $M$, that $p_k$ are exact selective $p$-values for $M_{k-1}$, and that $M_{[d]}(\cdot)$ satisfies the SSP.
+
+If $p_k$ is $\sF_k$-measurable for each $k$, then the $p$-value sequence $p_{[d]}(Y)$ is independent on nulls.
+\end{theorem}
+
+\begin{proof}
+We apply the definition of completeness to the function 
+\[
+h(T(Y; \, M)) \;=\; 
+\P(p_k(Y) \leq \alpha \mid T(Y; \, M), \, M_{k-1}(Y) = M) - \alpha
+\]
+If $p_k$ is exact given $M_{k-1} = M$, then 
+\[
+\E_F[h(T_{k-1}) \mid M_{k-1}=M] \;=\; 0
+\] 
+for every $F\in M$. Therefore, we must have $h(T_{k-1})\eqAS 0$, so $p_k$ is independent of $\sF(M_k, T_{k-1})$. Because $M_{[d]}$ satisfies the SSP, $p_k$ is also independent of $\sF_{k-1} = \sF(M_{[k-1]}, T_{k-1})$.
+
+If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p_{[d]}$, implying that $p_{[d]}$ is independent on nulls.
+\end{proof}
+
+\section{Inference for One Step}\label{sec:singleStep}
+
+Having derived conditions for independence, we turn now to the question of how to construct valid selective $p$-values for a single step in the path. At step $k$, we construct $p_k(Y)$ to test
+\[
+  H_{k}:\; F \in M_{k-1}(Y)
+\]
+against the alternative $F \in M_\infty \setminus M_{k-1}(Y)$. As usual, the main complication arises from the fact that the null hypothesis is random. To simplify matters, we first consider deriving $p$-values for a particular fixed candidate model $M\sub M_{\infty}$.
+
+The random variable  $p_{k,M}(Y)$ is a valid {\em selective $p$-value} for $M$ at step $k$ if it is conservative under sampling from $F\in M$, given that $M$ is selected. That is,
+\[
+\P_F\left(p_{k,M}(Y) \leq \alpha \mid M_{k-1}(Y) = M\right) 
+\leq \alpha, \quad \forall F\in M, \alpha \in [0,1].
+\]
+
+Once we have constructed selective $p$-values for each fixed candidate $M$, we can use them as building blocks to construct a combined $p$-value for the random null $M_{k-1}(Y)$. Define
+\[
+p_k(y) = p_{k, M_{k-1}(y)}(y),
 \]
 which is a valid $p$-value on the event $\{F \in M_{k-1}(Y)\}$:
-\[
-\P_F\left(p_k \leq \alpha \mid M_{k-1}, \;M_k, 
+\begin{equation}\label{eq:selectiveGuaranteePk}
+\P_F\left(p_k \leq \alpha \mid M_{k-1}, 
   \;F\in M_{k-1}\right) \leq \alpha, \quad \forall \alpha \in [0,1].
-\]
-Recall that, as usual, $F$ is not random, but $M_{k-1}$ is.
+\end{equation}
+%Recall that in~\eqref{eq:selectiveGuaranteePk} $M_{k-1}$ is random and not $F$.
 
-Methods for one-step selective $p$-values are by now well-studied. \WFcomment{big list of references.} See \citet{fithian2014optimal} for a general treatment. 
+One very useful strategy for constructing exact selective tests is to condition on the sufficient statistics of the null model. Because the law
+\[
+\L(Y \;\mid\; T_{k-1}, \; M_{k-1}=M)
+\]
+is known under any $F\in M$, we can construct selective tests by comparing the distribution of any test statistic $U(Y)$ to its known conditional distribution under the null. See \citet{fithian2014optimal} for a general treatment of selective tests in exponential family models.
+
+If we follow this strategy, then the reference distribution for $U(Y)$ is measurable with respect to $T_{k-1}$ and $M_{k-1}$; moreover, if $U(Y)$ is also measurable with respect to $(M_k, T_k)$, the next model in the path and its sufficient statistics, then $p_k$ is measurable with respect to $\sF_k$, and so the $p$-value sequence $p_{[d]}$ will be independent on nulls per Theorem~\ref{thm:suffCond}.
+
+For the remainder of this section we will focus on linear regression.
 
 \subsection{Selective $p$-Values in Regression}
 
-\subsection{Selected- and Saturated-Model inference}
+In linear regression, there are several types of selective test that we might contemplate performing at step $k$. Let $E_{k-1}$ and $E_k$ denote the active sets for models $M_{k-1}$ and $M_k$ respectively. For simplicity we will assume that only one variable is added at step $k$, so that $E_k = E_{k-1} \cup j_k$. It is relatively straightforward to generalize the developments in this section to the case where multiple variables are added at once.
 
-We illustrate the superior power of the selected-model test in early steps with an extended example.
+\subsubsection{Saturated-Model Tests}
 
-\begin{example}[Bivariate Regression]\label{ex:bivariate}
-  Consider forward stepwise selection in a regression model with $n=p=2$, with identity design $X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}$ and known $\sigma^2=1$. We perform one step of forward stepwise and then test the null model with no variables against the model with one variable. 
+Many of the selective tests for linear regression use the saturated-model framework. See for example \citet{lockhart2014significance}, \citet{taylor2013tests}, \citet{taylor2014exact}, \citet{lee2013exact}, and \citet{loftus2014significance}.
 
-We will choose variable 1 first on the selection event $A=\{|Y_1| > |Y_2|\}$, which is shown in yellow in Figure~\ref{fig:bv_condSets}. In that case,
+The distinction between the incremental null and the complete null is closely related to the distinction between {\em saturated-model} tests and {\em selected-model} tests. Define the saturated model as
+\[
+M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I_n),
+\]
+so named because there is a mean parameter for every observation. Because the parameter $\mu$ has the same dimension as the data $Y$, we must assume that $\sigma^2$ is known.
+
+Saturated-model tests assume only that $M_{\text{sat}}$ is true, and perform inference on linear functionals of $\mu$. For example, in linear regression after selecting active set $E$, we might construct confidence intervals for the least-squares coefficients $\theta^E$ of active set $E$.
+
+In the context of sequential model selection, we can use the saturated-model framework to test the incremental null $H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$. The saturated model has $n$-dimensional sufficient statistic $Y$ and natural parameter $\mu$. Letting $\eta_k\in \R^n$ denote the vector for which $\theta_{j_k}^{E_k} = \eta_k'\mu$, the UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution
+\begin{equation}\label{eq:satModel}
+\L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right),
+\end{equation}
+or equivalently on
+\begin{equation}\label{eq:satModelEquiv}
+\L\left( X_{j_k}'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right).
+\end{equation}
+The pair $(E_{k-1}, j_k)$ defines the selection event and $\proj_{\eta_k}^\perp Y$ eliminates the nuisance parameter $\proj_{\eta_k}^\perp \mu$.
+
+While the test statistic $\eta_k'Y$ is measurable with respect to $\sF_k$, the reference distribution we compare it against is not. Specifically, $\proj_{\eta_k}^\perp Y$ is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values constructed as in~\eqref{eq:satModel} are in general {\em not} independent on nulls.
+
+\subsubsection{Selected-Model Tests}
+Selected-model inference~\citep{fithian2014optimal} 
+represents a more powerful option when testing for inclusion of variable $j_k$. While saturated-model inference always uses the same model $M_{\text{sat}}$, selected-model inference is based on the statistical model that is chosen by our selection procedure. In the sequential case this means that at step $k$, we test the selected null model $M(E_{k-1})$, against either the next selected model $M(E_k)$ or the upper model $M_\infty$.
+
+\paragraph{Conditioning on the Next Model}
+One option for selected-model inference is to condition on the identity of $j_k$, the next variable added, and perform a UMPU, equal-tailed, or one-sided selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$ conditional on both models. If $\sigma^2$ is known, the test is based on
+\begin{equation}\label{eq:selModel_cond}
+\L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
+\end{equation}
+Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and as we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests can pay a heavy price for this extra conditioning.
+
+If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficient path algorithm, the $p$-values are always guaranteed to have independence on nulls. The test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, and so is the reference distribution, which depends on $E_{k-1}, j_k,$ and $T_{k-1} = X_{E_{k-1}}'Y$.
+
+\paragraph{The Max-$t$ and Next-$\lambda$ Tests}
+Instead of conditioning on the next model $M_k$, we could use
+\begin{equation}\label{eq:selModel_marg}
+\L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right),
+\end{equation}
+or even replace $X_{j_k}'Y$ with any other test statistic $U(Y)$. As long as $U(Y)$ is measurable with respect to $(M_k, T_k)$, and the path algorithm is subpath-sufficient, the $p$-values are independent on nulls.
+
+Two specific examples are worth discussing in detail. First, consider the {\em selective max-$t$ test}, a generalization of the max-$t$ test of ~\citet{bujaxxxxmaxT}. Controlling for $E$, the $z$-statistic for coefficient $j\notin E$ is
+\begin{equation}
+  z_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
+  {\sigma\|\proj_{E}^\perp X_j\|_2},
+\end{equation}
+and the $t$-statistic is
+\begin{equation}
+  t_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
+  {\hat \sigma_{j,E} \|\proj_{E}^\perp X_j\|_2},
+  \qquad \text{where} \quad 
+  \hat \sigma_{j,E}^2(Y) = 
+  \frac{\|\proj_{E \cup \{j\}}^\perp Y\|_2^2}{n-|E|-1}.
+\end{equation}
+Note that $z_{j,E}$ is a monotonic function of $X_j'Y$ given $X_E'Y$, and $t_{j, E}$ is a monotonic function of $X_j'Y$ given $(X_E'Y, \|Y\|_2)$. Thus $z_{j,E}$ is measurable with respect 
+to $X_{E \cup \{j\}}'Y$ if $\sigma^2$ is known, and otherwise $t_{j,E}$ is measurable with respect to $(X_{E \cup \{j\}}'Y, \|Y\|_2)$.
+
+We can then define the max-$t$-statistic (respectively max-$z$-statistic) for active set $E$ as
+\begin{equation}\label{eq:maxT}
+  U_E(Y) = \max_{j \notin E} \left|t_{j,E}(Y)\right|,
+\end{equation}
+and use $U_{E_{k-1}}(Y)$ as our test statistic at step $k$.
+
+$U_{E_{k-1}}(Y)$ is $\sF_k$-measurable if and only if $j_k$ is the maximizer in~\eqref{eq:maxT}. Consequently, max-$t$ $p$-values are independent on nulls if they are used in tandem with forward-stepwise regression, where the next variable added is always the variable with the largest $t$-statistic.
+
+By contrast, the LASSO path does not in general add the variable with the largest $t$-statistic. In that case, we could use instead the {\em selective next-$\lambda$ test}, which uses test statistic
+\begin{equation}
+  U_k = \inf\{ \lambda:\; \hat\beta^\lambda \notin \beta(E_{k-1})\}.
+\end{equation}
+The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables, but not if we use forward-stepwise. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
+
+
+\subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
+
+
+Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable. By contrast, selected-model tests typically require sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
+
+For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ could cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less important. We do not necessarily need a scientifically interpretable interval for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject $M_{k-1}$ and move on if it is demonstrably incompatible with the data.
+
+There are several major benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known by conditioning on $\|Y\|^2$, the sufficient statistic corresponding to the natural parameter $1/2\sigma^2$. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and $\proj_{\eta_k}^\perp Y$ results in a degenerate conditional distribution for $\eta_k'Y$.  See \citet[][Section 5]{fithian2014optimal} for a detailed discussion of the distinctions between saturated-model and selected-model tests.
+
+Second, we have seen in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}.
+
+Finally, and perhaps most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we illustrate now with an extended example.
+
+\begin{example}[Bivariate Regression with Identity Design]\label{ex:bivariate}
+  Consider forward stepwise selection in a regression model with $n=p=2$, with known $\sigma^2=1$ and identity design 
+\[
+X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}.
+\] 
+
+The forward stepwise path and the lasso path both select $j_1=1$ if and only if $|Y_1|>|Y_2|$. The selection event $A_1=\{|Y_1| > |Y_2|\}$ is shown in yellow in Figure~\ref{fig:bv_condSets}. If $j_1=1$ then
 \[
 M_0:\; Y\sim \cN(0,I_2), \quad\text{ and } 
 M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, \; I_2\right).
 \]
-The selected-model test compares $Y_1$ to its distribution under $M_0$ conditional on $A$, a test of $H_0:\;\mu_1=0$ in model $M_1$.
 
-By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Now, $\mu_2$ enters the problem as a nuisance parameter because the saturated-model test refuses to assume that $\mu_2=0$. To eliminate the nuisance parameter $\mu_2$, the saturated model test must condition on $Y_2$, and compare $Y_1$ to its null distribution given $A$ {\em and} the observed value of $Y_2$.
+The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$ conditional on $A_1$, a test of $H_0:\;\mu_1=0$ in model $M_1$. By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. The saturated model test must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, and compare $Y_1$ to its null distribution given $A_1$ {\em and} the observed value of $Y_2$.
 
-Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9,2.5)$. Next to it, Figure~\ref{fig:bv_nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
+Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9, 2.5)$. Next to it, Figure~\ref{fig:bv_nullDists} shows the null distribution for the test statistic $Y_1$ in each case. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
 \end{example}
 
 \begin{figure}
@@ -198,149 +711,79 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_condSets.pdf}
-    \caption{\WFcomment{Copied directly from FST14; reword} 
-      For $Y=(2.9,2.5)$, the selected-model conditioning set is
-      $A=\{y:\;|y_1|>|y_2|\}$, a union of quadrants,
-      plotted in yellow. The saturated-model conditioning set
-      is ${\{y:\; y_2=2.5\}\cap A} = {\{y:\;y_2=2.5, |y_1|>2.5\}}$,
-      a union of rays, plotted in brown.}
+    \caption{The selected-model test conditions on $j_1=1$ (yellow region), while the saturated-model test also conditions on $Y_2=2.5$ to eliminate the nuisance variable $\mu_2$ (brown region).}
     \label{fig:bv_condSets}
   \end{subfigure}
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_nullDists.pdf}
-    \caption{\WFcomment{Copied directly from FST14; reword} 
-      Conditional distributions of $Y_1$ under
-      $H_0:\mu_1 = 0$. Under the hypothesis
-      $\mu=0$, the realized  $|Y_1|$ is  quite large given $A$,
-      giving  $p$-value 0.015. By contrast, $|Y_1|$ is not too large
-      given $A \cap \{y:\; y_2=Y_2\}$, giving
-      $p$-value 0.3.}
+    \caption{Conditional distributions of $Y_1$ under
+      $M_0:\; Y \sim \cN(0,I_2)$. The realized value $|Y_1|=2.9$ is
+      quite large given that $j_1=1$. By
+      contrast, $|Y_1|=2.9$ is not especially large once we 
+      also condition on $Y_2=2.5$.}
   \end{subfigure}
-  \caption{\WFcomment{Copied directly from FST14; reword} 
-    Contrast between the saturated-model and selected-model tests
-    in Example~\ref{ex:bivariate}, in which we fit a one-sparse model with
-    design matrix $\bX=I_2$. The selected-model test is based
-    on  $\L_0(Y_1 \gv A)$, whereas the saturated-model test is based
-    on $\L_0(Y_1  \gv  Y_2, A)$.}
+  \caption{Contrast between the saturated-model and selected-model
+    tests in Example~\ref{ex:bivariate}. The selected-model test is based on  $\L(Y_1 \gv j_1=1)$,  whereas the saturated-model test is based on $\L(Y_1  \gv Y_2, \; j_1=1)$. 
+    When $Y=(2.9, 2.5)$, the selected- and saturated-model $p$-values are 0.015 and 0.3, respectively.}
   \label{fig:bv_nullDists}
 \end{figure}
 
 
-The case illustrated in Figure~\ref{fig:bv_condSets} exhibits a phenomenon that has been remarked upon elsewhere in the literature of saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the winning variable may have a very weak $p$-value. \WFcomment{add references}. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=\binom{4}{4}$, a very strong signal. While the selected model test has near perfect power, it is not uncommon for the saturated model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise exactly when there is a near tie between the variables.
+Figure~\ref{fig:bv_condSets} illustrates a certain phenomenon occurring in saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the resulting $p$-value my be very weak~\citep{lockhart2014significance}. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=(4,4)$, a very strong signal. While the selected model test has near perfect power, it is not uncommon for the saturated model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise when there is a near tie between the variables.
 
 \begin{figure}
   \centering
   % source code: bivariateSelVSat.R
   \includegraphics[width=.5\textwidth]{figs/bivariateSelVSat_rocCurve.pdf}
-  \caption{\WFcomment{Write caption here.}}
+  \caption{Cumulative distribution function of $p_1(Y)$ for the selected- and saturated-model tests when $\mu=(4,4)$. Even though the signal is very strong, the saturated-model test results in large $p$-values in realizations like the one in Figure~\ref{fig:bv_nullDists}, where there is a near-tie between $|Y_1|$ and $|Y_2|$. By contrast, the selected-model test has nearly perfect power.}
   \label{fig:bv_rocCurve}
 \end{figure}
 
-Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves_0} shows the power curve for each test when $\mu_2=0$. While the selected-model test is more powerful, the difference between the two is relatively mild. Interestingly, the difference is much more pronounced when $\mu_2=4$, as shown in Figure~\ref{fig:bv_powCurves_4}.
+Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct; i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves} shows the power curve for each test when $\mu_2=0$ (left panel) and $\mu_2=4$ (right panel). While the selected-model test is more powerful when the selected model is correct, the difference between the two is relatively small. The difference is much more pronounced when $\mu_2=4$. 
+
+Note that if $\mu=(0,4)$, the incremental null is true, but the complete null is false. That is, the model $M_0 = M(\emptyset)$ is missing an important signal variable, but the missing variable is not $X_1 = (1,0)$. Because the saturated-model test is really a test of the incremental null, its power is $\alpha=0.05$. By contrast, the selected-model test rejects about half the time when $\mu=(0,4)$, successfully detecting the fact that $M_0$ is a poor fit to the data.
 
 \begin{figure}
   \centering
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_0.pdf}
-    \caption{\WFcomment{Write caption here.}}
-    \label{fig:bv_powCurves_0}
+    %\caption{\WFcomment{Write caption here.}}
+    %\label{fig:bv_powCurves_0}
   \end{subfigure}
   \hspace{.1\textwidth}
   \begin{subfigure}[t]{.4\textwidth}
     % source code: bivariateSelVSat.R
     \includegraphics[width=\textwidth]{figs/bivariateSelVSat_powCurves_4.pdf}
-    \caption{\WFcomment{Write caption here.}}
+    %\caption{\WFcomment{Write caption here.}}
   \end{subfigure}
-  \caption{\WFcomment{Write caption here.}}
-   \label{fig:bv_powCurves_4}
+  \caption{Power at level $\alpha=0.05$ for saturated- and selected-model tests at step 1, given that $j_1=1$. The power is plotted as a function of $\mu_1$, for two different values of $\mu_2$. When $\mu_2=0$, the selected-model test is strictly more powerful than the saturated-model test, but the difference is slight. By contrast, when $\mu_2=4$, the selected-model test is much more powerful. The dashed line shows $\alpha=0.05$.}
+   \label{fig:bv_powCurves}
 \end{figure}
 
+Saturated-model $p$-values are generically non-independent. Continuing with Example~\ref{ex:bivariate}, Table~\ref{tab:bv_twoWayTable} shows a two-way contingency table for the saturated-model $p$-values $(p_1(Y), p_2(Y))$, binned into cells of height and width 0.2, simulated under the global null $\mu=0$. Because $k_0=0$, both $p$-values are uniform by construction, but the $p$-values are strongly dependent, with correlation $-48\%$. By contrast, the selected-model $p$-values $(p_1,p_2)$ are independent under the global null, a consequence of Theorem~\ref{thm:suffCond}.
 
+\begin{comment}
+Computing the cutoff for the saturated-model test requires us to know $\proj_{\eta}^\perp Y$, which is not $\sF_k$-measurable.
 
-\section{Sequential Inference}
-
-Having discussed methods for constructing single-step $p$-values, we turn now to the problem of constructing a {\em stopping rule}; that is, an estimator $\hk$ of the completion index $k_0(Y)\in \{0,\ldots,d,\infty\}$. $M_k$ is ``rejected'' if and only if $\hk>k$. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. The number of type I errors, then, is $(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. Define $V=(\hk-k_0)_+$, the number of excess rejections.
-
-Note that the type I error $V$ is defined in a ``model-centric,'' as opposed to a ``variable-centric,'' fashion: in regression, our model-wise $V$ counts the number of true null {\em models} incorrectly rejected, instead of counting the number of noise variables included in the final model. We can define the (model-wise) familywise error rate (FWER) and false discovery rate (FDR) respectively as $\P_F(V >0)$ and $\E_F[V/(\hk \vee 1)]$. 
-
-We could have instead defined the ``variable-centric'' type I error $\tV$ as the number of noise variables incorrectly included in the final model, with $\tR$ denoting the total number of variables included. Here, by ``noise variable'' we mean one that has a non-zero coefficient in the full model. Using selective inference to control the variable-wise FWER $\P_\mu(\tV>0)$ and FDR $\E[\tV / (\tR \vee 1)]$ is an interesting topic for further study.
-
-\subsection{Stopping Rules}
-
-We will consider stopping rules that depend on the sequence $p_1,\ldots,p_d$ of $p$-values, which have been studied in the literature by \WFcomment{literature review here.} We will focus on three such stopping rules: simple stop, proposed by \WFcomment{whom?}, and the more refined strong stop and forward stop, proposed by \citet{gsell2013sequential}. 
-
-While strong stop and forward stop tend to give more powerful stopping rules, they require independence among the $p$-values. Sections~\ref{sec:modelSPSP}--\ref{sec:pvalSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which selective $p$-values are mutually independent. We will see that, typically, selected-model $p$-values are sequentially independent while saturated-model $p$-values are not.
-
-\subsubsection{Basic Stop:}
-
-\WFcomment{Is there a better name for this? Can we find it in the literature?}
-
-The most obvious sequential procedure is to reject at each step until the first time $p_k > \alpha$, which we can formalize as
-\[
-\hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
-  p_k > \alpha\right\} - 1
-\]
-We will call this procedure {\em basic stop}. 
-
-If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
-\[
-\P(V>0) = \P(p_{k_0+1} \leq \alpha) \leq \alpha.
-\]
-\WFcomment{Trivial, but no doubt someone else proved this first...}
-
-Selectively valid single-step $p$-values do not necessarily guarantee FWER control when $k_0$ is random. In that case, we need a bit more, but it is sufficient that we have type I error control for $p_k$ conditional on $k_0=k-1$; i.e., not just conditional on $M_{k-1}$ being a correct model, but given that $M_{k-1}$ is the {\em first} correct model.
-
-\subsubsection{Strong Stop:}
-
-\citet{gsell2013sequential} propose another stopping rule that controls the model-wise FWER, which they called {\em strong stop}. Define
-\[
-  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
-    \exp\left(\sum_{\ell=k}^d \frac{\log p_\ell}{\ell}\right) 
-    \leq \frac{\alpha k}{d}\right\}
-\]
-Even if $p_k$ is a little larger than $\alpha$, say $\alpha=0.05$ and $p_k=0.06$, strong stop can still reject $M_{k-1}$ if the next three or four $p$-values are also relatively small.
-
-\citet{gsell2013sequential} show that if the completion index $k_0$ is fixed, then $\hk_S$ controls the FWER at level $\alpha$, as long as the null $p$-values are independent given the non-null ones. Specifically, they require that
-\begin{equation}\label{eq:indepCond_fixed_k0}
-\P(p_{k_0+1} \leq \alpha_{k_0+1}, \ldots, p_d \leq \alpha_d
-\mid p_1, \ldots, p_{k_0}) \leq \prod_{\ell=k_0+1}^d \alpha_\ell
+By contrast, selected-model tests of $M_{k-1}$ against $M_k$ are always $\sF_k$-measurable, because they are based on the law
+\begin{equation}\label{eq:selModel}
+\L\left(X_{j_k}'Y \mid X_{E_k-1}'Y, E_{k-1}, j_k\right),
 \end{equation}
-
-For random $k_0$, it is easy to see that the $p$-values simply need to satisfy~\eqref{eq:indepCond_fixed_k0} conditional on the value of $k_0$:
-\begin{equation}\label{eq:indepCond_random_k0}
-  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-  \mid p_1, \ldots, p_{k_0}, \; k_0 = k) \leq \prod_{\ell=k+1}^d \alpha_\ell
-\end{equation}
-If~\eqref{eq:indepCond_random_k0} holds, then strong stop controls theprobability of $V>0$ conditionally on $k_0$, and thus also marginally.
-
-\subsubsection{Forward Stop:}
-
-\citet{gsell2013sequential} propose another stopping rule, {\em forward stop}, that controls the model-wise FDR:
-\[
-  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
-    -\frac{1}{k}\sum_{\ell=1}^k \log(1-p_\ell) \leq \alpha\right\}
-\]
-If $p_k$ is uniform then  $-\log(1-p_k)$ is an exponential random variable. If all of the null $p$-values are uniform and the others are zero, then only the null ones contribute to the sum, and
-\[
-\widehat{\text{FDR}}_k = -\frac{1}{k}\sum_{\ell=1}^k \log(1-p_\ell)
-\]
-is a Gamma random variable with mean $V/k$ and variance $V/k^2$. We stop the last time the estimate of FDR is less than $\alpha$. Forward stop requires the same condition independence condition~\eqref{eq:indepCond_random_k0} as strong stop does.
-
-\subsection{Saturated- and Selected-Model $p$-Values in Regression}
-
-If we wish to use strong stop and forward stop, we need the $p$-values to satisfy~\eqref{eq:indepCond_random_k0}, but there is no guarantee that single-step selective $p$-values are independent of each other.
-
-In fact, saturated-model $p$-values typically are not independent. Continuing with Example~\ref{ex:bivariate}, Table~\ref{tab:bv_twoWayTable} shows a two-way contingency table for the saturated-model $p$-values $(p_1(Y), p_2(Y))$, binned into cells of height and width 0.2. Because the global null is true, both $p$-values are uniform by construction, but the $p$-values are strongly dependent, with correlation $-48\%$.
+and all of the random variables appearing in~\eqref{eq:selModel} are $\sF_k$-measurable.
+\end{comment}
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Mon May  4 21:11:15 2015
 \begin{table}[ht]
   \centering
   \begin{tabular}{l|ccccc|c}
-%    & & & $p_2$ & & & \\
+    \multicolumn{7}{c}{Saturated-Model $p$-Values 
+      (\% of $10^6$ Simulations)}\\[7pt]
+    \hline
+    \multicolumn{7}{c}{}\\[-1.5ex]
     \multicolumn{7}{c}{$p_2(Y)$}\\[5pt]
     ${\large p_1(Y)}$ & (0,0.2] & (0.2,0.4] & (0.4,0.6] & (0.6,0.8] & (0.8,1] & \textbf{Total} \\ 
     \hline
@@ -351,142 +794,156 @@ In fact, saturated-model $p$-values typically are not independent. Continuing wi
     (0.8,1] & 11.1 & 4.3 & 2.3 & 1.4 & 1.0 & 20.0 \\ 
     \hline
     \textbf{Total} & 19.9 & 20.0 & 20.0 & 20.1 & 20.0 & 100.0 \\ 
+    \hline
   \end{tabular}
   \caption{Two-way contingency table of saturated-model $p$-values $(p_1(Y), p_2(Y))$ for Example~\ref{ex:bivariate}, after binning into cells of height and width 0.2. We report the percentage of $p$-value pairs falling into each cell out of one million simulations from the global null hypothesis, $\mu=0$. Both $p$-values are marginally uniform but strongly dependent, with a correlation of $-48\%$.}
 \label{tab:bv_twoWayTable}
 \end{table}
 
-By contrast, the selected-model $p$-values $(p_1,p_2)$ are independent. To see why, recall that, on the selection event $A$, $p_1$ is only a function of $Y_1$. Moreover, $p_2$ is a selective $p$-value for comparing the null
+\begin{comment}
+First, note that $p_2$ is a selective $p$-value for comparing the null with only variable 1,
 \[
-M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, I_2\right)
+M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, I_2\right),
 \]
-against the alternative
+against the alternative with variables 1 and 2:
 \[
-M_2:\; Y \sim \cN\left(\mu, I_2\right), \text{ with } \mu_2 \neq 0.
+M_2:\; Y \sim \cN\left(\mu, I_2\right), \text{ with } 
+\mu_2 \neq 0.
 \]
-Because $\mu_1$ is a nuisance parameter in $M_1$, an exact selected-model test must condition on the corresponding sufficient statistic $Y_1$. But that means $p_2$ is uniform given $Y_1$, and therefore also uniform given $p_1(Y_1)$.
+To eliminate the nuisance parameter $\mu_1$, the test conditions on $Y_1$. Thus, $p_2$ is uniform given $Y_1$ on $A$. Second, note that on $A$, $p_1$ is a function only of $Y_1$. Thus, $(p_1,p_2)$ are independent uniform variables given that variable 1 is chosen first. By a similar argument, they would also be independent uniforms if $Y_2$ were chosen first; thus, $(p_1, p_2)$ are marginally uniform under the global null.
+\end{comment}
 
-A generalization of this argument shows that the $p$-values for the saturated-model tests are always independent:
+\section{Computation}\label{sec:computation}
 
-\begin{proposition}
-  The selected-model equal-tailed or UMPU $p$-values after forward-stepwise linear regression. satisfy~\eqref{eq:indepCond_random_k0}.
-\end{proposition}
-This is a simple consequence of the much more general results proven in Section~\ref{sec:sufficiency}, but it is instructive to see the proof in the relatively concrete case of linear regression.
-\begin{proof}
-  At step $k$, we are testing the null hypothesis that $\beta_j=0$ in     the model $Y\sim \cN(X_E\beta, I_2)$, for some active set $E\sub [p]$ of size $k$, and some variable $j\in E$. Let $A_{j,E}$ denote the selection event for a particular $j$ and $E$, and let $m_{k-1}(j,E)$ denote the null model with active set $X_{E\setminus j}$.
+As usual, we have reduced computation of the $p$-value at step $k$ to a sampling problem. Whatever our test statistic at step $k$, we must compute its distribution under the null model $M_{k-1}$.
 
-On $A_{j, E}$, the selected-model $p$-value $p_k$ is based on the null distribution of the test statistic $X_j'Y$ conditional on the null sufficient statistics $X_{E\setminus j}'Y$ and on $Y \in A_{j,E}$.
+Happily, the polytope to condition on has only $2p$ constraints in forward stepwise regression, as we see next.
 
-Moreover, on $A_{j,E}$, the entire sequence of previous $p$-values $p_{[k-1]}$ depend only on the sufficient statistics $X_{E\setminus j}'Y$ of $m_{k-1}(j,E)$. To see why, \WFcomment{complete this proof.}
-
-We have shown that, if $m_{k-1}(j,E)$ is true, then $p_k$ is uniform and independent of $p_{[k-1]}$ on $A_{j,E}$ for each $j$ and $E$. That is,
-\[
-\P_F\left(p_{k} \leq \alpha \mid p_{[k-1]}, Y \in A_{j,E} \right) = \alpha \quad \forall F \in m_{k-1}.
-\]
-It follows that 
-\[
-\P_F\left(p_{k} \leq \alpha \mid p_{[k-1]}, F \in M_{k-1} \right) = \alpha \quad \forall F.
-\]
-\end{proof}
-The proof turns on two properties of selected-model $p$-values, and one property of forward stepwise regression. 
-
-As for the $p$-values, we used the fact that $p_{k,m_{k-1},m_k}$ is uniform conditional on the sufficient statistics of the null model $m_{k-1}$. This is true for selected-model and saturated-model $p$-values alike. We also used the fact that $p_{k,m_{k-1},m_k}$ follows the {\em sufficiency principle} --- that is, it depends only on the sufficient statistics of $m_k$. This is {\em not} true of the saturated-model $p$-values: to compute them, we must know $\proj_{\eta}^\perp Y$, which depends on statistics that are ancillary for $m_{k-1}$.
-
-We also used the fact that, in the forward stepwise algorithm, if $m_k$ is the $k$th model then, on the event $M_k=m_k$, all the models up to step $k$ depend only on sufficient statistics of $m_k$. This is a sort of {\em sub-path sufficiency principle} which many other algorithms satisfy, as we will see in Section~\ref{sec:modelSPSP}.
-
-\subsection{Sequential Sufficiency Principles}\label{sec:sufficiency}
-
-
-
-\subsubsection{$p$-Values and the Sufficiency Principle}\label{sec:pvalSP}
-
-A $p$-value for testing model $M_{k-1}$ against $M_k$ satisfies the sufficiency principle if it is a function only of the sufficient statistics of $M_k$
-
-\subsubsection{A Sub-Path Sufficiency Principle for Model Selection Procedures}\label{sec:modelSPSP}
-
-We say that a selection algorithm $M_{[d]}(\cdot)$ satisfies the {\em sub-path sufficiency principle} (henceforth SPSP) if, given $M_k(Y)=m_k$, the sequence of models $M_{[k]}$ depends only on sufficient statistics of $m_k$. That is
-
-\begin{model}[Generalized Sparse Model]\label{mod:genSparse}
-  Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^p$:
+\begin{theorem}
+  Assume the model path $M_{[d]}$ is obtained by forward stepwise 
+  linear regression. Then, for a candidate active set $E$ of size $k$, 
+  the set $A = \{E_k = E, \;X_E'Y = u\}$ is characterized 
+  exactly by the constraints $X_E'Y=u$ and
   \[
-  M_{\infty} = \{F_\theta:\; \theta \in \Theta\}.
+  v_j^-(E,u) < X_j'Y < v_j^+(E,u), \quad\forall j \notin E,
   \]
-  For subsets $E\sub [p]$ define the model $M_E$ with active coefficients $E$ as follows:
+  for $v_j^-$ and $v_j^+$ given explicitly in
+  Equations~(\ref{eq:vMinus_FS}--\ref{eq:vPlus_FS}).
+  Thus, $A$ corresponds exactly to 
+  a set with $2(p-k)$ linear inequality constraints and $k$
+  linear equality constraints on $Y$.
+\end{theorem}
+
+\begin{proof}
+  At stage $i < k$, the next variable to enter is the one with maximal correlation with the residual vector; i.e.
   \[
-  \Theta_E = \{\theta:\; \theta_j = 0, \;\;\forall j \notin E\}, 
-  \quad M(E) = \{F_\theta:\; \theta\in \Theta_E\}.
+  j_{i+1} = \argmax_{j \notin E_i} 
+  \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|}
   \]
-\end{model}
+  The crucial observation is that, 
+  once we know the $k$th active set 
+  $E_k$ and its sufficient statistics
+  $X_{E_k}'Y$, we know the entire 
+  path of fitted models up to step $k$.
+  On the set $\{E_k=E\}$, all of the quantities 
+  $j_{i+1}$, $E_i$, $\hat\beta^i$, and $\proj_{E_i}^\perp$
+  depend only on $X_E'Y$. For brevity, write
+  \[
+  C_i^* = \max_{j \notin E_i} 
+  \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|}.
+  \]
+  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $i$th 
+  variable added.
 
-
-In Model~\ref{mod:genSparse}, the {\em forward stepwise algorithm} proceeds as follows: we first set $E_0$ arbitrarily, then at step $k=1,\ldots,d$, we define
-\begin{align}\label{eq:forwardDef_start}
-j_k &= \argmax_j \max_{\theta\in\Theta_{E_{k-1}}} \ell(\theta; Y)\\
-E_k &= E_{k-1} \cup \{j_k\}\\\label{eq:forwardDef_end}
-M_k &= M(E_k)
-\end{align}
-
-\begin{proposition}[Forward Stepwise Satisfies SPSP]\label{prop:forwardSPSP}
-  The forward stepwise algorithm defined in (\ref{eq:forwardDef_start}--\ref{eq:forwardDef_end}) satisfies the SPSP.
-\end{proposition}
-\begin{proof}
-  \WFcomment{Write proof.}
+  If $X_E'Y$ is fixed at $u$, and $j \notin E$, then the condition for 
+  $X_j$ {\em not} to enter at step $i+1 < k$ is
+  \[
+  \frac{\left| X_j' (Y - X_{E_i}\hat\beta^i) \right|}
+  {\|\proj_{E_i}^\perp X_j\|} 
+  \leq C_i^*,
+  \]
+  or equivalently,
+  \begin{equation}\label{eq:noEnterBounds_FS}
+    X_j' X_{E_i}\hat\beta^i -
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|
+    \;\;\;\leq\;\;\;
+    X_j'Y
+    \;\;\;\leq\;\;\;
+    X_j' X_{E_i}\hat\beta^i +
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|, 
+  \end{equation}
+  so the set $A$ is equivalent to 
+  Equation~\eqref{eq:noEnterBounds_FS} holding
+  for every $i < k$ and $j \notin E$. Nominally, this gives $2k(p-k)$
+  linear inequality constraints to satisfy, but most of them are
+  non-binding. On $A$, the upper and lower bounds
+  in~\eqref{eq:noEnterBounds_FS}
+  are all known functions of $E$ and $u$, so we can set
+  \begin{align}\label{eq:vMinus_FS}
+    v_j^-(E,u) &= \max_{0 \leq i < k} \;\;X_j' X_{E_i}\hat\beta^i -
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\| \\
+    \label{eq:vPlus_FS}
+    v_j^+(E,u) &= \min_{0 \leq i < k} \;\;X_j' X_{E_i}\hat\beta^i +
+    C_i^*\|\proj_{E_{i}}^\perp X_{j}\|.
+  \end{align}  
 \end{proof}
 
-A model selection procedure derived from the ``ever-active'' coefficients of a regularized likelihood path always satisfies the SPSP. Let $M_\infty$ be a model with parameters $\theta\in\Theta\sub \R^p$, and likelihood $L(\theta; Y)$. For $r=0,\ldots,R$, let $P_r(\theta)$ denote a sequence of regularizing penalties, and define
-\begin{align}\label{eq:regPathDef_start}
-  \hat\theta^{r}(Y) &\triangleq 
-  \argmin_{\theta\in\Theta} -\log L(\theta; Y) + P_r(\theta) \\
-  \tE_r(Y) &\triangleq \left\{j:\; \hat\theta_j^s \neq 0 
-    \text{ for any } s \leq r \right\}
-\end{align}
-Note that while the sets $\tE_r$ are nested by definition, we could have $\tE_r = \tE_{r+1}$ for most values of $r$. Let $r(0)=0$, and for $k>0$ define
-\begin{equation}
-r(k) = \min\{s:\; \tE_s \neq \tE_{r(k-1)}\}.
-\end{equation}
-That is, the $r(k)$ are the indices where the active set changes. Let $E_k = \tE_{r(k)}$, and take
-\begin{equation}\label{eq:regPathDef_end}
-M_k \triangleq \{F\in M_\infty:\; \theta_j = 0,\; \forall j \notin E_k\}
-\end{equation}
+As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$-regularized exponential family models including the graphical LASSO.
 
+\begin{theorem}
+  Assume that $M_\infty$ is an exponential family model
+  of the form
+  \[
+  Y \sim \exp\{ \theta'U(y) - \psi(\theta) \}\,d\nu(y),
+  \]
+  with $\Theta \sub \R^p$ convex, and assume
+  that the model path $M_{[d]}$ is given 
+  by the ever-active set for the $\ell_1$-penalized problem
+  \begin{equation}\label{eq:regProblem}
+  \hat\theta^r = \argmin_{\theta\in \Theta} 
+  -\ell(\theta) + \lambda_r\|\theta\|_1,
+  \end{equation}
+  for some sequence $\lambda_r > 0$.
 
-Model paths described in this way satisfy the SPSP, as we see next.
-
-\begin{proposition}[Regularized Likelihood Paths Satisfy SPSP]\label{prop:regPathSPSP}
-  Model paths specified as in (\ref{eq:regPathDef_start}--\ref{eq:regPathDef_end}) satisfy the sub-path sufficiency principle.
-\end{proposition}
-\WFcomment{Actually, you just keep the times when the model changes... Need to recast notation a bit; indices of $\lambda$ (or $P$, here) need not match up with indices of model.}
-
-\begin{proof}
-  Let 
-\end{proof}
-
-\begin{proposition}[Forward Stepwise Paths Satisfy SPSP]
-  \WFcomment{Generalized forward stepwise}
-\end{proposition}
+  Then, for a candidate active set $E$ of size $k$, 
+  the set $A = \{E_k = E, \;U_E = u\}$ is characterized 
+  exactly by the constraints $U_E = u$ and
+  \[
+  v_j^-(E,t) \leq U_j(Y) \leq v_j^+(E,t), \quad\forall j \notin E,
+  \]
+  for $v_j^-$ and $v_j^+$ given explicitly in
+  Equations~(\ref{eq:vMinus_L1}--\ref{eq:vPlus_L1}).
+  Thus, $A$ corresponds exactly to 
+  a set with $2(p-k)$ linear inequality constraints and $k$
+  linear equality constraints on $U(Y)$.
+\end{theorem}
 
 \begin{proof}
-  Let
+  Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
+  \[
+  \hat\theta^r = \hat\theta^{(E,r)}
+  \]
+  for every $r \leq R_k$, so we know the entire path of fits up to and including $R_k$. But then, excluding variable $j \notin E$ at Lagrange parameter $\lambda_r$ is equivalent to
+  \[
+  \lambda_r \geq 
+  \left| \pardd{\ell(\hat\theta^r)}{\theta_j} \right|
+  = \left|U_j - \E_{\hat\theta^r}[U_j]\right|
+  \]
+  On $A$, for $r \leq R_k$, 
+  $\E_{\hat\theta^r}[U_j]$ is a known function of $E$ and $u$,
+  so we can set
+  \begin{align}\label{eq:vMinus_L1}
+    v_j^-(E,u) &= \sup_{r \leq R_k} \;\; 
+    \E_{\hat\theta^r}[U_j] - \lambda_r \\
+    \label{eq:vPlus_L1}
+    v_j^+(E,u) &= \inf_{r \leq R_k} \;\;
+    \E_{\hat\theta^r}[U_j] + \lambda_r .
+  \end{align}
 \end{proof}
 
-\WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,\ell}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[\ell]}$.
-\begin{align*}
-  \sF_{k,\ell} &= \sF(M_{[k]},p_{[\ell]})\\
-  \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
-  \sF_{1,1} \;\;\sub \cdots \sub\;\;
-  \sF_{d-1,d-1} \underlabel_{\text{selection } d} \sF_{d,d-1}
-  \underlabel_{\text{inference } d} \sF_{d,d}
-\end{align*}
-
-\subsection{Independent $p$-Values Via Selection Variables}\label{sec:selectionVariables}
-
-As discussed in \citet{fithian2014optimal}, there are occasions when it is desirable for some reason to condition on more than just the selection event. On these occasions we can introduce a {\em selection variable} --- any random variable that is finer than the indicator of the selection event --- and condition on its value. Conditioning on a finer selection variable preserves validity conditional on the selection event, but tends to reduce the power of a test. 
-
-For example, in linear regression after selecting variables via the lasso, \citet{lee2013exact} propose conditioning not only on the set of active variables but also on the signs of the active coefficients. The selection event corresponding to a given active set $E\sub [p]$ typically contains up to $2^{|E|}$ convex polytopes, each of which corresponds to a particular sign pattern $\hat z_E$. Thus, conditioning on the selection variable $\hat z_E$ can simplify computation considerably.
-
-We say that $p_{k,m_{k-1},m_k}$ is a selective $p$-value with respect to selection variable $S(Y)$ if it is uniform under $F\in m_k$ given $S$. 
-
-To achieve joint error control properties among different tests, we may need to condition on a finer variable.
+\WFcomment{Give more general characterization of when we can do it, including group lasso? QP? Generalized Lasso?}
 
 
 \section{Simulation: Sparse Linear Regression}\label{sec:sparseReg}
@@ -528,7 +985,6 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \label{fig:simulation_noise_var}
 \end{figure}
 
-
 Figure~\ref{fig:simulation_null_true} shows the distribution of $p_k$ for $k = 8, \ldots, 17$, given that the null hypothesis tested at step $k$ is correct (i.e., that $k_0< k$). Because the correct model is seven-sparse, $k=8$ is the first index for which the null can possibly be true. Both selective $p$-values are uniform by construction, but the nominal $p$-values are highly anti-conservative, as expected.
 
 Finally, as a warning against misinterpretation of our method, we include Figure~\ref{fig:simulation_noise_var} showing the first ten $p$-values for each method, conditional on event that the variable added at step $k$ is a noise variable in the full model. Now, none of the $p$-values are uniform. 
@@ -546,25 +1002,27 @@ If we combine the saturated-model or selected-model $p$-values with one of our t
 \end{itemize} 
 The last measure of performance is not explicitly controlled by any of the selective-inference methods, but we might nevertheless hope to perform reasonably. \WFcomment{Comment on results once they are correct. These numbers are wrong right now.}
 
+\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Basic should all be correct given screening since they condition on $p_{[k_0-1]}$.}
+
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
 \begin{table}[ht]
   \centering
   \begin{tabular}{llcccc}
     \hline
-    & & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ 
+    Method & Stopping Rule & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ 
     & $\text{FDR}_{\text{mod}}$ 
     & $\text{FDR}_{\text{var}}$ \\ 
     \hline
-    Selected & Simple & .290 & .000 & .002 & .039 \\ 
+    Selected & Basic & .290 & .000 & .002 & .039 \\ 
     Selected & Forward & .559 & .027 & .020 & .066 \\ 
     Selected & Strong & .041 & .014 & .008 & .042 \\ 
     \hline
-    Saturated & Simple & .000 & .000 & .000 & .028 \\ 
+    Saturated & Basic & .000 & .000 & .000 & .028 \\ 
     Saturated & Forward & .014 & .000 & .000 & .030 \\ 
     Saturated & Strong & .000 & .000 & .000 & .032 \\ 
     \hline
-    Knockoffs & & .000 &  &  & .231 \\ 
+    Knockoffs & & .000 & --- & --- & .231 \\ 
     \hline
   \end{tabular}
   \caption{\WFcomment{Comment on results once they are correct. These numbers are wrong right now.}}
@@ -579,8 +1037,50 @@ The last measure of performance is not explicitly controlled by any of the selec
 
 \section{Discussion}
 
+It is a commonplace that ``essentially all models are wrong, but some are useful'' \citep{box1987empirical}. In essence, a statistical model is useful if it is large enough to capture the most important features of the data, but still small enough that inference procedures can achieve adequate power and precision. Apart from theoretical considerations, the only way to know whether a model is large enough is to test whether it is, using available data.
+
+Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the most threat to our inferential conclusions, and how powerful are our tests against these most troublesome sources of misspecification? 
+
+Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
+
+
+
+
+\section*{Acknowledgments}
+
+The authors are grateful for stimulating and informative conversations with Stefan Wager, Lucas Janson, Trevor Hastie, ....
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}
 
 \end{document}
+
+
+\begin{comment}
+Sections~\ref{sec:pvalSP}--\ref{sec:modelSSP} discuss sufficient conditions on the $p$-values and the selection algorithm under which single-step $p$-values are automatically independent. Section~\ref{sec:selectionVariables} discusses how we can create independent $p$-values by conditioning on finer selection variables at each step.
+
+Essentially, we will want to partition the information in $Y$ according to the filtration:
+\begin{align}\nonumber
+  \sF(M_0,T_0) &\underlabel_{\text{selection } 1} 
+  \sF(M_{[1]},T_0) \underlabel_{\text{inference } 1}
+  \sF(M_{[1]},T_1) \quad \sub \;\;\cdots\\[8pt]
+  \label{eq:infoPartition}
+  \cdots\;\; \sub \quad&
+  \sF(M_{[d-1]},T_{d-1}) \underlabel_{\text{selection } d}
+  \sF(M_{[d]},T_{d-1}) 
+  \underlabel_{\text{inference } d}
+  \sF(M_{[d]}, T_d)
+\end{align}
+
+\end{comment}
+
+\begin{comment}
+\WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,i}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[i]}$.
+\begin{align*}
+  \sF_{k,i} &= \sF(M_{[k]},p_{[i]})\\
+  \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
+  \sF_{1,1} \;\;\sub \cdots \sub\;\;
+  \sF_{d-1,d-1} \underlabel_{\text{selection } d} \sF_{d,d-1}
+  \underlabel_{\text{inference } d} \sF_{d,d}
+\end{align*}
+\end{comment}

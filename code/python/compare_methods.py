@@ -24,7 +24,9 @@ def summary(variables, pvalues, active, rule, alpha):
 def simulate(n=100, p=40, rho=0.3, snr=5,
              do_knockoff=False,
              full_results={},
-             alpha=0.05):
+             alpha=0.05,
+             maxstep=np.inf,
+             compute_maxT_identify=True):
 
     X, y, _, active, sigma = instance(n=n,
                                       p=p,
@@ -38,15 +40,24 @@ def simulate(n=100, p=40, rho=0.3, snr=5,
 
     return run(y, X, sigma, active, 
                do_knockoff=do_knockoff,
-               full_results=full_results)
+               full_results=full_results,
+               maxstep=maxstep,
+               compute_maxT_identify=compute_maxT_identify)
 
 def run(y, X, sigma, active,
         full_results={},
         do_knockoff=False,
-        alpha=0.05):
+        alpha=0.05,
+        maxstep=np.inf,
+        compute_maxT_identify=True,
+        burnin=2000,
+        ndraw=8000):
 
     n, p = X.shape
-    results = compute_pvalues(y, X, sigma)
+    results, FS = compute_pvalues(y, X, sigma, maxstep=maxstep,
+                                  compute_maxT_identify=compute_maxT_identify,
+                                  burnin=burnin,
+                                  ndraw=ndraw)
     completion_idx = completion_index(results['variable_selected'], active)
     full_results.setdefault('completion_idx', []).append(completion_idx)
 
@@ -85,9 +96,10 @@ def run(y, X, sigma, active,
         full_results.setdefault('knockoff_V', []).append(knockoff_V)
         full_results.setdefault('knockoff_screen', []).append(knockoff_screen)
 
-    for pval, rule_ in product(['selected_pvalue',
+    for pval, rule_ in product(['maxT_identify_pvalue',
                                 'saturated_pvalue',
-                                'nominal_pvalue'],
+                                'nominal_pvalue',
+                                'maxT_pvalue'],
                                zip([simple_stop, 
                                     strong_stop,
                                     forward_stop],
@@ -100,47 +112,44 @@ def run(y, X, sigma, active,
                                             active,
                                             rule, 
                                             alpha)
-        pval_name = pval.split('_')[0]
+
+        pval_name = '_'.join(pval.split('_')[:-1])
         full_results.setdefault('%s_%s_R' % (pval_name, rule_name), []).append(R)
         full_results.setdefault('%s_%s_V_var' % (pval_name, rule_name), []).append(V_var)
         full_results.setdefault('%s_%s_V_model' % (pval_name, rule_name), []).append(V_model)
         full_results.setdefault('%s_%s_screen' % (pval_name, rule_name), []).append(screen)
 
-    return full_results
-
-
-def batch(fbase, nsim=100, n=100, p=40, rho=0.3, snr=4):
-    value = []
-    for _ in range(nsim):
-        try:
-            value.append(run_one(n=n, p=p, rho=rho, snr=snr, alpha=0.05))
-        except:
-            pass
-        if not os.path.exists(fbase + '.npy'):
-            V = np.hstack(value)
-            np.save(fbase + '.npy', V)
-            mlab.rec2csv(V, fbase + '.csv')
-        else:
-            V = np.load(fbase + '.npy')
-            V = np.hstack([V] + value[-1:])
-            np.save(fbase + '.npy', V)
-            mlab.rec2csv(V, fbase + '.csv')
-            
-        print np.mean(V['forward_selected_screen']), np.mean(V['forward_saturated_screen']), V.shape
+    return full_results, FS
 
 def batch(outbase, nsim, **simulate_args):
 
     full_results = {}
     simulate_args['full_results'] = full_results
-    for _ in range(nsim):
-        simulate(**simulate_args)
-        df = pd.DataFrame(full_results)
-        df.to_csv(outbase + '.csv', index=False)
+    for i in range(nsim):
+        try:
+            print 'run %d' % (i+1)
+            simulate(**simulate_args)
+            df = pd.DataFrame(full_results)
+            df.to_csv(outbase + '.csv', index=False)
+        except:
+            pass
 
-#if __name__ == "__main__":
-    # batch('test', 20, p=10)
-    #D = {};
-     # batch('test', nsim=1000, p=40, snr=5)
-    #simulate(p=10, full_results=D, do_knockoff=True) # batch('test', nsim=1000, p=40, snr=5)
-    #simulate(p=10, full_results=D, do_knockoff=True) # batch('test', nsim=1000, p=40, snr=5)
-    #D
+if __name__ == "__main__":
+    from argparse import ArgumentParser
+    parser = ArgumentParser(
+        description= '''
+Run a batch of simulations.
+        ''')
+    parser.add_argument('--nsim',
+                        help='How many simulations to run.', type=int)
+    parser.add_argument('--outbase',
+                        help='Where to store results.')
+    parser.add_argument('--maxstep',
+                        help='How many steps should we take?',
+                        type=int,
+                        default=-1)
+    args = parser.parse_args()
+    if args.maxstep < 0:
+        args.maxstep = np.inf
+    batch(args.outbase, args.nsim, do_knockoff=True,
+          maxstep=args.maxstep)

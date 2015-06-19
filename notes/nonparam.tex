@@ -1,0 +1,497 @@
+\documentclass{article}
+
+
+\usepackage[round]{natbib}
+\usepackage{amsmath,amssymb,amsthm,bm,enumerate,mathrsfs,mathtools}
+\usepackage{latexsym,color,verbatim,multirow}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\newcommand{\real}{\mathbb{R}}
+\usepackage{mycommands}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+
+\begin{document}
+
+\title{Nonparametric selective bootstrap}
+
+\maketitle
+
+\section{Non-bootstrap world}
+
+Suppose we have a model selection procedure $\hat{M}$ acting on sufficient
+statistics $Z$ choosing among a (finite) set of models. So, our selected model
+is $M=\hat{M}(Z)$. Our selected model suggests a hypothesis of interest that we want to test.
+
+We will apply $\hat{M}$ on data of the form
+$$
+\hat{Z}_n = \frac{1}{n} \sum_{i=1}^n Z(t_i) 
+$$
+where $t_i \overset{\text{IID}}{\sim} F$ where $F$
+is some distribution on some sample space ${\cal X}$. In the pairs bootstrap for 
+regression context, we should think of $t_i=(y_i, X_i)$ and $F$ 
+is a distribution on $\real \times \real^p$ and, if we use
+forward stepwise our
+selection is a function of 
+$$\frac{1}{n}(X^Ty, X^TX)$$
+and our $Z$ should be taken to be
+$$
+Z(t_i) = (y_iX_i, X_iX_i^T).
+$$
+
+Note that $Z$ is a statistical functional that we might write as
+$$
+Z(F) = E_{F}(Z(t))
+$$
+and what we really observe $\hat{Z}_n = Z(\hat{F}_n)$. 
+
+We want to carry out a selective test of
+$$
+H_0: \eta_{M}^T \gamma_M(F) = 0
+$$
+where $\eta_M \in \real^{p \times k}$ and $\gamma_M$ is some statistical
+function possibly different from $Z$. In principle it can depend
+on the model we have selected, but we will drop the $M$ from now on.
+That is, we are now looking at
+$$
+\gamma_M(\hat{F}_n) = \sum_{i=1}^n \gamma(t_i)
+$$
+where $t_i \overset{IID}{\sim} F$.
+
+We assume that $Z$ is measurable with respect to $\gamma$, i.e.
+$\gamma$ includes $Z$ as part of its coordinates or something. This means
+that it makes sense to talk about $\hat{M}$ evaluated
+on a sample of $\gamma$'s.
+
+\subsection{One sample problem, mean or median?}
+
+Here is an ``example.''
+Suppose we have a one-sample problem and if the empirical skewness
+is larger than some threshold, we test whether the median of the 
+distribution, otherwise we report the mean. In one case,
+$\gamma_M$ would compute sample skewness and sample median, in the other
+it would compute the sample skewness and sample mean. When choosing to test the sample mean, I suppose the model is all distributions on $\real$ for
+which the sample mean and sample skewness and sample mean 
+are asymptotically Gaussian. When
+reporting the sample median, the model is all distributions on $\real$
+for which the sample skewness and sample median are asymptotically jointly Gaussian.
+
+\subsection{Hypothesis tests under unselective distribution}
+
+
+We will follow the convention of \cite{penn_pairs} in stating
+a bootstrap CLT as an $m$-of-$n$ bootstrap with $m \gg n$.
+For large enough $m$, under our model $M$ suppose that
+$$
+\gamma(\hat{F}_m) \approx N(\gamma(F), m^{-1} \Sigma(F))
+$$
+where
+$$
+\Sigma(F) = \Sigma(F,\gamma) = E_{F}\left((\gamma(t) - \gamma(F))(\gamma(t) - \gamma(F))^T \right).
+$$
+
+The bootstrap version of this result will be denoted by
+$$
+\gamma(\hat{F}^{*,m}_n) \overset{m \to \infty}{\Rightarrow} N(\gamma(\hat{F}_n), m^{-1} \Sigma(\hat{F_n})).
+$$
+That is, if we take $m \gg n$ samples with replacement from $\hat{F}_n$, 
+a CLT holds in $m$. The statement ``the bootstrap works'' can then
+be interpreted as 
+$$
+\gamma(\hat{F}^{*,n}_n) \overset{n \to \infty}{\Rightarrow} N(\gamma(F), n^{-1} \Sigma(F)).
+$$
+
+
+{\bf Note: as the functional
+we choose may depend on $M$, the normal approximation generally depends 
+on the selected model -- I am not always going to emphasize that here.}
+
+If this is our reference distribution, we should base our test on the 
+conditional law 
+$$m^{1/2}\Sigma(F)^{-1}\gamma(\hat{F}_m) \big \vert m^{1/2} P_{\eta}^{\perp}\Sigma(F)^{-1}\gamma(\hat{F}_m).$$ 
+where $P_{\eta}=\eta\eta^{\dagger}$ and $P_{\eta}^{\perp} = I - P_{\eta}$.
+This is because
+we know that, under $H_0:\eta^T\gamma(F)=0$
+this distribution does not depend on $P_{\eta}^{\perp}\gamma(F)$ which
+is everything except what we wanted to test. 
+ 
+This 
+law has covariance $m^{-1} \Theta(\eta, \Sigma(F))$ where
+$$
+\Theta(\eta, \Sigma(F)) = \left(\Sigma(F)^{-1} - \Sigma(F)^{-1} P_{\eta}^{\perp} \left(P_{\eta}^{\perp} \Sigma(F)^{-1} P_{\eta}^{\perp} \right)^{\dagger}  P_{\eta}^{\perp} \Sigma(F)^{-1}  \right)
+$$
+which is an $O(1)$ covariance matrix.
+Under $H_0$, this law has mean 0. Under any alternative, its mean grows like $m^{1/2}$.
+
+Under $H_0$
+this distribution can be realized by 
+$$
+L(\eta, \Sigma(F), W) = m^{1/2} \left(\Sigma(F)^{-1} W - \Sigma(F)^{-1} P_{\eta}^{\perp} \left(P_{\eta}^{\perp} 
+\Sigma(F)^{-1} P_{\eta}^{\perp} \right)^{\dagger}  P_{\eta}^{\perp} W \right)
+$$
+where $W \sim N(\mu, m^{-1}\Sigma(F))$, is any normal distribution with
+$\eta^T\mu=0$.
+
+In other words, if $W_m \sim N(\mu, m^{-1}\Sigma(F))$ 
+then under $H_0: \eta^T\gamma(F)=0$ we have, asymptotically
+$$
+ L(\eta, \Sigma(F), \gamma(\hat{F}_m))  \overset{m \rightarrow \infty}{\Rightarrow} L(\eta, \Sigma(F), W_m) = N(0,  \Theta(\eta, \Sigma(F))).
+$$
+
+Therefore, if we can
+sample from this distribution, we know how to
+do an asymptotic unselective test of $H_0:\eta_M^T\gamma(F)=0$ using the 
+normal approximation.
+
+
+\subsection{Selective test}
+\label{sec:selective}
+
+Recall that we have chosen $\eta_M$ based on the outcome $\hat{M}(\hat{Z}_n)$. Following the general setup of the
+selected model framework, we just have to design
+a test for a fixed $M$.
+
+The parametric selective test is based on the distribution of 
+$$
+L(\eta, \Sigma(F), \gamma(\hat{F}_n)) \big \vert \hat{M}(\gamma(\hat{F}_n)) = M.
+$$
+To emphasize that this depends on the selected model, we might write
+$$
+L_M(\eta_M, \Sigma_M(F), \gamma_M(\hat{F}_n)) \big \vert \hat{M}(\gamma_M(\hat{F}_n)) = M.
+$$
+
+Now, if $W \sim N(\mu, n^{-1}\Sigma(F))$ is any normal distribution
+such that $\eta^T\mu=0$ then by familiar exponential family principles, the above law
+is equal to the law of
+$$
+L_M(\eta_M, n^{-1}\Sigma(F), W) \big \vert \hat{M}(W) = M.
+$$
+
+{\bf This means it is enough to find any normal distribution
+$W \sim N(\mu, n^{-1}\Sigma(F))$ such that $\eta^T\mu=0$ to carry out the
+selective test.
+}
+
+\section{Bootstrap world}
+
+We apply non-parametric bootstrap drawing $m$ samples
+yielding 
+$$
+t^{*,b} \in {\cal X}^m, \qquad 1 \leq  b \leq B
+$$
+and  bootstrapped sufficient statistics
+$$
+\gamma^{*,b} = \frac{1}{m} \sum_{i=1}^m \gamma(t_i^{*,b}),  \qquad 1 \leq  b \leq B
+$$
+
+These are of course just evaluating $\gamma$ on 
+IID draws of size $m$ from $\hat{F}_n$. So,
+we can write
+$\gamma^{*,b} = \gamma(\hat{F}_n^{*,m})$
+where $\hat{F}_n^{*,m}$ is the empirical
+distribution function of sampling with replacement from the original data.
+
+For large enough $m$, the law of $\gamma(\hat{F}_n^{*,m})$ is going to be converging
+to the Gaussian 
+$$
+\gamma(\hat{F}_n^{*,m}) | \hat{F}_n \sim N(\gamma(\hat{F}_n), m^{-1} \Sigma(\hat{F}_n)).
+$$
+
+
+Therefore, our unselective bootstrap should be giving samples from
+roughly $ N(\gamma(\hat{F}_n), m^{-1} \Sigma(\hat{F}_n))$. That is,
+taking $B$ very large:
+$$
+\frac{1}{B}\sum_{b=1}^B \eta^T \gamma(\hat{F}^{*,m}_n) \approx \eta^T\gamma(\hat{F}_n).
+$$
+This suggests we correct the unselective bootstrap by drawing
+$$
+\gamma(\hat{F}^{*,m}_n) - P_{\eta}\gamma(\hat{F}_n) | \hat{F}_n \approx N(P_{\eta}^{\perp}\gamma(\hat{F}_n) ,m^{-1} \Sigma(\hat{F}_n)).
+$$
+With this correction, we see that
+$$
+L(\eta, \Sigma(\hat{F}_n), \gamma(\hat{F}^{*,m}_n) - P_{\eta} \gamma(\hat{F}_n)) \big \vert \hat{F}_n
+ \approx N(0 ,m^{-1} \Theta(\eta, \Sigma(\hat{F}_n))).
+$$
+
+Now, as $n$ gets larger, $\Sigma(\hat{F}_n)$ will approach $\Sigma(F)$. 
+If the RHS above were actually $$N(0 ,m^{-1} \Theta(\eta, \Sigma(F))),$$ then
+by our earlier observation at the end of Section \ref{sec:selective} this is sufficient to carry out the selective test exactly.
+However, the variance is not exactly correct. In general,
+plugging in consistent estimates of variance is OK in selective inference (not sure
+if Xiaoying and I put it in the first paper on asymptotics, but she has given me a proof and definitely in the
+randomized paper we will have a concrete statement about this). In Rob's example of $n=30$, the sample size might be too small still, but asymptotically
+I think it will be fine. Maybe a degrees of freedom correction will help.
+
+The final algorithm is:
+we draw nonparametric bootstrap samples
+$$
+\gamma(\hat{F}^{*,m}_n) - P_{\eta}\gamma(\hat{F}_n)
+$$
+keeping only those for which $\hat{M}(\gamma(\hat{F}^{*,m}_n) - P_{\eta}\gamma(\hat{F}_n)) = \hat{M}(\gamma(\hat{F}_n))$.
+
+For those that survive, we compute
+$$
+L(\eta, \Sigma(\hat{F}_n), \gamma(\hat{F}^{*,m}_n) - P_{\eta}\gamma(\hat{F}_n))
+$$
+and take any test statistic of our choosing.
+
+\section{No nuisance parameters}
+
+When there are no nuisance parameters (i.e. $\eta=I$ or we are make other assumptions about $Z(F)$), we do not need the
+function $L$. This is the example I tried this morning. In this
+case, $\gamma=Z$ and we just draw nonparametric bootstrap samples
+$$
+Z(\hat{F}^{*,m}_n) - P_{\eta}Z(\hat{F}_n)
+$$
+keeping the ones that satisfy selection and compute any test statistic of our 
+choosing on these bootstrap samples. 
+
+\section{Pairs bootstrap regression}
+
+A lot of this is based on the excellent survey \cite{penn_pairs}, though 
+I want to turn it into selected model language. In this section,
+$X$ is a random vector on $\real^p$, not a matrix, and $y$ is a 
+random variable, not a vector. 
+Given a distribution $F$ on $\real \times \real^p$, there are various
+quantities that appear in the ``pairs bootstrap'' for regression.
+(We could assume that we have removed a constant mean
+from both $X$ and $y$, so that 
+$\E_F((y,X)) = 0$ though nothing strictly assumes this unless
+we want to talk about ``covariances'' and ``correlations'' instead
+ of ``inner productes'' and ``angles''.)
+
+In any case, least squares regression is a statistical functional
+$$
+\beta(F) = \argmin_{\beta \in \real^P} \E_F((y-X^T\beta)^2)
+$$
+where $(y,X) \sim F$.
+This leads us to the definition of the total error, a random vector 
+defined in \cite{penn_pairs}
+$$
+\delta = \delta(F) = y - X^T\beta,  \qquad (y, X) \sim F.
+$$
+They further decompose this error into two components
+$$
+\delta(F) = \epsilon(F) + \zeta(F) = (y - \E_F(y|X)) + (\E_F(y|X) - X^T\beta).
+$$
+(I don't want to overload $\eta$, so I used $\zeta$ in place of their $\eta$).
+
+Note that we can rewrite the error equation as
+\begin{equation}
+\label{eq:datagen:full}
+y = X^T\beta(F) +\delta(F), \qquad (y, X) \sim F.
+\end{equation}
+This says that, in order to draw from $F$ it is sufficient to know 
+$\beta(F)$ and draw from $(X, \delta(F))$. This formula
+has a more familiar ``data-generating'' mechanism to it.
+
+One of the main takeaways of\cite{penn_pairs} is that the $m$-of-$n$ pairs bootstrap distribution of $\beta(\hat{F}_n)$ for any fixed $n$ (i.e. drawing $m \gg n$ samples with replacement
+from $\hat{F}_n$ and running OLS on this data set) 
+has the following CLT
+$$
+m^{1/2} \left(\beta(\hat{F}^{*,m}_n) - \beta(\hat{F}_n) \right)
+\overset{M\to \infty}{\Rightarrow} N(0, S(\hat{F}_n))
+$$
+where 
+$$
+S(F) = (\E_F(XX^T))^{-1} \E_F(\delta(F)XX^T)(\E_F(XX^T))^{-1}
+$$
+is the sandwich estimator for the law $F$ and 
+$\hat{F}^{*,m}_n$ is a sample of size $M$ with replacement from $\hat{F}_n$.
+
+The fact that the pairs bootstrap works as $n \to \infty$ can therefore be summarized as saying that
+$$
+S(\hat{F}_n) \overset{n \rightarrow \infty}{\to} S(F).
+$$
+
+\subsection{Selected model tests}
+
+We are of course interested in selective versions of these statements.
+Let $A \subset [p]=\{1, \dots, p\}$ and $I=A^c$ partition
+the variables into active and inactive sets.
+Then, we can write
+\begin{equation}
+\label{eq:datagen}
+y = X_A\beta_A(F) +\delta_A(F), \qquad (y, X) \sim F
+\end{equation}
+which makes sense whether or not $\beta(F)[I]=0$ or not. Note that
+we should rewrite \eqref{eq:datagen:full} as
+\begin{equation}
+\label{eq:datagen}
+y = X\beta_{[p]}(F) +\delta_{[p]}(F), \qquad (y, X) \sim F
+\end{equation}
+
+
+What happens if $\beta(F)_I=0$? In this case,
+$$
+X^T\beta_{[p]}(F) = X_A^T\beta(F)_A.
+$$
+However, it is not immediately clear 
+$$
+\beta_{[p]}(F)_A=\beta_A(F).
+$$
+For this to be the case, it would seem to have to be that
+$$
+\delta_A(F)=\delta_{[p]}(F)
+$$
+which we have no reason to believe is true in general. In fact, I think
+we have
+$$
+\beta_{[p]}(F)_A = \beta_A(F), \beta_{[p]}(F)_I=0 \iff \delta_A(F)=\delta_{[p]}(F).
+$$
+
+\subsection{Analog of max-$T$}
+
+In the fixed design case, our max-$T$ test looks at the law of
+$yX_I$ adjusted for those variables in $A$. In the
+fixed design case, these adjustments are done
+in matricial form which we are not using in this section.
+Morally, though, they use the residuals after having adjusted for $A$
+and see if there are any other important correlations remaining.
+
+{\bf Not sure this ``natural'' analog is the correct one.
+That is, it didn't use anything like the linear
+function $L$ in my abstract case. Hmm.....}
+
+A natural analog
+in the pairs bootstrap model is to look at the law of
+$$
+\begin{aligned}
+\delta_A(F) X_I &= (y-X_A^T\beta_A(F)) X_I \\
+&= yX_I - X_I \cdot X_A^T\beta_A(F)
+\end{aligned}
+$$
+and perhaps test $H_0:\E_F(\delta_A(F)X_I)=0$.
+From our earlier discussion we see that
+$$
+\begin{aligned}
+\delta_A(F)X_I &= (X\beta_{[p]}(F) + \delta_{[p]}(F) - X_A\beta_A(F))X_I \\
+&= X_I(X_I^T\beta_{[p]}(F)_I + X_A^T(\beta_{[p]}(F)_A - \beta_A(F))  + \delta_{[p]}(F))
+\end{aligned}
+$$
+and
+$$
+\E_F(\delta_A(F)X_I) = \E_F(X_IX_I^T)\beta_{[p]}(F)_I + \E_F(X_IX_A^T)(\beta_{[p]}(F)_A - \beta_A(F)).
+$$
+Therefore, testing $H_0:\E_F(\delta_A(F)X_I)=0$ is close to
+to testing $\tilde{H}_0:\beta_{[p]}(F)_I=0, \beta_{[p]}(F)_A-\beta_A(F)=0$ but not
+quite the same. However, if we reject $H_0$ then we know one of the
+two conditions in $\tilde{H}_0$ holds.
+The complication here is that $\beta_A(F)$ appears in the law
+we are interested in, i.e. the law of $\delta_A(F)X_I$.  
+
+Even in the fixed design case, we use the empirically adjusted residuals
+instead of the actual residuals. We might as well do the same here.
+Define an empirical version as the statistical functional
+$$
+\begin{aligned}
+\tilde{\gamma}_{A}(F) &= \E_F(yX_I - \E_F(X_I X_A^T) \E_F(X_AX_A^T)^{-1} yX_A) \\
+&= \E_F(X_I \delta_A(F) + X_IX_A^T\beta_A(F) - \E_F(X_I X_A^T) \E_F(X_AX_A^T)^{-1} X_A(X_A^T\beta_A(F) + \delta_A(F))) \\
+&= \E_F(X_I \delta_A(F)).
+\end{aligned}
+$$
+This has the same expected value as 
+the law we were interested in and it also has an $m$-of-$n$ bootstrap CLT as well.
+
+If $\mathbf{y}, \mathbf{X}$ is an IID sample of size $n$ from $F$ then
+$$
+\begin{aligned}
+\tilde{\gamma}_A(\hat{F}_n) &= \frac{1}{n} \left(\mathbf{X}_I^T\mathbf{y} - \left(\mathbf{X}_I^T\mathbf{X}_A \right) \left(\mathbf{X}_A^T\mathbf{X}_A \right)^{-1} \mathbf{X}_A^T\mathbf{y} \right) \\
+ &= \frac{1}{n}\mathbf{X}_I^T\mathbf{\delta_A(y)} \\
+\end{aligned}
+$$
+where
+$$
+\mathbf{\delta_A(y)} = \mathbf{y} - \mathbf{X}_A \left(\mathbf{X}_A^T\mathbf{X}_A \right)^{-1} \mathbf{X}_A^T\mathbf{y}
+$$
+are the empirical OLS residuals. 
+
+It would seem that we might have
+run OLS for each bootstrap sample which might be expensive. 
+However, following \cite{penn_pairs} it is generally OK to replace
+matrices of cross-products in expressions. It is OK in the sense
+that the bootstrap CLT is generally preserved. For instance, the
+bootstrap distribution of $\beta_{[p]}(\hat{F}_n)$ is essentially the same as
+that of the functional
+$$
+\E_F(XX^T)^{-1} yX
+$$
+which is not a statistical functional per se as it involves $\E_F(XX^T)$.
+
+With this in mind, we might consider the functional 
+$$
+\begin{aligned}
+\gamma_A(\hat{F}_n) &= \frac{1}{n} \left(\mathbf{X}_I^T\mathbf{y} - \E_F(X_IX_A^T) \E_F(X_AX_A^T)^{-1} \mathbf{X}_A^T\mathbf{y} \right)
+\end{aligned}
+$$
+which satisfies
+$$
+\E_F(\gamma_A(\hat{F}_n)) = \E_F(\tilde{\gamma}_A(\hat{F}_n))
+$$
+and
+$$
+n\text{Var}_F(\gamma_A(\hat{F}_n)) \approx n \text{Var}_F(\tilde{\gamma}_A(\hat{F}_n)).
+$$
+This last assertion about the variance depends on a similar argument
+as in the pairs bootstrap which replaces the empirical cross-products
+$n^{-1}\mathbf{X}_I^T\mathbf{X}_A$ and $n^{-1}\mathbf{X}_A^T\mathbf{X}_A$
+with their expectation at the cost of an error of size $n^{-1/2}$ that does not affect the limiting variance.
+
+One advantage of $\gamma_A$ over $\tilde{\gamma}_A$ is that one does 
+not have to solve a least squares problem for every bootstrap sample as
+the bootstrap version of $\gamma_A$ would be
+$$
+\gamma_A(\hat{F}^{*,m}_n) &= \E_{\hat{F}^{*,m}_n}(yX_I) - 
+\E_{\hat{F}_n}(X_IX_A^T) (\E_{\hat{F}_n}(X_AX_A^T))^{-1} \E_{\hat{F}^{*,m}_n}(yX_A).
+$$
+
+This is a statistic and it has an $m$-of-$n$  bootstrap CLT centered at
+$\tilde{\gamma}_A(\hat{F}_n)$ with approximately correct covariance.
+
+\subsection{Sampling correction}
+
+When drawing bootstrap samples we want them to be such that the expected
+value of our statistic is 0 under $H_0$. Our bootstrap samples
+draw samples of $(yX, XX^T)$ and our selection is a function of these.
+To correct, we actually only need to modify the $yX$ part of the sample.
+Define 
+$$
+L_A(F) = \begin{pmatrix} I & \E_{F}(X_IX_A^T) (\E_{F}(X_AX_A^T))^{-1} \end{pmatrix} \in \real^{I \times [p]}
+$$
+so that
+$$
+\gamma_A(\hat{F}_n) =  L_A(F)\E_{\hat{F}_n}(yX).
+$$
+
+Let $\hat{G}^{*,m}_n$ to be the law of 
+$\hat{F}^{*,m}_n$ shifted by
+$$
+\Delta_A(\hat{F}_n) = L_A(\hat{F}_n)^{\dagger}L_A(\hat{F}_n) \E_{\hat{F}_n}(yX)
+$$
+so that
+$$
+\E_{\hat{G}^{*,m}_n}(\gamma_A(\hat{G}^{*,m}_n))= 0.
+$$
+
+Then, $\gamma_A(\hat{G}^{*,m}_n)$ satisfies an $m$-of-$n$ bootstrap CLT
+with the proper mean under $H_0$ and asymptotically (in $n$) correct variance.
+
+The sampling scheme now draws samples from $\hat{G}^{*,m}_n$ retaining those 
+for which the selected model is the same. With these samples, one can standardize each entry of $\gamma_A(\hat{G}^{*,m}_n)$ by its bootstrap SD and finally compute the observed maxT.
+
+{\bf Again, not sure if this is the ``right'' thing to do as it didn't
+use the covariance structure of $yX$ under $\hat{F}_n$ to construct the test.}
+
+
+\bibliographystyle{alpha}
+\bibliography{nonparam}
+
+
+\end{document}
+
+

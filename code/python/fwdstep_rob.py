@@ -34,11 +34,17 @@ def main():
                         help='Response (CSV filename). REQUIRED')
     parser.add_argument('--sigma',
                         help='Noise standard deviation. REQUIRED', type=float)
+    parser.add_argument('--maxstep',
+                        help='How many steps. Defaults to min(n,p)', type=int)
     parser.add_argument('--active',
                         help='Active set (CSV filename). Necessary ' + 
                         'to compute completion index. REQUIRED. ASSUMES 1-BASED INDEXING!')    
     parser.add_argument('--outfile',
                         help='Where to store output.')
+    parser.add_argument('--burnin',
+                        help='How many burnin steps for sampling.', default=2000, type=int)
+    parser.add_argument('--ndraw',
+                        help='How many sampling steps.', default=8000, type=int)
 
     try: 			
         args = parser.parse_args()
@@ -54,10 +60,23 @@ def main():
         raise ValueError('sigma is needed to compute saturated p-values!')
 
     full_results = {}
-    print 'here'
+
+    maxstep = args.maxstep or np.inf
+
     run(Y, X, args.sigma, active,
-        full_results=full_results)
-    pd.DataFrame(full_results).to_csv(args.outfile, index=False)
+        full_results=full_results,
+        maxstep=args.maxstep,
+        burnin=args.burnin,
+        ndraw=args.ndraw)
+
+    # change output variables to 1-based indices
+
+    for k in full_results.keys():
+        if 'variable_selected' in k:
+            full_results[k][0] = full_results[k][0] + 1
+
+    if args.outfile:
+        pd.DataFrame(full_results).to_csv(args.outfile, index=False)
         
 if __name__ == "__main__":
     main()
