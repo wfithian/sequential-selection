@@ -112,7 +112,8 @@ def run(y, X, sigma, active,
                                             active,
                                             rule, 
                                             alpha)
-        pval_name = pval.split('_')[:-1]
+
+        pval_name = '_'.join(pval.split('_')[:-1])
         full_results.setdefault('%s_%s_R' % (pval_name, rule_name), []).append(R)
         full_results.setdefault('%s_%s_V_var' % (pval_name, rule_name), []).append(V_var)
         full_results.setdefault('%s_%s_V_model' % (pval_name, rule_name), []).append(V_model)
@@ -142,6 +143,13 @@ Run a batch of simulations.
     parser.add_argument('--nsim',
                         help='How many simulations to run.', type=int)
     parser.add_argument('--outbase',
-                        help='Where to store results')
+                        help='Where to store results.')
+    parser.add_argument('--maxstep',
+                        help='How many steps should we take?',
+                        type=int,
+                        default=-1)
     args = parser.parse_args()
-    batch(args.outbase, args.nsim, do_knockoff=True)
+    if args.maxstep < 0:
+        args.maxstep = np.inf
+    batch(args.outbase, args.nsim, do_knockoff=True,
+          maxstep=args.maxstep)
