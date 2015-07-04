@@ -101,7 +101,7 @@ Both sets of rules require that once we have reached the correct model in our pa
 and independent.
 In this paper we develop a theoretical framework for the construction of sequential p-values  that are both (sub)-uniform and independent under the correct model,
 and show how to construct them  in forward stepwise regression, LAR and the ever-active path in $\ell_1$-regularized models.
-In the former case, the test is simply a sequential selective version the max-$t$ test of ~\citet{bujaxxxxmaxT}, based one the theory developed \citet{fithian2014optimal}.
+In the former case, the test is simply a sequential selective version the max-$t$ test of ~\citet{buja2014}, based on the theory developed \citet{fithian2014optimal}.
 
 Table \ref{tab:diab} shows an example: using the diabetes data taken from \cite{LARS}.
 These data consist of  observations on $442$ patients, with the response of interest being a quantitative measure of disease progression one year after baseline.
@@ -158,7 +158,7 @@ due to the lack of independence of the p-values.
 An outline of this paper is as follows:
 In Section \ref{sec:genericSetting} we setup the problem and give some important definitions. In Section \ref{sec:sequential} we review recently proposed methods for
 testing ordered hypothesis using from a sequence of p-values. These method require that the p-values be uniform and independent under the null, and we derive general conditions
-to ensure this property. In Section \ref{sec:single step}  we  show how to construct valid selective $p$-values for a single step in the path and derive the max-t test
+to ensure this property. In Section \ref{sec:singleStep}  we  show how to construct valid selective $p$-values for a single step in the path and derive the max-t test
 for  forward stepwise regression and the Next-$\lambda$ test for the lasso. Section \ref{sec:computation}  describes our computational strategy for estimating the p-values using accept-reject and hit and run sampling. We also relate the method to parametric bootstrap sampling. We provide a simulation study in Section \ref{sec:simulation} and briefly discuss applications of our framework to
 principal components analysis in section\ref{sec:pac}. The paper ends with a Discussion.
 
@@ -212,15 +212,19 @@ We will assume that for each candidate model $M$ there is a minimal sufficient s
 T_k(Y) = T(Y; M_k(Y)).
 \]
 
-We will break the problem into two constituent subproblems. First, Section~\ref{sec:singleStep} will discuss how to obtain selective single-step $p$-values, where $p_k$ is a $p$-value for testing
+First suppose that we have single step p-values for testing
 \[
 H_{k}:\; F\in M_{k-1}(Y)
 \]
-against the alternative that $F\in M_\infty\setminus M_{k-1}$. The $p$-values must account for the fact that the models are chosen adaptively. In most of our development we will make few assumptions about what form the candidate models take. Still, our results are only useful in cases where we can actually construct single-step $p$-values. At present, this largely restricts our applications to exponential family models.
+against the alternative that $F\in M_\infty\setminus M_{k-1}$. The $p$-values must account for the fact that the models are chosen adaptively. 
+\citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{[d]}$. These stopping rules provably control certain error rates, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. 
+We review these methods in Section~\ref{sec:sequential} .
 
-Second, Section~\ref{sec:sequential} focuses on the sequential nature of the problem. \citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{[d]}$. These stopping rules provably control certain error rates, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. We will discuss general conditions under which single-step $p$-values are independent.
+Hence the task is to  construct sequential p-values which satisfy the above requirements, and we do this in Section \ref{sec:singleStep}.
+We also discuss general conditions under which single-step $p$-values are independent.
 
-\subsubsection{Linear Regression}
+
+\subsection{Linear Regression}
 
 Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. In this problem, we observe a random response $Y\in \R^n$ as well as a fixed design matrix $X\in \R^{n \times p}$, whose columns correspond to candidate predictors. For each {\em active set} $E \sub [p]$, there is a corresponding candidate model
 \[
@@ -232,7 +236,7 @@ M_\infty:\; Y \sim \cN(X\beta, \sigma^2I_n).
 \]
 The error variance $\sigma^2$ may be known or unknown depending on the context. The complete sufficient statistic for $M(E)$ is $X_E'Y$ if $\sigma^2$ is known, or else $\left(X_E'Y, \|Y\|^2\right)$.
 
-\subsubsection{Sparse Parametric Models}\label{sec:genSparse}
+\subsection{Sparse Parametric Models}\label{sec:genSparse}
 
 All of the specific examples considered in this paper will have a common form generalizing the linear regression problem above. Let $M_\infty$ be a model parameterized by $\theta\in \Theta \sub \R^{\cJ}$:
 \[
@@ -252,7 +256,7 @@ inducing the model path given by $M_k = M(E_k)$.
 
 As an example, in forward stepwise regression with known $\sigma^2$, we might include an unknown intercept term $\beta_0$ in the global null model $M_0$, then at each step $k\geq 1$, add the predictor $j_k$ that reduces the residual sum of squares the most. In that case $E_0 = \{0\}$, and $E_k = E_{k-1} \cup \{j_k\}$ for $k\geq 1$.
 
-\subsubsection{Path Algorithms}
+\subsection{Path Algorithms}
 
 We will be especially interested in two path algorithms in the sparse parametric setting: forward-stepwise paths and ever-active regularization paths.
 
@@ -292,7 +296,7 @@ If $\sigma^2$ is known, then $\hat\beta^{r}$ is the lasso solution with Lagrange
 
 Because it is actually possible to solve the lasso at every value of the Lagrange parameter, it is not really necessary that $r$ only take on integer values. We can instead notionally take $r\in (0,\infty)$, and use a path algorithm like LARS \citep{taylor2014exact} to find every point in the path where the lasso solution changes.
 
-\subsection{Which Null Hypothesis Should We Test?}
+\subsection{``Model-centric'' and ``variable-centric'' null hypotheses}
 \label{sec:whichnull}
 
 \WFcomment{Shorten this section, move some of it to Discussion?}
@@ -303,7 +307,9 @@ In some circumstances, we might want to define a type I error at step $k$ differ
 \[
 \theta^E = X_E^\dagger \mu = \argmin_{\theta\in \R^{|E|}} \|\mu - X_E\theta\|_2^2,
 \]
-where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. Write $\proj_E\mu = X_E^\dagger \theta^E$ for the projection of $\mu$ into the column space of $X_E$.
+where $A^\dagger$ is the Moore-Penrose pseudoinverse of the matrix $A$. 
+These are the true ``partial regression coefficients''  for design matrix $X_E$.
+ Write $\proj_E\mu = X_E^\dagger \theta^E$ for the projection of $\mu$ into the column space of $X_E$.
 
 \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
 \begin{description}
@@ -349,16 +355,95 @@ See \citet{barber2014controlling} for an exact method to control $\text{FDR}^{\t
 \section{Sequential Inference}
 \label{sec:sequential}
 
-An ordered hypothesis testing procedure takes in a sequence of $p$-values $p_1, \ldots, p_d$ for null hypotheses $H_{1}, \ldots, H_{d}$, and outputs a decision $\hk$ to reject the initial block $H_{1}, \ldots, H_{\hk}$ and accept the remaining hypotheses. We will assume throughout that the hypotheses are nested with $H_{k-1} \sub H_k$. Section~\ref{sec:orderedProposals} outlines several proposals for ordered testing and discusses what error rates they control and under what conditions. 
+An ordered hypothesis testing procedure takes in a sequence of $p$-values $p_1, \ldots, p_d$ for null hypotheses $H_{1}, \ldots, H_{d}$, and outputs a decision $\hk$ to reject the initial block $H_{1}, \ldots, H_{\hk}$ and accept the remaining hypotheses. We will assume throughout that the hypotheses are nested with $H_{k-1} \sub H_k$. The next Section outlines several proposals for ordered testing and discusses what error rates they control and under what conditions. 
 
-We focus on proposals from \citet{gsell2013sequential} and \citet{li2015accumulation}, all of which assume that the null hypotheses $H_{1}, \ldots, H_{d}$ are fixed, and that the null $p$-values are independent of each other and of the non-null $p$-values. Specifically, they assume that
+\subsection{Stopping Rules for Ordered Testing}
+\label{sec:orderedProposals}
+
+
+\subsubsection{BasicStop}
+The most obvious procedure is simply to reject at each step until the first time that $p_k > \alpha$, which we can formalize as
+\[
+\hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
+  p_k > \alpha\right\} - 1
+\]
+We will call this procedure {\em BasicStop}. 
+It is discussed in \citet{marcus1976}.
+
+If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
+\[
+\P(V>0) = \P(p_{k_0+1} \leq \alpha) \leq \alpha.
+\]
+
+Selectively valid single-step $p$-values do not necessarily guarantee FWER control when $k_0$ is random. In that case, we need a bit more, but it is sufficient that we have type I error control for $p_k$ conditional on $k_0=k-1$; i.e., not just conditional on $M_{k-1}$ being a correct model, but given that $M_{k-1}$ is the {\em first} correct model.
+
+
+\subsubsection{StrongStop}
+
+\citet{gsell2013sequential} propose a stopping rule that controls the FWER, which they called {\em strong stop}. Define
+\[
+  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    \exp\left(\sum_{i=k}^d \frac{\log p_i}{i}\right) 
+    \leq \frac{\alpha k}{d}\right\}
+\]
+StrongStop uses all of the p-values after step $k$ in its decision to reject at step $k$. 
+Even if $p_k$ is a little larger than $\alpha$, say $\alpha=0.05$ and $p_k=0.06$, StrongStop can still reject $M_{k-1}$ if the next three or four $p$-values are also relatively small.
+
+\citet{gsell2013sequential} show that if the completion index $k_0$ is fixed, then $\hk_S$ controls the FWER at level $\alpha$, as long as the null $p$-values are independent given the non-null ones.
+
+\subsubsection{ForwardStop}
+
+\citet{gsell2013sequential} propose another stopping rule, {\em forward stop}, that controls the FDR:
+\[
+  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
+    -\frac{1}{k}\sum_{i=1}^k \log(1-p_i) \leq \alpha\right\}
+\]
+ForwardStop uses the p-values {\it before} step $k$ in its decision to reject at step $k$. 
+If $p_k$ is uniform then  $-\log(1-p_k)$ is an exponential random variable. If all of the null $p$-values are uniform and the others are zero, then only the null ones contribute to the sum, and
+\[
+\widehat{\text{FDR}}_k = -\frac{1}{k}\sum_{i=1}^k \log(1-p_i)
+\]
+is a Gamma random variable with mean $V/k$ and variance $V/k^2$. We stop the last time the estimate of FDR is less than $\alpha$. 
+
+\subsubsection{Accumulation Tests and HingeExp}
+
+\citet{li2015accumulation} generalize the ForwardStop rule, introducing the family of {\em accumulation tests}, defined as follows.
+Fix a function $h: [0,1] \rightarrow [0,\infty]$ satisfying $\int _{t=0}^1 h(t)dt=1$, called an ``accumulation function''. They define an estimate of the
+false discovery proportion at a cutoff $k$ as
+\begin{equation}
+\widehat{\rm FDP}_h(k)= \frac{\sum_{i=1}^k h(p_i)}{k}
+\end{equation}
+and then define the adaptive cutoff,  for FDR level $\alpha$, to be                                                                                                                 as
+\begin{equation}
+\hat k_h={\rm max} \Bigl\{k\in \{1,2,\ldots n\}; \widehat{\rm FDP}_h(k) \leq \alpha \Bigr\}
+\end{equation}
+The ForwardStop rule falls into this class:  another  choice they study is the ``HingeExp'' function
+\begin{equation}
+h_{\rm HingeExp}(t)= 
+\begin{cases} C\cdot\log\Bigl(\frac{1}{C(1-t)} \Bigr)& \text{for $T> 1-1/C$}\\
+                         0                                         & \text{for $T\leq 1-1/C$}
+                         \end{cases}
+ \end{equation}
+ 
+Now let ${\rm FP}(k)$ be the actual number of false positives up to and including step $k$.
+They prove that for any  accumulation function $h$ bounded by a constant $C$,
+\begin{equation}
+{\rm E} \Bigl[ \frac{{\rm FP}(\hat k_h)}{C/\alpha+\hat k_h} \Bigr] \leq \alpha
+\end{equation}
+They demonstrate numerically that the HingeExp rule offers superior empirical performance compared to ForwardStop  (and other competitors) in many situations.
+
+Importantly, this class of accumulation tests require that  the p-values $p_i$  are  $U(0,1)$ if the null hypothesis $H_i$ is true, and are independent of the non-null p-values.
+This implies that the class of sequential pvalues proposed in this paper can be used as inputs to these tests.
+
+\subsection{Random hypotheses}
+The forementioned proposals of  \citet{gsell2013sequential} and \citet{li2015accumulation}, all assume that the null hypotheses $H_{1}, \ldots, H_{d}$ are fixed, and that the null $p$-values are independent of each other and of the non-null $p$-values. Specifically, they assume that
 \begin{equation}\label{eq:indepCond_fixed_k0}
 \P(p_{k_0+1} \leq \alpha_{k_0+1}, \ldots, p_d \leq \alpha_d
 \mid p_1, \ldots, p_{k_0}) = \prod_{i=k_0+1}^d \alpha_i,
 \end{equation}
-where $k_0$ is fixed.
+where $k_0$ is fixed. 
 
-In our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$. We will thus require {\em conditional} independence of null $p$-values given $k_0$:
+in our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$. We will thus require {\em conditional} independence of null $p$-values given $k_0$:
 \begin{equation}\label{eq:indepCond_random_k0}
   \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
   \mid p_1, \ldots, p_k, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
@@ -413,85 +498,11 @@ If the null $p$-values are marginally uniform, then the conditions~\eqref{eq:ind
 
 Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
 
-\subsection{Stopping Rules for Ordered Testing}\label{sec:orderedProposals}
 
-\begin{comment}
-\subsubsection{BasicStop}
-The most obvious procedure is simply to reject at each step until the first time that $p_k > \alpha$, which we can formalize as
-\[
-\hk_B(Y) = \min\left\{k \in \{1,\ldots,m\} :\;
-  p_k > \alpha\right\} - 1
-\]
-We will call this procedure {\em BasicStop}. \WFcomment{Is there a better name for this? Can we find it in the literature?}
 
-If $k_0$ is fixed, then it is clear that $\hk_b$ controls the FWER at level $\alpha$ provided that $p_{k}$ is a valid $p$-value for each $k>k_0$. Then, 
-\[
-\P(V>0) = \P(p_{k_0+1} \leq \alpha) \leq \alpha.
-\]
+\section{Conditions for Independence of p-values}\label{sec:pValsIndep}
 
-Selectively valid single-step $p$-values do not necessarily guarantee FWER control when $k_0$ is random. In that case, we need a bit more, but it is sufficient that we have type I error control for $p_k$ conditional on $k_0=k-1$; i.e., not just conditional on $M_{k-1}$ being a correct model, but given that $M_{k-1}$ is the {\em first} correct model.
-\end{comment}
-
-\subsubsection{StrongStop}
-
-\citet{gsell2013sequential} propose a stopping rule that controls the FWER, which they called {\em strong stop}. Define
-\[
-  \hk_{S}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
-    \exp\left(\sum_{i=k}^d \frac{\log p_i}{i}\right) 
-    \leq \frac{\alpha k}{d}\right\}
-\]
-StrongStop uses all of the p-values after step $k$ in its decision to reject at step $k$. 
-Even if $p_k$ is a little larger than $\alpha$, say $\alpha=0.05$ and $p_k=0.06$, StrongStop can still reject $M_{k-1}$ if the next three or four $p$-values are also relatively small.
-
-\citet{gsell2013sequential} show that if the completion index $k_0$ is fixed, then $\hk_S$ controls the FWER at level $\alpha$, as long as the null $p$-values are independent given the non-null ones.
-
-\subsubsection{ForwardStop}
-
-\citet{gsell2013sequential} propose another stopping rule, {\em forward stop}, that controls the FDR:
-\[
-  \hk_{F}(Y) = \max\left\{k \in \{1,\ldots,d\} :\;
-    -\frac{1}{k}\sum_{i=1}^k \log(1-p_i) \leq \alpha\right\}
-\]
-ForwardStop uses the p-values{\it before} step $k$ in its decision to reject at step $k$. 
-If $p_k$ is uniform then  $-\log(1-p_k)$ is an exponential random variable. If all of the null $p$-values are uniform and the others are zero, then only the null ones contribute to the sum, and
-\[
-\widehat{\text{FDR}}_k = -\frac{1}{k}\sum_{i=1}^k \log(1-p_i)
-\]
-is a Gamma random variable with mean $V/k$ and variance $V/k^2$. We stop the last time the estimate of FDR is less than $\alpha$. 
-
-\subsubsection{Accumulation Tests and HingeExp}
-
-\citet{li2015accumulation} generalize the ForwardStop rule, introducing the family of {\em accumulation tests}, defined as follows.
-Fix a function $h: [0,1] \rightarrow [0,\infty]$ satisfying $\int _{t=0}^1 h(t)dt=1$, called an ``accumulation function''. They define an estimate of the
-false discovery proportion at a cutoff $k$ as
-\begin{equation}
-\widehat{\rm FDP}_h(k)= \frac{\sum_{i=1}^k h(p_i)}{k}
-\end{equation}
-and then define the adaptive cutoff,  for FDR level $\alpha$, to be                                                                                                                 as
-\begin{equation}
-\hat k_h={\rm max} \Bigl\{k\in \{1,2,\ldots n\}; \widehat{\rm FDP}_h(k) \leq \alpha \Bigr\}
-\end{equation}
-The ForwardStop rule falls into this class:  another  choice they study is the ``HingeExp'' function
-\begin{equation}
-h_{\rm HingeExp}(t)= 
-\begin{cases} C\cdot\log\Bigl(\frac{1}{C(1-t)} \Bigr)& \text{for $T> 1-1/C$}\\
-                         0                                         & \text{for $T\leq 1-1/C$}
-                         \end{cases}
- \end{equation}
- 
-Now let ${\rm FP}(k)$ be the actual number of false positives up to and including step $k$.
-They prove that for any  accumulation function $h$ bounded by a constant $C$,
-\begin{equation}
-{\rm E} \Bigl[ \frac{{\rm FP}(\hat k_h)}{C/\alpha+\hat k_h} \Bigr] \leq \alpha
-\end{equation}
-They demonstrate numerically that the HingeExp rule offers superior empirical performance compared to ForwardStop  (and other competitors) in many situations.
-
-Importantly, this class of accumulation tests require that  the p-values $p_i$  are  $U(0,1)$ if the null hypothesis $H_i$ is true, and are independent of the non-null p-values.
-This implies that the class of sequential pvalues proposed in this paper can be used as inputs to these tests.
-
-\subsection{Conditions for Independence}\label{sec:pValsIndep}
-
-The single-step $p$-value $p_k$ is selectively valid for testing $H_k:\; F \in M_{k-1}(Y)$ against $M_\infty \setminus M_{k-1}$ if, for all $F\in M_\infty$,
+We say that the  single-step $p$-value $p_k$ is selectively valid for testing $H_k:\; F \in M_{k-1}(Y)$ against $M_\infty \setminus M_{k-1}$ if, for all $F\in M_\infty$,
 \[
 \P_F(p_k \leq \alpha \mid M_{k-1},\; F\in M_{k-1}) \leqAS \alpha.
 \]
@@ -746,7 +757,8 @@ Instead of conditioning on the next model $M_k$, we could use
 \end{equation}
 or even replace $X_{j_k}'Y$ with any other test statistic $U(Y)$. As long as $U(Y)$ is measurable with respect to $(M_k, T_k)$, and the path algorithm is subpath-sufficient, the $p$-values are independent on nulls.
 
-Two specific examples are worth discussing in detail. First, consider the {\em selective max-$t$ test}, a generalization of the max-$t$ test of ~\citet{bujaxxxxmaxT}. Controlling for $E$, the $z$-statistic for coefficient $j\notin E$ is
+Two specific examples are worth discussing in detail. First, consider the {\em selective max-$t$ test}, a generalization of the max-$t$ test described in 
+~\citet{buja2014}. Controlling for $E$, the $z$-statistic for coefficient $j\notin E$ is
 \begin{equation}
   z_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
   {\sigma\|\proj_{E}^\perp X_j\|_2},
@@ -1145,27 +1157,28 @@ We use known $\sigma^2=1$, so that we can compare the saturated-model test with 
 
 For each step we compute one-step selected-model and saturated-model $p$-values, as well as nominal (unadjusted) $p$-values, conditioning on the signs of the active variables to make the problem more computationally tractable. Figure~\ref{fig:simulation_null_false} shows the power of all three tests for each of the first ten steps, conditional on the event that the null hypothesis is false. It is clear from Figure~\ref{fig:simulation_null_false} that the selected-model $p$-values are far more powerful than the saturated-model $p$-values. The nominal $p$-values are also quite powerful, but they do not have the correct level.
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
-  \caption{\em CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The selected-model test is much more powerful than the saturated-model test. The nominal test appears powerful, but is not a correct $p$-value.}
+  \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
+  \caption{\em  CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The MaxT approaches are much more powerful than the saturated-model test. The nominal test appears to be powerful, 
+  but is not $U(0,1)$ under the null, as shown below in Figure \ref{fig:simulation_null_true}.}
   \label{fig:simulation_null_false}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
-  \caption{\em CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$. The selected-model test is much more powerful than the saturated-model test. The nominal test is badly anti-conservative.}
+  \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
+  \caption{\em  CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) p-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$.  The nominal test is badly anti-conservative, while all of the other methods  show uniform p-values as desired.}
   \label{fig:simulation_null_true}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
-  \includegraphics[width=.8\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
-  \caption{\em CDFs of saturated-model (black), selected-model (red), and nominal (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
+  \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
+  \caption{\em CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
   \label{fig:simulation_noise_var}
 \end{figure}
 
@@ -1190,30 +1203,61 @@ The last measure of performance is not explicitly controlled by any of the selec
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
+%\begin{table}[ht]
+ % \centering
+ % \begin{tabular}{llcccc}
+  %  \hline
+  %  Method & Stopping Rule & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ an
+ %   & $\text{FDR}_{\text{mod}}$ 
+  %  & $\text{FDR}_{\text{var}}$ \\ 
+ %   \hline
+    %Selected & Basic & .290 & .000 & .002 & .039 \\ 
+   % Selected & Forward & .559 & .027 & .020 & .066 \\ 
+   % Selected & Strong & .041 & .014 & .008 & .042 \\ 
+  %  \hline
+   % Saturated & Basic & .000 & .000 & .000 & .028 \\ 
+  %  Saturated & Forward & .014 & .000 & .000 & .030 \\ 
+  %  Saturated & Strong & .000 & .000 & .000 & .032 \\ 
+  %  \hline
+  %  Knockoffs & & .000 & --- & --- & .231 \\ 
+  %  \hline
+ % \end{tabular}
+ % \caption{\WFcomment{Comment on results once they are correct. These numbers are wrong right now.}}
+%\end{table}
+
 \begin{table}[ht]
-  \centering
-  \begin{tabular}{llcccc}
-    \hline
-    Method & Stopping Rule & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ an
-    & $\text{FDR}_{\text{mod}}$ 
-    & $\text{FDR}_{\text{var}}$ \\ 
-    \hline
-    Selected & Basic & .290 & .000 & .002 & .039 \\ 
-    Selected & Forward & .559 & .027 & .020 & .066 \\ 
-    Selected & Strong & .041 & .014 & .008 & .042 \\ 
-    \hline
-    Saturated & Basic & .000 & .000 & .000 & .028 \\ 
-    Saturated & Forward & .014 & .000 & .000 & .030 \\ 
-    Saturated & Strong & .000 & .000 & .000 & .032 \\ 
-    \hline
-    Knockoffs & & .000 & --- & --- & .231 \\ 
-    \hline
-  \end{tabular}
-  \caption{\WFcomment{Comment on results once they are correct. These numbers are wrong right now.}}
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+  Method, Stopping rule& $p_{\text screen}$ & FWER$_{\text mod}$ & FDR$_{\text mod}$ &FDR$_{\text var}$ \\
+% & \$p\_\{$\backslash$text\{screen\}\} & \$$\backslash$text\{FWER\}\_\{$\backslash$text\{model\}\}\$ & \$$\backslash$text\{FDR\}\_\{$\backslash$text\{model\}\}\$ & \$$\backslash$text\{FDR\}\_\{$\backslash$text\{variable\}\}\$ \\ 
+  \hline
+Nominal, Simple & 0.832 & 0.252 & 0.097 & 0.171 \\ 
+  Nominal, Forward & 0.931 & 0.896 & 0.345 & 0.426 \\ 
+  Nominal, Strong & 0.003 & 0.000 & 0.000 & 0.035 \\ 
+  \hline
+  MaxT, Simple & 0.369 & 0.000 & 0.002 & 0.042 \\ 
+  MaxT, Forward & 0.668 & 0.038 & 0.026 & 0.080 \\ 
+  MaxT, Strong & 0.025 & 0.006 & 0.004 & 0.038 \\ 
+  \hline
+  MaxT-Identify, Simple & 0.404 & 0.000 & 0.002 & 0.042 \\ 
+  MaxT-Identify, Forward & 0.688 & 0.039 & 0.026 & 0.082 \\ 
+  MaxT-Identify, Strong & 0.024 & 0.003 & 0.002 & 0.037 \\ 
+  \hline
+  Saturated, Simple & 0.000 & 0.000 & 0.000 & 0.029 \\ 
+  Saturated, Forward & 0.013 & 0.001 & 0.000 & 0.030 \\ 
+  Saturated, Strong & 0.000 & 0.000 & 0.000 & 0.033 \\ 
+  \hline
+  Knockoffs & 0.252 &  &  & 0.103 \\ 
+   \hline
+\end{tabular}
 \end{table}
 
-
-
+We see that 1) strongStop and forwardStop control FWER and modelwise FDR, respectively, using p-values from MaxT or MaxT-identify, as predicted by theory
+2) the nominal p-values do not lead to control of FWER or FDR, as expected, 3) the pvalues from the saturated model show FWER and modelwise-FDR control,
+although not guaranteed by theory, 4) the MaxT rules show higher probabilities of selecting the true model, especially using forwardStop, 5) the knockoff method
+does not yields variable-wise FDR control, as it should.
+5)
 \section{Principal Components Analysis}
 \label{sec:pca}
 
