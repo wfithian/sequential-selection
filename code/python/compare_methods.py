@@ -21,14 +21,14 @@ def summary(variables, pvalues, active, rule, alpha):
     screen = R > completion_idx
     return R, V_var, V_model, screen
 
-def simulate(n=100, p=200, rho=0.3, snr=5,
+def simulate(n=100, p=40, rho=0.3, snr=5,
              do_knockoff=False,
              full_results={},
-             s=10,
+             s=7,
              alpha=0.05,
              maxstep=np.inf,
              compute_maxT_identify=True,
-             random_signs=True):
+             random_signs=False):
 
     X, y, _, active, sigma = instance(n=n,
                                       p=p,
