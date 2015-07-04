@@ -21,17 +21,21 @@ def summary(variables, pvalues, active, rule, alpha):
     screen = R > completion_idx
     return R, V_var, V_model, screen
 
-def simulate(n=100, p=40, rho=0.3, snr=5,
+def simulate(n=100, p=200, rho=0.3, snr=5,
              do_knockoff=False,
              full_results={},
+             s=10,
              alpha=0.05,
              maxstep=np.inf,
-             compute_maxT_identify=True):
+             compute_maxT_identify=True,
+             random_signs=True):
 
     X, y, _, active, sigma = instance(n=n,
                                       p=p,
                                       rho=rho,
-                                      snr=snr)
+                                      snr=snr,
+                                      s=s,
+                                      random_signs=random_signs)
     full_results.setdefault('n', []).append(n)
     full_results.setdefault('p', []).append(p)
     full_results.setdefault('rho', []).append(rho)
@@ -54,7 +58,7 @@ def run(y, X, sigma, active,
         ndraw=8000):
 
     n, p = X.shape
-    results, FS = compute_pvalues(y, X, sigma, maxstep=maxstep,
+    results, FS = compute_pvalues(y, X, active, sigma, maxstep=maxstep,
                                   compute_maxT_identify=compute_maxT_identify,
                                   burnin=burnin,
                                   ndraw=ndraw)
@@ -151,5 +155,5 @@ Run a batch of simulations.
     args = parser.parse_args()
     if args.maxstep < 0:
         args.maxstep = np.inf
-    batch(args.outbase, args.nsim, do_knockoff=True,
+    batch(args.outbase, args.nsim, do_knockoff=False, # True,
           maxstep=args.maxstep)
