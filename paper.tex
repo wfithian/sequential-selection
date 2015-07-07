@@ -73,7 +73,7 @@
 \newcommand{\underlabel}{\underbracket[1pt][.5pt]{\mystrut \quad\;\; \sub \quad\;\; }}
 \newcommand{\JTcomment}[1]{{\color{blue}{(JT: \bf \sc #1) }}}
 \newcommand{\WFcomment}[1]{{\color{red}{(WF: \bf \sc #1) }}}
-\newcommand{\RTcomment}[1]{{\color{red}{(RT: \bf \sc #1) }}}
+\newcommand{\RTcomment}[1]{{\color{green}{(RT: \bf \sc #1) }}}
 
 \title{Adaptive Sequential Model Selection}
 \author{William Fithian, Jonathan Taylor, Rob Tibshirani, and Ryan Tibshirani}
@@ -198,6 +198,8 @@ More generically, we observe data $Y \in \cY$, with unknown sampling distributio
 M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
 \WFcomment{should probably end with $M_{d-1}(Y)$. need to fix this   throughout paper.}
+\RTcomment{Will- be more specific here---   A parametric model  with specified nonzero support?}
+
 By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. 
 
 Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. Our goal is to examine the data and output a {\em stopping rule}, i.e. an estimator $\hk(Y)$ of $k_0$. We consider $M_k$ to be ``rejected'' if $k < \hat k$, and ``accepted'' otherwise. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. 
@@ -352,7 +354,7 @@ If the full model enjoys no special scientific status, however, there is little 
 
 See \citet{barber2014controlling} for an exact method to control $\text{FDR}^{\text{full}}$. \WFcomment{many high-dim inference references}. Using selective inference to control type I error rates for $H_k^{\text{full}}$ is an interesting topic for further study.
 
-\section{Sequential Inference}
+\section{Sequential Inference from ordered p-values}
 \label{sec:sequential}
 
 An ordered hypothesis testing procedure takes in a sequence of $p$-values $p_1, \ldots, p_d$ for null hypotheses $H_{1}, \ldots, H_{d}$, and outputs a decision $\hk$ to reject the initial block $H_{1}, \ldots, H_{\hk}$ and accept the remaining hypotheses. We will assume throughout that the hypotheses are nested with $H_{k-1} \sub H_k$. The next Section outlines several proposals for ordered testing and discusses what error rates they control and under what conditions. 
@@ -443,7 +445,7 @@ The forementioned proposals of  \citet{gsell2013sequential} and \citet{li2015acc
 \end{equation}
 where $k_0$ is fixed. 
 
-in our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$. We will thus require {\em conditional} independence of null $p$-values given $k_0$:
+in our problem the null hypotheses at each step are random and thus so is the completion index $k_0(Y)$.     We will thus require {\em conditional} independence of null $p$-values given $k_0$:
 \begin{equation}\label{eq:indepCond_random_k0}
   \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
   \mid p_1, \ldots, p_k, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
@@ -472,7 +474,8 @@ The following proposition shows that~\eqref{eq:indepCond_random_k0} is the corre
 \begin{proof}
   For any fixed $k_0$ and $q_1,\ldots, q_{k_0}$, we can construct a
   problem with $\tilde p_k \sim \delta_{q_k}$ for $k\leq k_0$ and 
-  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. Then, for the
+  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. 
+  \RTcomment{Will; what are the qk?  you mean we just choose and fix some values qk? Say so.}Then, for the
   fixed hypotheses 
   $\widetilde H_k:\; \tilde p_k \sim \text{Unif}[0,1]$, we have
   \[
@@ -500,8 +503,52 @@ Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model seq
 
 
 
-\section{Conditions for Independence of p-values}\label{sec:pValsIndep}
+\section{Construction of Independence of p-values}\label{sec:pValsIndep}
 
+From the previous section, we see that our task is to construct p-values with the {\it independent on nulls} property (\ref{eq:indepCond_random_k0}).
+In this section we develop a set of sufficient conditions for such a construction. Before doing so, we give an example to motivate
+the general theory. 
+
+\medskip
+\begin{example}[The selective max-Z test]
+Consider the forward stepwise path (\ref{eq:forwardDef_start}---\ref{eq:forwardDef_end}) in the case of linear regression, that is 
+$\ell(\theta,Y)=||Y-X\theta||^2$.  Assume that the error variance $\sigma^2$ is known.
+ Given an active set of variables $E$ in our current model $M$, the partial regression coefficients for predictors not in $E$ are
+\begin{equation}
+  z_{j,E}(Y) = \frac{(\proj_E^\perp X_j)'Y}
+  {\sigma\|\proj_{E}^\perp X_j\|_2}.
+\end{equation}
+The max-$z$-statistic for active set $E$  is
+\begin{equation}\label{eq:maxT}
+  U_E(Y) = \max_{j \notin E} \left|t_{j,E}(Y)\right|,
+\end{equation}
+and we use $U_{E_{k-1}}(Y)$ as our test statistic at step $k$. We compute a p-value for this test
+using the conditional law 
+\begin{equation}\label{eq:selModel_marg0}
+\L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right),
+\end{equation}
+If we reject the hypothesis, we add to $E$ the predictor that maximized $U_E(Y)$ and continue.
+This is the procedure that used to obtain the p-values in Table \ref{tab:diab}  \RTcomment{ Rob- make sure you fix table 1 to make the correct computation}
+
+Happily,  it turns that the  p-values from this procedure have exactly the desired {\it independent on nulls} property~\eqref{eq:indepCond_random_k0}.
+This happens because of some special characteristics of the construction: 
+\begin{description}
+\item{(a)}  the inner products $X_E'Y$ are complete sufficient statistics for the regression
+parameters in each model $M$,
+\item{(b)} knowing only the  model $M$ at step $k$ and its sufficient statistics $X'_EY$, we can compute the entire subpath
+of models from the steps 1 to $k-1$. 
+\end{description}
+ In other words, the inner products $X'_EY$ contains  all of the cumulative information used in the selections from
+steps 1 to $k-1$. This in turn results from    the choice  of test statistic $U_E(Y)$  and the law (\ref{eq:selModel_marg0}) used to calibrate it.
+We call (b)  the {\it Subpath sufficiency principle} (SSP) in Section \ref{sec:SSP}  below.
+In contrast, the {\it saturated model} p-values use a law different from (\ref{eq:selModel_marg0}) to compute p-values, one that uses
+information not contained in $X'_EY$. It thus violates the SSP property and hence does not yield p-values that are independent on nulls.
+We discuss the regression setting in more detail in Section \ref{sec:selective-reg}.  $\square$
+\end{example}
+
+\medskip
+
+We now present a general framework for these ideas, culminating in our theorem \ref{thm:suffCond} at the end of this section below.
 We say that the  single-step $p$-value $p_k$ is selectively valid for testing $H_k:\; F \in M_{k-1}(Y)$ against $M_\infty \setminus M_{k-1}$ if, for all $F\in M_\infty$,
 \[
 \P_F(p_k \leq \alpha \mid M_{k-1},\; F\in M_{k-1}) \leqAS \alpha.
@@ -566,12 +613,13 @@ If we think of $\sF_k$ as representing information available at step $k$, then t
   inequalities become equalities, implying uniformity and joint independence.
 \end{proof}
 
-\subsubsection{The Sufficient Filtration}\label{sec:suffFilt}
+\subsection{The Sufficient Filtration}\label{sec:suffFilt}
 
 We will concern ourselves mainly with the {\em sufficient filtration} for the path $M_{[k]}$, defined as
 \[
 \sF_k^{\text{suff}} = \sF(M_{[k]}, T_k),
 \]
+\RTcomment{Will- define $M_{[k-1]}$..  it is  the collection $\{ M_1 M_2 \ldots M_{k-1}\}$?}
 We will suppress the superscript and use $\sF_k$ to mean $\sF_k^{\text{suff}}$ for the remainder of the article. 
 
 The sufficient filtration separates $p_{[d]}$ if and only if 
@@ -591,7 +639,7 @@ Thus, most single-step selective $p$-values we would contemplate using are alrea
 The second requirement, that $p_k$ be $\sF_k$-measurable, has more bite. For example, we will see in Section~\ref{sec:singleStep} that it excludes saturated-model tests in linear regression. By contrast, any UMPU selective test for $M_{k-1}$ against $M_k\setminus M_{k-1}$ is typically measurable with respect to $\sF_k$.
 
 
-\subsubsection{The Subpath Sufficiency Principle}\label{sec:SSP}
+\subsection{The Subpath Sufficiency Principle}\label{sec:SSP}
 
 
 We say that a path algorithm $M_{[d]}(\cdot)$ satisfies the {\em subpath sufficiency principle} (SSP) if~\eqref{eq:SSP} holds for every $k$. Equation~\eqref{eq:SSP} means that if we know $M_k(Y) = M$, then we can compute the entire subpath of models $M_{[k]}$ knowing only $T(Y, \, M)$, the sufficient statistic of model $M$. For example, given that four steps of forward stepwise linear regression yield the active set $E_4 = \{1,5,7,11\}$, the order in which these variables were included can be determined from $T_4 = X_{E_4}'Y$.
@@ -673,7 +721,7 @@ for every $F\in M$. Therefore, we must have $h(T_{k-1})\eqAS 0$, so $p_k$ is ind
 If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p_{[d]}$, implying that $p_{[d]}$ is independent on nulls.
 \end{proof}
 
-\section{Inference for One Step}
+\section{Inference for one step in the path}
 \label{sec:singleStep}
 
 Having derived conditions for independence, we turn now to the question of how to construct valid selective $p$-values for a single step in the path. At step $k$, we construct $p_k(Y)$ to test
@@ -710,11 +758,10 @@ If we follow this strategy, then the reference distribution for $U(Y)$ is measur
 For the remainder of this section we will focus on linear regression.
 
 \subsection{Selective $p$-Values in Regression}
-
+\label{sec:selective-reg}
 In linear regression, there are several types of selective test that we might contemplate performing at step $k$. Let $E_{k-1}$ and $E_k$ denote the active sets for models $M_{k-1}$ and $M_k$ respectively. For simplicity we will assume that only one variable is added at step $k$, so that $E_k = E_{k-1} \cup j_k$. It is relatively straightforward to generalize the developments in this section to the case where multiple variables are added at once.
 
 \subsubsection{Saturated-Model Tests}
-
 Many of the selective tests for linear regression use the saturated-model framework. See for example \citet{lockhart2014significance}, \citet{taylor2013tests}, \citet{taylor2014exact}, \citet{lee2013exact}, and \citet{loftus2014significance}.
 
 The distinction between the incremental null and the complete null is closely related to the distinction between {\em saturated-model} tests and {\em selected-model} tests. Define the saturated model as
@@ -736,7 +783,7 @@ or equivalently on
 The pair $(E_{k-1}, j_k)$ defines the selection event and $\proj_{\eta_k}^\perp Y$ eliminates the nuisance parameter $\proj_{\eta_k}^\perp \mu$.
 
 While the test statistic $\eta_k'Y$ is measurable with respect to $\sF_k$, the reference distribution we compare it against is not. Specifically, $\proj_{\eta_k}^\perp Y$ is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values constructed as in~\eqref{eq:satModel} are in general {\em not} independent on nulls.
-
+?Collect
 \subsubsection{Selected-Model Tests}
 Selected-model inference~\citep{fithian2014optimal} 
 represents a more powerful option when testing for inclusion of variable $j_k$. While saturated-model inference always uses the same model $M_{\text{sat}}$, selected-model inference is based on the statistical model that is chosen by our selection procedure. In the sequential case this means that at step $k$, we test the selected null model $M(E_{k-1})$, against either the next selected model $M(E_k)$ or the upper model $M_\infty$.
@@ -982,7 +1029,7 @@ substantially in computation by checking the row-wise inequalities starting from
 
 \subsection{Reducing the number of constraints}
 Happily, it turns out that the conditioning polytope can be expressed with only $2p$ constraints in forward stepwise regression, as we show here.
-This increases the speed of both accept/reject and hit andRun sampling for our problem.
+This increases the speed of both accept/reject and hit and Run sampling for our problem.
 
 \begin{theorem}
   Assume the model path $M_{[d]}$ is obtained by forward stepwise 
@@ -1288,6 +1335,8 @@ It is a commonplace that ``essentially all models are wrong, but some are useful
 Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the most threat to our inferential conclusions, and how powerful are our tests against these most troublesome sources of misspecification? 
 
 Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
+
+We plan to distribute  open source software, in both the R and Python languages, , for computing the max-t and other tests discussed in this paper.
 
 
 
