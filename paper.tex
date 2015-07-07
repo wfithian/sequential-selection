@@ -985,16 +985,16 @@ L(X'_jY | E_{k-1},X'_{E_{k-1}})
 \label{eqn:maxtsamp}
 \end{eqnarray}
 with $Y\sim N(\mu, I \cdot \sigma^2)$.
-The current model fit is $\proj_{E_{k-1}} Y$ and is is easy to see that (\ref{eqn:maxtsamp})  is equivalent to sampling
+The current model fit is $\proj_{E_{k-1}} Y$ and it is easy to see that (\ref{eqn:maxtsamp})  is equivalent to sampling
 \begin{eqnarray}
-Y^*=\proj_{E_{k-1}}) Y + (I- \cdot \proj_{E_{k-1}}) Z; \;Z\sim N(0,I\sigma^2)
+Y^*=\proj_{E_{k-1}} Y + (I- \proj_{E_{k-1}}) Z; \;Z\sim N(0,I\cdot\sigma^2)
 \label{eq:boot}
 \end{eqnarray}
 and then conditioning on the event $E_{k-1}(Y^*)= E_k(Y)$ (a polyhedron).
 In other words, we need to condition on data vectors  $Y*$ that yields the same
 sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
 
-Note that  (\ref{eq:boot}  has the form of  (conditional) parametric bootstrap sampling, in which the bootstrap residuals projected into the subspace
+Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, in which the bootstrap residuals projected into the subspace
 orthogonal to the current fit. In similar fashion, one might use a instead a nonparametric version of (\re{eq:boot}), sampling
 with replacement from the model residuals and then projecting them orthogonal to the current model.
 
