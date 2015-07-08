@@ -833,7 +833,9 @@ By contrast, the LASSO path does not in general add the variable with the larges
 \begin{equation}
   U_k = \inf\{ \lambda:\; \hat\beta^\lambda \notin \beta(E_{k-1})\}.
 \end{equation}
-The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables, but not if we use forward-stepwise. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
+Here $\beta(E_{k-1})$ is the support of the ever-active set $E_{k-1}$, so that $U_k$ is the next $\lambda$ at which a new predictor is added by the lasso.
+\RTcomment{Will: we never define $\beta(E)$: have i said it right?}
+The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
 
 
 \subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
