@@ -197,10 +197,12 @@ More generically, we observe data $Y \in \cY$, with unknown sampling distributio
 \[
 M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
-\WFcomment{should probably end with $M_{d-1}(Y)$. need to fix this   throughout paper.}
-\RTcomment{Will- be more specific here---   A parametric model  with specified nonzero support?}
+\WFcomment{should probably end with $M_{d-1}(Y)$. need to fix this throughout paper.}
+\RTcomment{Will- be more specific here---   A parametric model  with
+  specified nonzero support?}
+\WFcomment{Not necessarily. As far as I can tell, there's no need to restrict ourselves in either case. $Y\sim U[0,\theta]$ is a perfectly good model; so is a Cox proportional hazards model.}
 
-By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. 
+By ``model,'' we mean a family of probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. We will use the notation $M_{0:k}$ to denote the sequence of the first $k$ models.
 
 Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. Our goal is to examine the data and output a {\em stopping rule}, i.e. an estimator $\hk(Y)$ of $k_0$. We consider $M_k$ to be ``rejected'' if $k < \hat k$, and ``accepted'' otherwise. Thus $\hk$ is the number of models we rejected, while $k_0$ is the number that we should have rejected. 
 
@@ -219,7 +221,7 @@ First suppose that we have single step p-values for testing
 H_{k}:\; F\in M_{k-1}(Y)
 \]
 against the alternative that $F\in M_\infty\setminus M_{k-1}$. The $p$-values must account for the fact that the models are chosen adaptively. 
-\citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{[d]}$. These stopping rules provably control certain error rates, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. 
+\citet{gsell2013sequential} and \citet{li2015accumulation} propose stopping rules that operate on the sequence $p_{1:d}$. These stopping rules provably control certain error rates, provided that the null $p$-values are mutually independent and independent of the non-null $p$-values. 
 We review these methods in Section~\ref{sec:sequential} .
 
 Hence the task is to  construct sequential p-values which satisfy the above requirements, and we do this in Section \ref{sec:singleStep}.
@@ -228,7 +230,7 @@ We also discuss general conditions under which single-step $p$-values are indepe
 
 \subsection{Linear Regression}
 
-Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. In this problem, we observe a random response $Y\in \R^n$ as well as a fixed design matrix $X\in \R^{n \times p}$, whose columns correspond to candidate predictors. For each {\em active set} $E \sub [p]$, there is a corresponding candidate model
+Most of our examples will focus on the important and familiar problem of adaptively selecting a set of predictors in linear regression models. In this problem, we observe a random response $Y\in \R^n$ as well as a fixed design matrix $X\in \R^{n \times p}$, whose columns correspond to candidate predictors. For each {\em active set} $E \sub \{1,\ldots,p\}$, there is a corresponding candidate model
 \[
 M(E):\; Y \sim \cN( X_E\beta, \sigma^2 I_n),
 \]
@@ -454,41 +456,40 @@ in our problem the null hypotheses at each step are random and thus so is the co
 The following proposition shows that~\eqref{eq:indepCond_random_k0} is the correct generalization of~\eqref{eq:indepCond_fixed_k0} to the random-hypothesis case.
 \begin{proposition}
   Let $\hk$ be a stopping rule that operates on sequences
-  $p_{[d]}(Y)$ of $p$-values for ordered hypotheses $H_{[d]}(Y)$. 
+  $p_{1:d}(Y)$ of $p$-values for ordered hypotheses $H_{1:d}(Y)$. 
   For some function $g$, let 
   \[
   \Err(\hk,g) = \E\left[ g\left(\hk(Y), k_0(Y)\right)\right],
   \]
   
   Suppose that the rule $\hk$ controls $\Err$ at $\alpha$ under
-  independence when $H_{[d]}$ are fixed. That is, suppose that
-  whenever $H_{[d]}$ are fixed and $p_{[d]}$
+  independence when $H_{1:d}$ are fixed. That is, suppose that
+  whenever $H_{1:d}$ are fixed and $p_{1:d}$
   satisfy~\eqref{eq:indepCond_fixed_k0}, we have
   \[
   \Err(\hk, g) \leq \alpha
   \]
 
   Then, $\hk$ controls $\Err$ at $\alpha$
-  whenever $p_{[d]}$ satisfy~\eqref{eq:indepCond_random_k0}.
+  whenever $p_{1:d}$ satisfy~\eqref{eq:indepCond_random_k0}.
 \end{proposition}
 \begin{proof}
-  For any fixed $k_0$ and $q_1,\ldots, q_{k_0}$, we can construct a
-  problem with $\tilde p_k \sim \delta_{q_k}$ for $k\leq k_0$ and 
-  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. 
-  \RTcomment{Will; what are the qk?  you mean we just choose and fix some values qk? Say so.}Then, for the
-  fixed hypotheses 
+  Fix any values $k_0\in \{0,\ldots,d, \infty\}$ and $q_{1:k_0} \in [0,1]^{k_0}$. We can construct a problem with $\tilde p_k \sim \delta_{q_k}$ for $k\leq k_0$ and  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. 
+  \RTcomment{Will; what are the qk?  you mean we just choose and fix some values qk? Say so.} \WFcomment{Is it clearer now?}
+
+  Then, for the fixed hypotheses 
   $\widetilde H_k:\; \tilde p_k \sim \text{Unif}[0,1]$, we have
   \[
-  f(k_0, q_{[k_0]}) 
+  f(k_0, q_{1:k_0}) 
   = \E\left[ g\left(\hk(\tilde p_1, \ldots, \tilde p_d),
       k_0\right) \right],
   \]
-  which is less than or equal to $\alpha$ by assumption.
+  which is less than or equal to $\alpha$, since $\hk$ is assumed to control $\Err$ in the fixed-hypothesis case.
 
   But then, by the condition~\eqref{eq:indepCond_random_k0}, we have
   \begin{align}
-    \Err(\hk,g) &\;=\; \E\left[ \;\E\left[ g\left(\hk(p_1,\ldots, p_d), k_0(Y)\right) \; \mid \; k_0(Y), \; p_{[k_0]}(Y)\right] \; \right]\\
-    &\;\leq\; \E\left[f(k_0, p_{[k_0]})\right] \;\leq\; \alpha.
+    \Err(\hk,g) &\;=\; \E\left[ \;\E\left[ g\left(\hk(p_1,\ldots, p_d), k_0(Y)\right) \; \mid \; k_0(Y), \; p_{1:k_0}(Y)\right] \; \right]\\
+    &\;\leq\; \E\left[f(k_0, p_{1:k_0})\right] \;\leq\; \alpha.
   \end{align}
 \end{proof}
 
@@ -499,7 +500,7 @@ In real applications, null $p$-values may be conservative instead of exactly uni
 \end{equation}
 If the null $p$-values are marginally uniform, then the conditions~\eqref{eq:indepCond_random_k0} and~\eqref{eq:stochLargeCond_random_k0} are equivalent. For most stopping rules $\hk$, the weaker condition~\eqref{eq:stochLargeCond_random_k0} is enough to guarantee control of whatever error rate holds under~\eqref{eq:indepCond_random_k0}. For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
 
-Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model sequence $M_{[d]}$ and the $p$-value sequence $p_{[d]}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
+Sections~\ref{sec:pValsIndep}--\ref{sec:SSP} discuss conditions on the model sequence $M_{0:d}$ and the $p$-value sequence $p_{1:d}$ under which~\eqref{eq:stochLargeCond_random_k0} is satisfied.
 
 
 
@@ -559,7 +560,7 @@ Consider any filtration
 \[
 \sF_0 \sub \sF_1 \sub \cdots \sub \sF_d
 \]
-for which $M_{[k]}$ is measurable with respect to $\sF_k$. We say that $\sF_{[d]}$ {\em separates} the $p$-values $p_{[d]}$ if 
+for which $M_{0:k}$ is measurable with respect to $\sF_k$. We say that $\sF_{0:d}$ {\em separates} the $p$-values $p_{1:d}$ if 
 \begin{enumerate}
 \item $p_k(Y)$ is conservative given $\sF_{k-1}$ 
   when $F\in M_{k-1}(Y)$, and
@@ -572,8 +573,8 @@ If we think of $\sF_k$ as representing information available at step $k$, then t
 \begin{proposition}[Independence of 
   Separated $p$-Values]\label{prop:jointConserv}
 
-  Let $p_{[d]}$ be selective $p$-values for $M_{[d]}$, 
-  separated by $\sF_{[d]}$.
+  Let $p_{1:d}$ be selective $p$-values for $M_{0:d}$, 
+  separated by $\sF_{0:d}$.
 
   If the $p$-values are exact then $p_{k+1}, \ldots, p_d$ are
   independent and uniform given $\sF_{k_0}$ on the event $\{k_0=k\}$.
@@ -615,24 +616,24 @@ If we think of $\sF_k$ as representing information available at step $k$, then t
 
 \subsection{The Sufficient Filtration}\label{sec:suffFilt}
 
-We will concern ourselves mainly with the {\em sufficient filtration} for the path $M_{[k]}$, defined as
+We will concern ourselves mainly with the {\em sufficient filtration} for the path $M_{0:k}$, defined as
 \[
-\sF_k^{\text{suff}} = \sF(M_{[k]}, T_k),
+\sF_k^{\text{suff}} = \sF(M_{0:k}, T_k),
 \]
-\RTcomment{Will- define $M_{[k-1]}$..  it is  the collection $\{ M_1 M_2 \ldots M_{k-1}\}$?}
+\RTcomment{Will- define $M_{0:k-1}$..  it is  the collection $\{ M_1 M_2 \ldots M_{k-1}\}$?} \WFcomment{I've now done so in Section~\ref{sec:notation}}.
 We will suppress the superscript and use $\sF_k$ to mean $\sF_k^{\text{suff}}$ for the remainder of the article. 
 
-The sufficient filtration separates $p_{[d]}$ if and only if 
+The sufficient filtration separates $p_{1:d}$ if and only if 
 \begin{enumerate}
-\item $p_k$ is conservative given $M_{[k-1]}$ and $T_{k-1}$, and
-\item $p_k$ is a function of $M_{[k]}$ and $T_k$.
+\item $p_k$ is conservative given $M_{0:k-1}$ and $T_{k-1}$, and
+\item $p_k$ is a function of $M_{0:k}$ and $T_k$.
 \end{enumerate}
 
-To be a valid selective $p$-value for a single step, $p_k$ only needs to be conservative conditional on $M_{k-1}$. In general, it is more stringent to additionally require that $p_k$ must also condition on $T_{k-1}$ as well as the entire subpath $M_{[k-1]}$. In most cases of interest, however, the ``extra'' conditioning is redundant, for two reasons. 
+To be a valid selective $p$-value for a single step, $p_k$ only needs to be conservative conditional on $M_{k-1}$. In general, it is more stringent to additionally require that $p_k$ must also condition on $T_{k-1}$ as well as the entire subpath $M_{0:k-1}$. In most cases of interest, however, the ``extra'' conditioning is redundant, for two reasons. 
 
 First, most selective tests already condition on $T_{k-1}$ in order to eliminate nuisance parameters. Second, as we will show in Section~\ref{sec:SSP}, for most path algorithms of interest we have
 \begin{equation}\label{eq:SSP}
-\sF(M_k, \, T_k) = \sF(M_{[k]}, \, T_k).
+\sF(M_k, \, T_k) = \sF(M_{0:k}, \, T_k).
 \end{equation}
 Thus, most single-step selective $p$-values we would contemplate using are already exact conditional on $\sF_{k-1}$.
 
@@ -642,7 +643,7 @@ The second requirement, that $p_k$ be $\sF_k$-measurable, has more bite. For exa
 \subsection{The Subpath Sufficiency Principle}\label{sec:SSP}
 
 
-We say that a path algorithm $M_{[d]}(\cdot)$ satisfies the {\em subpath sufficiency principle} (SSP) if~\eqref{eq:SSP} holds for every $k$. Equation~\eqref{eq:SSP} means that if we know $M_k(Y) = M$, then we can compute the entire subpath of models $M_{[k]}$ knowing only $T(Y, \, M)$, the sufficient statistic of model $M$. For example, given that four steps of forward stepwise linear regression yield the active set $E_4 = \{1,5,7,11\}$, the order in which these variables were included can be determined from $T_4 = X_{E_4}'Y$.
+We say that a path algorithm $M_{0:d}(\cdot)$ satisfies the {\em subpath sufficiency principle} (SSP) if~\eqref{eq:SSP} holds for every $k$. Equation~\eqref{eq:SSP} means that if we know $M_k(Y) = M$, then we can compute the entire subpath of models $M_{0:k}$ knowing only $T(Y, \, M)$, the sufficient statistic of model $M$. For example, given that four steps of forward stepwise linear regression yield the active set $E_4 = \{1,5,7,11\}$, the order in which these variables were included can be determined from $T_4 = X_{E_4}'Y$.
 
 For the generic sparse parametric model of Section~\ref{sec:genSparse}, the forward stepwise path satisfies the SSP, as do all ever-active regularization paths. 
 Define the restricted log-likelihood
@@ -677,7 +678,7 @@ Define the restricted log-likelihood
     \theta\in\Theta(E_{i-1} \cup \{j\})\right\}. \label{eq:onlyT}
 \end{align}
 
-Equation~\eqref{eq:onlyT} shows that $j_1,\ldots, j_{k-1}$ all depend on $Y$ only through $T_k(Y)$. As a result, it also follows that the enitre sequence $M_{[k]}(Y)$ depends only on $T_k(Y)$.
+Equation~\eqref{eq:onlyT} shows that $j_1,\ldots, j_{k-1}$ all depend on $Y$ only through $T_k(Y)$. As a result, it also follows that the enitre sequence $M_{0:k}(Y)$ depends only on $T_k(Y)$.
 \end{proof}
 
 \begin{proposition}[Regularized Likelihood Paths Satisfy SSP]\label{prop:regPathSSP}
@@ -701,9 +702,9 @@ But $\hat\theta^{(E,r)}$ depends only on $T_k(Y)$. Therefore, on $A$, we can rec
 
 Collecting together the threads of this section, we can arrive at our main result: a fairly general sufficient condition for a $p$-value sequence to be independent on nulls.
 \begin{theorem}[Sufficient Condition for Independence on Nulls] \label{thm:suffCond}
-Assume that $T(Y; M)$ is a complete sufficient statistic for each candidate model $M$, that $p_k$ are exact selective $p$-values for $M_{k-1}$, and that $M_{[d]}(\cdot)$ satisfies the SSP.
+Assume that $T(Y; M)$ is a complete sufficient statistic for each candidate model $M$, that $p_k$ are exact selective $p$-values for $M_{k-1}$, and that $M_{0:d}(\cdot)$ satisfies the SSP.
 
-If $p_k$ is $\sF_k$-measurable for each $k$, then the $p$-value sequence $p_{[d]}(Y)$ is independent on nulls.
+If $p_k$ is $\sF_k$-measurable for each $k$, then the $p$-value sequence $p_{1:d}(Y)$ is independent on nulls.
 \end{theorem}
 
 \begin{proof}
@@ -716,9 +717,9 @@ If $p_k$ is exact given $M_{k-1} = M$, then
 \[
 \E_F[h(T_{k-1}) \mid M_{k-1}=M] \;=\; 0
 \] 
-for every $F\in M$. Therefore, we must have $h(T_{k-1})\eqAS 0$, so $p_k$ is independent of $\sF(M_k, T_{k-1})$. Because $M_{[d]}$ satisfies the SSP, $p_k$ is also independent of $\sF_{k-1} = \sF(M_{[k-1]}, T_{k-1})$.
+for every $F\in M$. Therefore, we must have $h(T_{k-1})\eqAS 0$, so $p_k$ is independent of $\sF(M_k, T_{k-1})$. Because $M_{0:d}$ satisfies the SSP, $p_k$ is also independent of $\sF_{k-1} = \sF(M_{0:k-1}, T_{k-1})$.
 
-If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p_{[d]}$, implying that $p_{[d]}$ is independent on nulls.
+If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p_{1:d}$, implying that $p_{1:d}$ is independent on nulls.
 \end{proof}
 
 \section{Inference for one step in the path}
@@ -753,7 +754,7 @@ One very useful strategy for constructing exact selective tests is to condition 
 \]
 is known under any $F\in M$, we can construct selective tests by comparing the distribution of any test statistic $U(Y)$ to its known conditional distribution under the null. See \citet{fithian2014optimal} for a general treatment of selective tests in exponential family models.
 
-If we follow this strategy, then the reference distribution for $U(Y)$ is measurable with respect to $T_{k-1}$ and $M_{k-1}$; moreover, if $U(Y)$ is also measurable with respect to $(M_k, T_k)$, the next model in the path and its sufficient statistics, then $p_k$ is measurable with respect to $\sF_k$, and so the $p$-value sequence $p_{[d]}$ will be independent on nulls per Theorem~\ref{thm:suffCond}.
+If we follow this strategy, then the reference distribution for $U(Y)$ is measurable with respect to $T_{k-1}$ and $M_{k-1}$; moreover, if $U(Y)$ is also measurable with respect to $(M_k, T_k)$, the next model in the path and its sufficient statistics, then $p_k$ is measurable with respect to $\sF_k$, and so the $p$-value sequence $p_{1:d}$ will be independent on nulls per Theorem~\ref{thm:suffCond}.
 
 For the remainder of this section we will focus on linear regression.
 
@@ -1032,7 +1033,7 @@ Happily, it turns out that the conditioning polytope can be expressed with only 
 This increases the speed of both accept/reject and hit and Run sampling for our problem.
 
 \begin{theorem}
-  Assume the model path $M_{[d]}$ is obtained by forward stepwise 
+  Assume the model path $M_{0:d}$ is obtained by forward stepwise 
   linear regression. Then, for a candidate active set $E$ of size $k$, 
   the set $A = \{E_k = E, \;X_E'Y = u\}$ is characterized 
   exactly by the constraints $X_E'Y=u$ and
@@ -1111,7 +1112,7 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
   Y \sim \exp\{ \theta'U(y) - \psi(\theta) \}\,d\nu(y),
   \]
   with $\Theta \sub \R^p$ convex, and assume
-  that the model path $M_{[d]}$ is given 
+  that the model path $M_{0:d}$ is given 
   by the ever-active set for the $\ell_1$-penalized problem
   \begin{equation}\label{eq:regProblem}
   \hat\theta^r = \argmin_{\theta\in \Theta} 
@@ -1246,7 +1247,7 @@ If we combine the saturated-model or selected-model $p$-values with one of our t
 \end{itemize} 
 The last measure of performance is not explicitly controlled by any of the selective-inference methods, but we might nevertheless hope to perform reasonably. \WFcomment{Comment on results once they are correct. These numbers are wrong right now.}
 
-\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Basic should all be correct given screening since they condition on $p_{[k_0-1]}$.}
+\WFcomment{Should we compute the FWER and FDR only conditional on screening? Strong / Forward / Basic should all be correct given screening since they condition on $p_{1:k_0-1}$.}
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
@@ -1357,22 +1358,22 @@ Sections~\ref{sec:pvalSP}--\ref{sec:modelSSP} discuss sufficient conditions on t
 Essentially, we will want to partition the information in $Y$ according to the filtration:
 \begin{align}\nonumber
   \sF(M_0,T_0) &\underlabel_{\text{selection } 1} 
-  \sF(M_{[1]},T_0) \underlabel_{\text{inference } 1}
-  \sF(M_{[1]},T_1) \quad \sub \;\;\cdots\\[8pt]
+  \sF(M_{0:1},T_0) \underlabel_{\text{inference } 1}
+  \sF(M_{0:1},T_1) \quad \sub \;\;\cdots\\[8pt]
   \label{eq:infoPartition}
   \cdots\;\; \sub \quad&
-  \sF(M_{[d-1]},T_{d-1}) \underlabel_{\text{selection } d}
-  \sF(M_{[d]},T_{d-1}) 
+  \sF(M_{0:d-1},T_{d-1}) \underlabel_{\text{selection } d}
+  \sF(M_{0:d},T_{d-1}) 
   \underlabel_{\text{inference } d}
-  \sF(M_{[d]}, T_d)
+  \sF(M_{0:d}, T_d)
 \end{align}
 
 \end{comment}
 
 \begin{comment}
-\WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,i}$ denote the $\sigma$-algebra generated by $M_{[k]}$ and $p_{[i]}$.
+\WFcomment{There is a filtration interpretation when you have the appropriate sufficiency properties.} Let $\sF_{k,i}$ denote the $\sigma$-algebra generated by $M_{0:k}$ and $p_{1:i}$.
 \begin{align*}
-  \sF_{k,i} &= \sF(M_{[k]},p_{[i]})\\
+  \sF_{k,i} &= \sF(M_{0:k},p_{1:i})\\
   \sF_0 &\underlabel_{\text{selection } 1} \sF_{1,0} \underlabel_{\text{inference } 1}
   \sF_{1,1} \;\;\sub \cdots \sub\;\;
   \sF_{d-1,d-1} \underlabel_{\text{selection } d} \sF_{d,d-1}
