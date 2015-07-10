@@ -148,7 +148,7 @@ The latter two sets of p-values test someone different hypotheses:  the p-values
 what we call the ``incremental null''
 In contrast, the max-t pvalues test whether the current model is adequate, that is, all predictors not in the model  have coefficients equal to zero,
 the ``complete null''. (The issue of what hypothesis to test is discussed in section \ref{sec:whichnull}.)
-Now it turns out that the max-t test if often more powerful that the saturated model test, and importantly, the max-t pvalues are exactly
+Now it turns out that the max-t test is often more powerful that the saturated model test, and importantly, the max-t pvalues are exactly
 independent after we reach the point the model sequence when the complete null is true. This independence means that we can apply
 sequential FDR exact stopping rules, such as ``forwardStop'' (\citet{gsell2013sequential}). When applied to the max-t pvalues at FDR 0.10, {\tt forwardStop}
 suggested stopping at step 8. In constant, the saturated lvalues gave stopping a point of 3, with no guarantee of FDR control
@@ -837,12 +837,39 @@ By contrast, the LASSO path does not in general add the variable with the larges
 Here $\beta(E_{k-1})$ is the support of the ever-active set $E_{k-1}$, so that $U_k$ is the next $\lambda$ at which a new predictor is added by the lasso.
 \RTcomment{Will: we never define $\beta(E)$: have i said it right?}
 The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
+
+Table \ref{tab:testsummary} summarizes a number of different tests that have been proposed for least angle regression, lasso and forward stepwise regression.
+Some focus on the complete null hypothesis, others on the incremental null (as defined in Section \ref{sec:whichnull}).
+Some use the saturated model, others the selective model framework, as detailed in earlier in the section.
+The saturated model tests are simpler and do not require sampling, while the selective tests are generally more powerful. In the next section we compare the  selective and saturated model settings in more detail.
+
+\begin{table}
+\begin{center}
+\begin{tabular}{ l | r|r| r}
+Procedure& Complete Null & Incremental Null\\
+\hline
+LAR /lasso& Covariance test/Saturated&Spacing test/Saturated \\
+        & Next-$\lambda$ test/Selective& \\
+        \hline
+Forward Stepwise &maxT, maxT-identify/Selective &Gaussian pivot/Saturated\\
+\hline
+\end{tabular}
+\end{center}
+\caption{\em Summary of different tests that have been proposed for least angle regression, lasso and forward stepwise regression.
+Tests are described by the null hypothesis that they test (complete or incremental)  and the underlying model (saturated or selective).
+The maxT, maxT-identify and next-$\lambda$ tests are proposed in this paper, while the covariance test was proposed in \citet{lockhart2014significance}, and the spacing and Gaussian
+pivot tests are given in \citet{spacings}. The latter paper shows that the covariance and spacing test are asymptotically equivalent for the first null step, when the complete null holds,}
+\label{tab:testsummary}
+\end{table}
+Figure  \ref{fig:larexample} shows an example of the LAR/lasso tests with $N=50, p=10$ and two strong signals.
+We plot the p-values only for those realizations in which the correct model was selected in the first two steps (about 95\% of the time).
+We see that the next-$\lambda$ test is more powerful , especially at step 1. The next-$\lambda$ and spacing test have the correct type I error in steps 3 and 4,
+while the covariance test becomes conservative in Step 4, as we move further into the null part of the sequence.
 \begin{figure}
-  % source code: bivariateSelVSat.R
   \includegraphics[width=\textwidth]{figs/larexample.pdf}
+  \caption[fig:larexample]{\em  Cumulative distribution functions of p-values for LAR/lasso tests from simulations with $N=50,  p=10$ and two strong signals.}
   \label{fig:larexample}
 \end{figure}
-
 
 \subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
 
@@ -1033,7 +1060,7 @@ and hope that it has mixed sufficiently well.
 The task is made much simpler by the fact that the selection event can we written as $S_M=\{y: \Gamma y \geq u\}$.
 Hence we don't need to run the entire forward stepwise procedure on $y^*$: instead, we pre-compute $\Gamma$ and $u$ and then check
 if $\Gamma y^* \geq u$. Further, since $\Gamma$ has on the  order of $2pk$ rows after $k$ steps,  we can save 
-substantially in computation by checking the row-wise inequalities starting from the last row, where the inequality  it is most likely to fail.
+substantially in computation by checking the row-wise inequalities starting from the last row, where the inequality is most likely to fail.
 
 \subsection{Reducing the number of constraints}
 Happily, it turns out that the conditioning polytope can be expressed with only $2p$ constraints in forward stepwise regression, as we show here.
@@ -1309,7 +1336,7 @@ Nominal, Simple & 0.832 & 0.252 & 0.097 & 0.171 \\
    \hline
 \end{tabular}
 \caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
-The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha$, while {\tt Forward} and {\tt Strong} refers ForwardStop and StrongStrop rules of Section \ref{sec:sequential}.}
+The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:sequential}.}
 \label{tab:stopping}
 \end{table}
 
@@ -1336,7 +1363,7 @@ in which
 \end{equation}
  By successively conditioning on $u_j, j<k$ one can obtain an exact sequential test
 for the complete null hypothesis $H_0: \lambda_j=0 \; \forall j \neq k$.  The computation of the resulting p-values requires numerical integration.
-The details are given iin \citet{choi2014selecting}.
+The details are given in \citet{choi2014selecting}, with their ``integrated CSV'' test  corresponding to the sequential selective test of this paper.
 
 \RTcomment{Jon- add more details?}
 
@@ -1349,7 +1376,7 @@ Although model-checking is commonly recommended to practitioners as an important
 
 Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
 
-We plan to distribute  open source software, in both the R and Python languages, , for computing the max-t and other tests discussed in this paper.
+We plan to distribute  open source software, in both the R and Python languages,  for computing the max-t and other tests discussed in this paper.
 
 
 
