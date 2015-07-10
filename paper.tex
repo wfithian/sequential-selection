@@ -837,6 +837,11 @@ By contrast, the LASSO path does not in general add the variable with the larges
 Here $\beta(E_{k-1})$ is the support of the ever-active set $E_{k-1}$, so that $U_k$ is the next $\lambda$ at which a new predictor is added by the lasso.
 \RTcomment{Will: we never define $\beta(E)$: have i said it right?}
 The next-$\lambda$ statistic is $\sF_k$-measurable if we use the LASSO to select variables. \WFcomment{Relate this to spacings test. Is this essentially the ``generalized spacings test?''}
+\begin{figure}
+  % source code: bivariateSelVSat.R
+  \includegraphics[width=\textwidth]{figs/larexample.pdf}
+  \label{fig:larexample}
+\end{figure}
 
 
 \subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
@@ -1160,6 +1165,7 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
 
 \WFcomment{Give more general characterization of when we can do it, including group lasso? QP? Generalized Lasso?}
 
+\begin{comment}
 \subsection{An analytic approximation for the max-t test}
  Suppose we have taken $k$ steps of forward stepwise regression with $p$ predictors and let the selected model  
  be $E$. Suppose we choose predictor $j^*$ at the next step.
@@ -1190,6 +1196,7 @@ and the approximation based on (\ref{eqn:approxpv}).
   \label{fig:approxpv}
 \end{figure}
 The approximation seems quite good. By Sidak's lemma, we might conjecture that the approximation is conservative, but we have no proof of this.
+\end{comment}
 
 \section{Simulation: Sparse Linear Regression}
 \label{sec:sparseReg}
@@ -1301,6 +1308,9 @@ Nominal, Simple & 0.832 & 0.252 & 0.097 & 0.171 \\
   Knockoffs & 0.252 &  &  & 0.103 \\ 
    \hline
 \end{tabular}
+\caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
+The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha$, while {\tt Forward} and {\tt Strong} refers ForwardStop and StrongStrop rules of Section \ref{sec:sequential}.}
+\label{tab:stopping}
 \end{table}
 
 We see that 1) strongStop and forwardStop control FWER and modelwise FDR, respectively, using p-values from MaxT or MaxT-identify, as predicted by theory
