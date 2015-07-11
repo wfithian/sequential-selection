@@ -84,19 +84,35 @@ def run(y, X, sigma, active,
         # knockoff
 
         rpy.r.assign('alpha', alpha)
+
         knockoff = np.array(rpy.r("""
         library(knockoff)
-        knockoff.filter(X = X, y = y, fdr=alpha)$selected
+        knockoff.filter(X = X, y = y, fdr=alpha, threshold="knockoff")$selected
     """)) - 1
         numpy2ri.deactivate()
         knockoff_R = knockoff.shape[0]
         knockoff_V = knockoff_R - len(set(active).intersection(knockoff))
         knockoff_screen = knockoff_R > completion_idx
+
+        knockoff_plus = np.array(rpy.r("""
+        knockoff.filter(X = X, y = y, fdr=alpha, threshold="knockoff+")$selected
+    """)) - 1
+        numpy2ri.deactivate()
+        knockoff_plus_R = knockoff_plus.shape[0]
+        knockoff_plus_V = knockoff_plus_R - len(set(active).intersection(knockoff_plus))
+        knockoff_plus_screen = knockoff_plus_R > completion_idx
+
         full_results.setdefault('knockoff_R', []).append(knockoff_R)
         full_results.setdefault('knockoff_V', []).append(knockoff_V)
         full_results.setdefault('knockoff_screen', []).append(knockoff_screen)
 
+        full_results.setdefault('knockoff_plus_R', []).append(knockoff_plus_R)
+        full_results.setdefault('knockoff_plus_V', []).append(knockoff_plus_V)
+        full_results.setdefault('knockoff_plus_screen', []).append(knockoff_plus_screen)
+
     for pval, rule_ in product(['maxT_identify_pvalue',
+                                'maxT_identify_unknown_pvalue',
+                                'maxT_unknown_pvalue',
                                 'saturated_pvalue',
                                 'nominal_pvalue',
                                 'maxT_pvalue'],
