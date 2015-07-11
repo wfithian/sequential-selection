@@ -81,7 +81,7 @@
 
 \begin{abstract}
   Many model selection algorithms produce a ``path'' of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically.
-  We also show that the selected models test  bears a close relationship to parametric bootstrap sampling, 
+  We also show that the selected models test  bears a close relationship to parametric bootstrap sampling.
 
 To choose a model we feed the resulting $p$-values as inputs into sequential stopping rules proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving adaptive control of the familywise error rate or false discovery rate. These stopping rules assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values, a condition that is not satisfied by the $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values.
 \end{abstract}
@@ -474,7 +474,6 @@ The following proposition shows that~\eqref{eq:indepCond_random_k0} is the corre
 \end{proposition}
 \begin{proof}
   Fix any values $k_0\in \{0,\ldots,d, \infty\}$ and $q_{1:k_0} \in [0,1]^{k_0}$. We can construct a problem with $\tilde p_k \sim \delta_{q_k}$ for $k\leq k_0$ and  $\tilde p_k \sim \text{Unif}[0,1]$ for $k > k_0$. 
-  \RTcomment{Will; what are the qk?  you mean we just choose and fix some values qk? Say so.} \WFcomment{Is it clearer now?}
 
   Then, for the fixed hypotheses 
   $\widetilde H_k:\; \tilde p_k \sim \text{Unif}[0,1]$, we have
@@ -845,10 +844,11 @@ The saturated model tests are simpler and do not require sampling, while the sel
 
 \begin{table}
 \begin{center}
-\begin{tabular}{ l | r|r| r}
+\begin{tabular}{ | l | r|r| r}
+        \hline
 Procedure& Complete Null & Incremental Null\\
 \hline
-LAR /lasso& Covariance test/Saturated&Spacing test/Saturated \\
+LAR/lasso& Covariance test/Saturated&Spacing test/Saturated \\
         & Next-$\lambda$ test/Selective& \\
         \hline
 Forward Stepwise &maxT, maxT-identify/Selective &Gaussian pivot/Saturated\\
@@ -863,8 +863,8 @@ pivot tests are given in \citet{spacings}. The latter paper shows that the covar
 \end{table}
 Figure  \ref{fig:larexample} shows an example of the LAR/lasso tests with $N=50, p=10$ and two strong signals.
 We plot the p-values only for those realizations in which the correct model was selected in the first two steps (about 95\% of the time).
-We see that the next-$\lambda$ test is more powerful , especially at step 1. The next-$\lambda$ and spacing test have the correct type I error in steps 3 and 4,
-while the covariance test becomes conservative in Step 4, as we move further into the null part of the sequence.
+We see that the next-$\lambda$ test is the most powerful , especially at step 1. The next-$\lambda$ and spacing test have the correct type I error in steps 3 and 4,
+while the covariance test becomes conservative in step 4, as we move further into the null part of the sequence.
 \begin{figure}
   \includegraphics[width=\textwidth]{figs/larexample.pdf}
   \caption[fig:larexample]{\em  Cumulative distribution functions of p-values for LAR/lasso tests from simulations with $N=50,  p=10$ and two strong signals.}
@@ -1030,10 +1030,12 @@ In other words, we need to condition on data vectors  $Y*$ that yields the same
 sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
 
 Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, in which the bootstrap residuals projected into the subspace
-orthogonal to the current fit. In similar fashion, one might use a instead a nonparametric version of (\re{eq:boot}), sampling
-with replacement from the model residuals and then projecting them orthogonal to the current model.
+orthogonal to the current fit.  The typical justification for the bootstrap is asymptotic, relying on the convergence of the parameter estimates to the true parameters.
+But something magical  occurs in the selective sampling scheme (\ref{eq:boot}): this  sampling fixes the value of $ X_{E_{k-1}}^Ty$ and this conditioning
+removes the dependence on nuisance parameters.
+Hence  (\ref{eq:boot}) yields the exact (non-asymptotic) conditional distributions and p-values.
 
-Figure \ref{fig:comparison} shows and example with $n=100,p=20$ and one strong signal, computing the max-t pvalue at Step 3.
+Figure \ref{fig:comparison} shows an example with $n=100, p=20$ and one strong signal, computing the max-t pvalue at Step 3.
 The ``exact'' answer  was determined from bootstrap sampling with $20,000$ replications.
 The Figures show the bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged
 over 10 different starting seeds.
@@ -1332,7 +1334,8 @@ Nominal, Simple & 0.832 & 0.252 & 0.097 & 0.171 \\
   Saturated, Forward & 0.013 & 0.001 & 0.000 & 0.030 \\ 
   Saturated, Strong & 0.000 & 0.000 & 0.000 & 0.033 \\ 
   \hline
-  Knockoffs & 0.252 &  &  & 0.103 \\ 
+  Knockoff & 0.252 &  &  & 0.103\\ 
+  Knockoff+& ??   &  &    &   0.000? \\
    \hline
 \end{tabular}
 \caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
