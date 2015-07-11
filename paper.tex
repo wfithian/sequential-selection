@@ -1029,7 +1029,7 @@ and then conditioning on the event $E_{k-1}(Y^*)= E_k(Y)$ (a polyhedron).
 In other words, we need to condition on data vectors  $Y*$ that yields the same
 sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
 
-Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, in which the bootstrap residuals projected into the subspace
+Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, but  with  a novel twist:  the bootstrap residuals are projected into the subspace
 orthogonal to the current fit.  The typical justification for the bootstrap is asymptotic, relying on the convergence of the parameter estimates to the true parameters.
 But something magical  occurs in the selective sampling scheme (\ref{eq:boot}): this  sampling fixes the value of $ X_{E_{k-1}}^Ty$ and this conditioning
 removes the dependence on nuisance parameters.
