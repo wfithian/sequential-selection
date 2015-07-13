@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 import numpy as np, pandas as pd
 from itertools import product
@@ -17,9 +19,13 @@ def summary(variables, pvalues, active, rule, alpha):
     completion_idx = completion_index(variables, active)
     R = rule(pvalues, alpha)
     V_var = R - len(set(active).intersection(variables[:R]))
-    V_model = max(R - completion_idx, 0)
+    V_model = max(R - 1 - completion_idx, 0)
     screen = R > completion_idx
-    return R, V_var, V_model, screen
+    FWER_model = (V_model > 0)
+    FDP_model = V_model / max(R, 1)
+    FDP_var = V_var / max(R, 1)
+    S_var = R - V_var
+    return R, V_var, V_model, screen, FWER_model, FDP_model, FDP_var, S_var
 
 def simulate(n=100, p=40, rho=0.3, snr=5,
              do_knockoff=False,
@@ -42,7 +48,8 @@ def simulate(n=100, p=40, rho=0.3, snr=5,
                do_knockoff=do_knockoff,
                full_results=full_results,
                maxstep=maxstep,
-               compute_maxT_identify=compute_maxT_identify)
+               compute_maxT_identify=compute_maxT_identify,
+               alpha=alpha)
 
 def run(y, X, sigma, active,
         full_results={},
@@ -83,6 +90,7 @@ def run(y, X, sigma, active,
 
         # knockoff
 
+        print X.shape, 'shape'
         rpy.r.assign('alpha', alpha)
 
         knockoff = np.array(rpy.r("""
@@ -123,21 +131,27 @@ def run(y, X, sigma, active,
                                     'strong',
                                     'forward'])):
         rule, rule_name = rule_
-        R, V_var, V_model, screen = summary(results['variable_selected'],
-                                            results[pval],
-                                            active,
-                                            rule, 
-                                            alpha)
+        (R, 
+         V_var, 
+         V_model, 
+         screen,
+         FWER_model,
+         FDP_model,
+         FDP_var,
+         S_var) = summary(np.asarray(results['variable_selected']),
+                          results[pval],
+                          active,
+                          rule, 
+                          alpha)
 
         pval_name = '_'.join(pval.split('_')[:-1])
-        full_results.setdefault('%s_%s_R' % (pval_name, rule_name), []).append(R)
-        full_results.setdefault('%s_%s_V_var' % (pval_name, rule_name), []).append(V_var)
-        full_results.setdefault('%s_%s_V_model' % (pval_name, rule_name), []).append(V_model)
-        full_results.setdefault('%s_%s_screen' % (pval_name, rule_name), []).append(screen)
+        for (n, value) in zip(['R', 'V_var', 'V_model', 'FDP_model', 'FDP_var', 'S_var', 'FWER_model', 'screen'],
+                              [R, V_var, V_model, FDP_model, FDP_var, S_var, FWER_model, screen]):
+            full_results.setdefault('%s_%s_%s' % (pval_name, rule_name, n), []).append(value)
 
     return full_results, FS
 
-def batch(outbase, nsim, **simulate_args):
+def batch(outfile, nsim, **simulate_args):
 
     full_results = {}
     simulate_args['full_results'] = full_results
@@ -146,7 +160,9 @@ def batch(outbase, nsim, **simulate_args):
             print 'run %d' % (i+1)
             simulate(**simulate_args)
             df = pd.DataFrame(full_results)
-            df.to_csv(outbase + '.csv', index=False)
+            df.to_csv(outfile, index=False)
+        except KeyboardInterrupt: 
+            raise KeyboardInterrupt('halting due to keyboard interruption')
         except:
             pass
 
@@ -158,14 +174,29 @@ Run a batch of simulations.
         ''')
     parser.add_argument('--nsim',
                         help='How many simulations to run.', type=int)
-    parser.add_argument('--outbase',
+    parser.add_argument('--seed',
+                        help='Random number seed (optional).', type=int)
+    parser.add_argument('--alpha',
+                        help='Level for FDR and FWER control.', type=float,
+                        default=0.05)
+    parser.add_argument('--p',
+                        help='Number of features.', type=int,
+                        default=40)
+    parser.add_argument('--outfile',
                         help='Where to store results.')
     parser.add_argument('--maxstep',
                         help='How many steps should we take?',
                         type=int,
                         default=-1)
+
     args = parser.parse_args()
     if args.maxstep < 0:
         args.maxstep = np.inf
-    batch(args.outbase, args.nsim, do_knockoff=True,
-          maxstep=args.maxstep)
+
+    if args.seed is not None:
+        np.random.seed(args.seed)
+
+    batch(args.outfile, args.nsim, do_knockoff=True,
+          maxstep=args.maxstep,
+          alpha=args.alpha,
+          p=args.p)
