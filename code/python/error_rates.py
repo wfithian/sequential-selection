@@ -15,7 +15,7 @@ for alpha in ['05', '10', '20']:
     name_map = dict(zip(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
                         ['Nominal', 'MaxT', 'MaxT identify', 'MaxT unknown', 'Saturated']))
     for test, rule in product(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
-                              ['simple', 'forward']):
+                              ['simple', 'forward', 'strong']):
         name = '_'.join([test, rule])
         screen = np.mean(getvar("screen"))
         FDR_var = np.mean(getvar("FDP_var"))
@@ -28,6 +28,8 @@ for alpha in ['05', '10', '20']:
         if test in ['maxT', 'maxT_identify', 'maxT_unknown']:
             if rule == 'simple':
                 guarantees.append((False, True, True, True, False, False))
+            elif rule == 'strong':
+                guarantees.append((False, True, False, True, False, False))
             else:
                 guarantees.append((False, False, False, True, False, False))
         else:
@@ -85,12 +87,11 @@ for alpha in ['05', '10', '20']:
             yield ' & '.join(val) + r' \\ '
 
     table = r'''
-\renewcommand{\guarantee}[1]{{\color{blue} #1}}
-\begin{tabular}{lrrrrrr}
-\toprule
-{} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \midrule
-%s 
-\bottomrule
+\newcommand{\guarantee}[1]{{\color{blue} #1}}
+\begin{tabular}{|l|rrrrrr|}
+ \hline
+{} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \hline
+%s  \hline
 \end{tabular}''' % '\n'.join(table_generator())
 
     file('../../tables/error_rates_%s.tex' % alpha, 'w').write(table)

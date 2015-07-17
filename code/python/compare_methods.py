@@ -27,17 +27,22 @@ def summary(variables, pvalues, active, rule, alpha):
     S_var = R - V_var
     return R, V_var, V_model, screen, FWER_model, FDP_model, FDP_var, S_var
 
-def simulate(n=100, p=40, rho=0.3, snr=5,
+def simulate(n=100, p=40, rho=0.3, 
+             snr=5,
              do_knockoff=False,
              full_results={},
              alpha=0.05,
+             s=7,
+             random_signs=False,
              maxstep=np.inf,
              compute_maxT_identify=True):
 
     X, y, _, active, sigma = instance(n=n,
                                       p=p,
                                       rho=rho,
-                                      snr=snr)
+                                      snr=snr,
+                                      s=s,
+                                      random_signs=random_signs)
     full_results.setdefault('n', []).append(n)
     full_results.setdefault('p', []).append(p)
     full_results.setdefault('rho', []).append(rho)
@@ -61,7 +66,7 @@ def run(y, X, sigma, active,
         ndraw=8000):
 
     n, p = X.shape
-    results, FS = compute_pvalues(y, X, sigma, maxstep=maxstep,
+    results, FS = compute_pvalues(y, X, active, sigma, maxstep=maxstep,
                                   compute_maxT_identify=compute_maxT_identify,
                                   burnin=burnin,
                                   ndraw=ndraw)
@@ -90,7 +95,6 @@ def run(y, X, sigma, active,
 
         # knockoff
 
-        print X.shape, 'shape'
         rpy.r.assign('alpha', alpha)
 
         knockoff = np.array(rpy.r("""
@@ -179,9 +183,15 @@ Run a batch of simulations.
     parser.add_argument('--alpha',
                         help='Level for FDR and FWER control.', type=float,
                         default=0.05)
-    parser.add_argument('--p',
+    parser.add_argument('--nsample',
+                        help='Sample size.', type=int,
+                        default=100)
+    parser.add_argument('--nfeature',
                         help='Number of features.', type=int,
                         default=40)
+    parser.add_argument('--sparsity',
+                        help='Sparsity level.', type=int,
+                        default=7)
     parser.add_argument('--outfile',
                         help='Where to store results.')
     parser.add_argument('--maxstep',
@@ -196,7 +206,11 @@ Run a batch of simulations.
     if args.seed is not None:
         np.random.seed(args.seed)
 
-    batch(args.outfile, args.nsim, do_knockoff=True,
+    batch(args.outfile, 
+          args.nsim, 
           maxstep=args.maxstep,
           alpha=args.alpha,
-          p=args.p)
+          n=args.nsample,
+          p=args.nfeature,
+          s=args.sparsity,
+          do_knockoff=(args.nsample > 2 * args.nfeature))

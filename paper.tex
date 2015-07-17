@@ -1313,34 +1313,18 @@ The last measure of performance is not explicitly controlled by any of the selec
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{rrrrr}
-  \hline
-  Method, Stopping rule& $p_{\text screen}$ & FWER$_{\text mod}$ & FDR$_{\text mod}$ &FDR$_{\text var}$ \\
-% & \$p\_\{$\backslash$text\{screen\}\} & \$$\backslash$text\{FWER\}\_\{$\backslash$text\{model\}\}\$ & \$$\backslash$text\{FDR\}\_\{$\backslash$text\{model\}\}\$ & \$$\backslash$text\{FDR\}\_\{$\backslash$text\{variable\}\}\$ \\ 
-  \hline
-Nominal, Simple & 0.832 & 0.252 & 0.097 & 0.171 \\ 
-  Nominal, Forward & 0.931 & 0.896 & 0.345 & 0.426 \\ 
-  Nominal, Strong & 0.003 & 0.000 & 0.000 & 0.035 \\ 
-  \hline
-  MaxT, Simple & 0.369 & 0.000 & 0.002 & 0.042 \\ 
-  MaxT, Forward & 0.668 & 0.038 & 0.026 & 0.080 \\ 
-  MaxT, Strong & 0.025 & 0.006 & 0.004 & 0.038 \\ 
-  \hline
-  MaxT-Identify, Simple & 0.404 & 0.000 & 0.002 & 0.042 \\ 
-  MaxT-Identify, Forward & 0.688 & 0.039 & 0.026 & 0.082 \\ 
-  MaxT-Identify, Strong & 0.024 & 0.003 & 0.002 & 0.037 \\ 
-  \hline
-  Saturated, Simple & 0.000 & 0.000 & 0.000 & 0.029 \\ 
-  Saturated, Forward & 0.013 & 0.001 & 0.000 & 0.030 \\ 
-  Saturated, Strong & 0.000 & 0.000 & 0.000 & 0.033 \\ 
-  \hline
-  Knockoff & 0.252 &  &  & 0.103\\ 
-  Knockoff+& ??   &  &    &   0.000? \\
-   \hline
-\end{tabular}
+\input{tables/error_rates_05.tex}
 \caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
-The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:sequential}.}
-\label{tab:stopping}
+The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha=0.05$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:sequential}. Results with theoretical guarantees are \guarantee{highlighted}.}
+\label{tab:stopping05}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\input{tables/error_rates_20.tex}
+\caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
+The {\tt Simple} rule stops at the first time that a p-value exceeds $\alpha=0.2$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:sequential}. Results with theoretical guarantees are \guarantee{highlighted}.}
+\label{tab:stopping20}
 \end{table}
 
 We see that 1) strongStop and forwardStop control FWER and modelwise FDR, respectively, using p-values from MaxT or MaxT-identify, as predicted by theory
