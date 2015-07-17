@@ -2,10 +2,6 @@ import os
 from itertools import product
 import pandas as pd, numpy as np
 
-os.system('R CMD BATCH maxT.R')
-
-
-
 for alpha in ['05', '10', '20']:
 
     sim_results = pd.read_csv('../snr_5_alpha_%s.csv' % alpha)
@@ -14,12 +10,12 @@ for alpha in ['05', '10', '20']:
 
     names = []
     results = []
-    #error_types = ['pscreen', 'FWER.mod', 'FWER.mod.cond', 'FDR.var', 'FDR.mod']
+    guarantees = []
 
     name_map = dict(zip(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
                         ['Nominal', 'MaxT', 'MaxT identify', 'MaxT unknown', 'Saturated']))
     for test, rule in product(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
-                              ['simple', 'forward', 'strong']):
+                              ['simple', 'forward']):
         name = '_'.join([test, rule])
         screen = np.mean(getvar("screen"))
         FDR_var = np.mean(getvar("FDP_var"))
@@ -29,7 +25,14 @@ for alpha in ['05', '10', '20']:
         FWER_model_cond = FWER_model / screen
         S_var = np.mean(getvar("S_var"))
 
-        results.append((screen, FWER_model, FWER_model_cond, FDR_var, FDR_model, FDR_model_cond, S_var))
+        if test in ['maxT', 'maxT_identify', 'maxT_unknown']:
+            if rule == 'simple':
+                guarantees.append((False, True, True, True, False, False))
+            else:
+                guarantees.append((False, False, False, True, False, False))
+        else:
+            guarantees.append((False, False, False, False, False, False))
+        results.append((screen, FWER_model, FWER_model_cond, FDR_model, FDR_var, S_var))
         names.append('%s %s' % (name_map[test], rule))
 
     # now knockoffs
@@ -40,10 +43,10 @@ for alpha in ['05', '10', '20']:
                     np.nan,
                     np.nan,
                     np.nan,
-                    np.nan,
                     np.mean(V * 1. / np.maximum(R, 1)),
                     np.mean(R - V)))
     names.append('Knockoff')
+    guarantees.append((False, False, False, False, False, False))
 
     R = sim_results['knockoff_plus_R']
     V = sim_results['knockoff_plus_V']
@@ -51,32 +54,45 @@ for alpha in ['05', '10', '20']:
                     np.nan,
                     np.nan,
                     np.nan,
-                    np.nan,
                     np.mean(V * 1. / np.maximum(R, 1)),
                     np.mean(R - V)))
     names.append('Knockoff+')
+    guarantees.append((False, False, False, False, True, False))
 
     results = np.array(results)
+    guarantees = np.array(guarantees)
     error_df = pd.DataFrame({'screen':results[:,0],
                              'fwer.mod':results[:,1],
                              'fwer.mod.cond':results[:,2],
-                             'fdr.var':results[:,3],
-                             'fdr.mod':results[:,4],
-                             'fdr.mod.cond':results[:,5],
-                             's.var':results[:,6]},
+                             'fdr.mod':results[:,3],
+                             'fdr.var':results[:,4],
+                             's.var':results[:,5]},
                             index=names)
 
-    error_df = error_df.reindex_axis(['screen', 'fwer.mod', 'fwer.mod.cond', 'fdr.mod', 'fdr.mod.cond', 'fdr.var', 's.var'], axis=1)
-    file('../../error_rates_%s.html' % alpha, 'w').write(error_df.to_html(float_format = lambda v: '%0.3f' % v))
+    error_df = error_df.reindex_axis(['screen', 'fwer.mod', 'fwer.mod.cond', 'fdr.mod', 'fdr.var', 's.var'], axis=1)
+    file('../../tables/error_rates_%s.html' % alpha, 'w').write(error_df.to_html(float_format = lambda v: '%0.3f' % v))
 
-    error_df.columns = pd.Index([r'$p_{\text{screen}}$',
-                                 r'$\text{FWER}_{\text{mod}}$',
-                                 r'$\text{FWER}_{\text{mod}} \vert \text{screen}$',
-                                 r'$\text{FDR}_{\text{var}}$',
-                                 r'$\text{FDR}_{\text{model}}',
-                                 r'$\text{FDR}_{\text{mod}} \vert \text{screen}$',
-                                 r'$\text{S}_{\text{var}}'])
+    def table_generator():
+        for result, guar, name in zip(results, guarantees, error_df.index):
+            val = [name]
+            for _r, g in zip(result, guar):
+                if np.isnan(_r):
+                    val.append('NA')
+                elif not g:
+                    val.append('%0.3f' % _r)
+                else:
+                    val.append(r'\guarantee{%0.3f}' % _r)
+            yield ' & '.join(val) + r' \\ '
 
-    file('../../error_rates_%s.tex' % alpha, 'w').write(error_df.to_latex(float_format = lambda v: '%0.3f' % v).replace('\\_', '_'))
+    table = r'''
+\renewcommand{\guarantee}[1]{{\color{blue} #1}}
+\begin{tabular}{lrrrrrr}
+\toprule
+{} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \midrule
+%s 
+\bottomrule
+\end{tabular}''' % '\n'.join(table_generator())
 
-    print error_df.to_latex(float_format = lambda v: '%0.3f' % v)
+    file('../../tables/error_rates_%s.tex' % alpha, 'w').write(table)
+
+    print table

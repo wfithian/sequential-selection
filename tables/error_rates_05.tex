@@ -1,0 +1,19 @@
+
+\renewcommand{\guarantee}[1]{{\color{blue} #1}}
+\begin{tabular}{lrrrrrr}
+\toprule
+{} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \midrule
+Nominal simple & 0.835 & 0.538 & 0.645 & 0.099 & 0.174 & 6.823 \\ 
+Nominal forward & 0.931 & 0.918 & 0.985 & 0.348 & 0.430 & 6.927 \\ 
+MaxT simple & 0.364 & \guarantee{0.019} & \guarantee{0.052} & \guarantee{0.002} & 0.047 & 6.124 \\ 
+MaxT forward & 0.675 & 0.190 & 0.281 & \guarantee{0.028} & 0.086 & 6.605 \\ 
+MaxT identify simple & 0.398 & \guarantee{0.023} & \guarantee{0.057} & \guarantee{0.003} & 0.047 & 6.175 \\ 
+MaxT identify forward & 0.694 & 0.189 & 0.272 & \guarantee{0.028} & 0.086 & 6.641 \\ 
+MaxT unknown simple & 0.312 & \guarantee{0.019} & \guarantee{0.061} & \guarantee{0.002} & 0.046 & 5.927 \\ 
+MaxT unknown forward & 0.638 & 0.168 & 0.264 & \guarantee{0.024} & 0.078 & 6.531 \\ 
+Saturated simple & 0.002 & 0.000 & 0.000 & 0.000 & 0.033 & 1.802 \\ 
+Saturated forward & 0.014 & 0.001 & 0.056 & 0.000 & 0.030 & 2.310 \\ 
+Knockoff & 0.301 & NA & NA & NA & 0.106 & 4.306 \\ 
+Knockoff+ & 0.000 & NA & NA & NA & \guarantee{0.000} & 0.000 \\  
+\bottomrule
+\end{tabular}
