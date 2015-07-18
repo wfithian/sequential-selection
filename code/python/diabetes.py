@@ -47,8 +47,9 @@ pvals['variable_selected'] += 1
 pvals = pvals.reindex_axis(['Step', 'Variable', 'variable_selected',
                             'nominalT_pvalue',
                             'saturated_pvalue',
-                            'maxT_unknown_pvalue'], axis=1)
-pvals.columns = pd.Index(['Step', 'Variable', 'Column number', 'Nominal pvalue', 'Saturated pvalue', 'MaxT pvalue'])
+                            'maxT_unknown_pvalue',
+                            'maxT_pvalue'], axis=1)
+pvals.columns = pd.Index(['Step', 'Variable', 'Column number', 'Nominal pvalue', 'Saturated pvalue', 'MaxT pvalue', 'MaxT pvalue plugin sigma'])
 
 forward_stop_U = forward_stop(pvals['MaxT pvalue'], 0.1)
 forward_stop_N = forward_stop(pvals['Nominal pvalue'], 0.1)

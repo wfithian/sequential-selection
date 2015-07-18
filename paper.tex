@@ -111,6 +111,15 @@ and six blood serum measurements---plus quadratic terms, giving a total of 64 fe
 
 \begin{table}[ht]
 \centering
+\input{tables/diabetes_edit.tex}
+\caption[tab:diab]{\em Forward stepwise regression for the diabetes data: naive p-values from forward stepwise regression, 
+p-values from the ``saturated'' model, and the ``max-T'' p-values (computed without knowing $\sigma^2$) that are presented in this paper. The red annotation indicates the stopping step
+prescribed by {\tt forwardStop}. For the max-T p-values, this stopping rule gives exact $\text{FDR}_{\text{model}}$ control at the 10\% level.}
+\label{tab:diab}
+\end{table}
+
+\begin{table}[ht]
+\centering
 \begin{tabular}{rrrrr}
   \hline\\
  Step& Predictor& Naive pvalue& Saturated pvalue& Max-t pvalue\cr
@@ -137,11 +146,10 @@ and six blood serum measurements---plus quadratic terms, giving a total of 64 fe
   20 & 27 & 0.17 & 0.60 & 0.50 \\ 
    \hline\\
 \end{tabular}
-\caption[tab:diab]{\em Forward stepwise regression for the diabetes data: naive p-values from forward stepwise regression, 
-p-values from the ``saturated'' model, and the ``max-t'' p-values that are presented in this paper. The red annotation indicates the stopping step
-prescribed by {\tt forwardStop}. For the max-t p-values, this gives exact FDR control at the 10\% level.}
-\label{tab:diab}
+\caption{Rob's data}
 \end{table}
+
+
 The table shows the naive p-values from forward stepwise regression, that do not account for the selection, as well as the
 p-values from the ``saturated'' model, and the ``max-t'' p-values that are presented in this paper.
 The latter two sets of p-values test someone different hypotheses:  the p-values from the saturated model test whether the partial regression of the predictor just added is zero,
