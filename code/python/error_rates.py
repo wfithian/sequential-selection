@@ -2,9 +2,9 @@ import os
 from itertools import product
 import pandas as pd, numpy as np
 
-for alpha in ['05', '10', '20']:
-
-    sim_results = pd.read_csv('../snr_5_alpha_%s.csv' % alpha)
+for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05', '10', '20']] + ['../snr_7_alpha_20_sparsity7_p200.csv'],
+                            ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200']):
+    sim_results = pd.read_csv(results)
 
     getvar = lambda var: sim_results['_'.join([name, var])]
 
@@ -39,27 +39,29 @@ for alpha in ['05', '10', '20']:
 
     # now knockoffs
 
-    R = sim_results['knockoff_R']
-    V = sim_results['knockoff_V']
-    results.append((np.mean(sim_results['knockoff_screen']),
-                    np.nan,
-                    np.nan,
-                    np.nan,
-                    np.mean(V * 1. / np.maximum(R, 1)),
-                    np.mean(R - V)))
-    names.append('Knockoff')
-    guarantees.append((False, False, False, False, False, False))
+    if 'knockoff_R' in sim_results:
 
-    R = sim_results['knockoff_plus_R']
-    V = sim_results['knockoff_plus_V']
-    results.append((np.mean(sim_results['knockoff_plus_screen']),
-                    np.nan,
-                    np.nan,
-                    np.nan,
-                    np.mean(V * 1. / np.maximum(R, 1)),
-                    np.mean(R - V)))
-    names.append('Knockoff+')
-    guarantees.append((False, False, False, False, True, False))
+        R = sim_results['knockoff_R']
+        V = sim_results['knockoff_V']
+        results.append((np.mean(sim_results['knockoff_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(V * 1. / np.maximum(R, 1)),
+                        np.mean(R - V)))
+        names.append('Knockoff')
+        guarantees.append((False, False, False, False, False, False))
+
+        R = sim_results['knockoff_plus_R']
+        V = sim_results['knockoff_plus_V']
+        results.append((np.mean(sim_results['knockoff_plus_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(V * 1. / np.maximum(R, 1)),
+                        np.mean(R - V)))
+        names.append('Knockoff+')
+        guarantees.append((False, False, False, False, True, False))
 
     results = np.array(results)
     guarantees = np.array(guarantees)
@@ -72,7 +74,7 @@ for alpha in ['05', '10', '20']:
                             index=names)
 
     error_df = error_df.reindex_axis(['screen', 'fwer.mod', 'fwer.mod.cond', 'fdr.mod', 'fdr.var', 's.var'], axis=1)
-    file('../../tables/error_rates_%s.html' % alpha, 'w').write(error_df.to_html(float_format = lambda v: '%0.3f' % v))
+    file('%s.html' % outbase, 'w').write(error_df.to_html(float_format = lambda v: '%0.3f' % v))
 
     def table_generator():
         for result, guar, name in zip(results, guarantees, error_df.index):
@@ -94,6 +96,6 @@ for alpha in ['05', '10', '20']:
 %s  \hline
 \end{tabular}''' % '\n'.join(table_generator())
 
-    file('../../tables/error_rates_%s.tex' % alpha, 'w').write(table)
+    file('%s.tex' % outbase, 'w').write(table)
 
     print table
