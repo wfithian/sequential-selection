@@ -183,6 +183,9 @@ Run a batch of simulations.
     parser.add_argument('--alpha',
                         help='Level for FDR and FWER control.', type=float,
                         default=0.05)
+    parser.add_argument('--snr',
+                        help='Signal to noise.', type=float,
+                        default=7)
     parser.add_argument('--nsample',
                         help='Sample size.', type=int,
                         default=100)

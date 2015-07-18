@@ -64,7 +64,6 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
     completed = False
     for i in range(min([n, p, maxstep])):
 
-        print i
         if active_set is not None:
             screened = set(active_set).issubset(FS_maxT.variables) or ((i > (3 * len(active_set))) and shortcut) # can't be any power way out there... i figure
         else:
