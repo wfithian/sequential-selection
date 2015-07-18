@@ -6,6 +6,7 @@ from selection.algorithms.forward_step import forward_step
 from selection.distributions.discrete_family import discrete_family
 from selection.constraints.affine import gibbs_test
 from scipy.stats import norm as ndist
+import statsmodels.api as sm
 
 def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
                     compute_maxT_identify=True,
@@ -109,7 +110,11 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
                 completed = True
                 completion_idx = i
 
-        var_select, pval_saturated = FS_maxT.model_pivots(i+1, alternative='twosided',
+        alternative = {1:'greater',
+                       -1:'less'}[FS_maxT.signs[-1]]
+
+        var_select, pval_saturated = FS_maxT.model_pivots(i+1, 
+                                                          alternative=alternative,
                                                           which_var=[FS_maxT.variables[-1]],
                                                           saturated=True)[0]
 
@@ -117,17 +122,26 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
 
         LSfunc = np.linalg.pinv(FS_maxT.X[:,FS_maxT.variables])
         Z = np.dot(LSfunc[-1], FS_maxT.Y) / (np.linalg.norm(LSfunc[-1]) * sigma)
+        # assuming known variance
         pval_nominal = 2 * ndist.sf(np.fabs(Z))
-        results.append((var_select, pval_maxT_identify, pval_saturated, pval_nominal, pval_maxT, pval_maxT_U, pval_maxT_identify_U))
+
+        # using T
+
+        OLS_model = sm.OLS(y, np.hstack([FS_maxT.fixed_regressors,
+                                         X[:,FS_maxT.variables]]))
+        pval_nominalT = OLS_model.fit().pvalues[-1]
+
+        results.append((var_select, pval_maxT_identify, pval_saturated, pval_nominal, pval_nominalT, pval_maxT, pval_maxT_U, pval_maxT_identify_U))
             
     results = np.array(results).T
     return pd.DataFrame({'variable_selected': results[0].astype(np.int),
                          'maxT_identify_pvalue': results[1],
                          'saturated_pvalue': results[2],
                          'nominal_pvalue': results[3],
-                         'maxT_pvalue': results[4],
-                         'maxT_unknown_pvalue': results[5],
-                         'maxT_identify_unknown_pvalue': results[6]}), FS_maxT
+                         'nominalT_pvalue': results[4],
+                         'maxT_pvalue': results[5],
+                         'maxT_unknown_pvalue': results[6],
+                         'maxT_identify_unknown_pvalue': results[7]}), FS_maxT
 
 def completion_index(selected, active_set):
     """

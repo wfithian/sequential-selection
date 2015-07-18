@@ -3,7 +3,7 @@ from itertools import product
 import pandas as pd, numpy as np
 
 for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05', '10', '20']] + ['../snr_7_alpha_20_sparsity7_p200.csv'],
-                            ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200']):
+                            ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200'])[:-1]:
     sim_results = pd.read_csv(results)
 
     getvar = lambda var: sim_results['_'.join([name, var])]
@@ -12,9 +12,9 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
     results = []
     guarantees = []
 
-    name_map = dict(zip(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
+    name_map = dict(zip(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
                         ['Nominal', 'MaxT', 'MaxT identify', 'MaxT unknown', 'Saturated']))
-    for test, rule in product(['nominal', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
+    for test, rule in product(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
                               ['simple', 'forward', 'strong']):
         name = '_'.join([test, rule])
         screen = np.mean(getvar("screen"))
