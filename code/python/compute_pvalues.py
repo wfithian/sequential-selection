@@ -6,12 +6,14 @@ from selection.algorithms.forward_step import forward_step
 from selection.distributions.discrete_family import discrete_family
 from selection.constraints.affine import gibbs_test
 from scipy.stats import norm as ndist
+import statsmodels.api as sm
 
-def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
+def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
                     compute_maxT_identify=True,
                     burnin=2000,
                     ndraw=8000,
-                    accept_reject_params=(100,15,2000)):
+                    accept_reject_params=(100,15,2000),
+                    shortcut=True):
     """
     Parameters
     ----------
@@ -21,6 +23,11 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
 
     X : np.float((n, p))
         The data, in the model $y = X\beta$
+
+    active_set : [] (optional)
+        The true active set. For steps beyond this
+        the selected model methods can (for the purposes
+        of simulation) just draw np.random.sample()
 
     sigma : np.float
         Standard deviation of the gaussian distribution :
@@ -55,38 +62,59 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
     iter(FS_identity_U); iter(FS_maxT_U)
     results = []
 
+    completed = False
     for i in range(min([n, p, maxstep])):
 
-        # take a step of FS
+        if active_set is not None:
+            screened = set(active_set).issubset(FS_maxT.variables) or ((i > (3 * len(active_set))) and shortcut) # can't be any power way out there... i figure
+        else:
+            screened = False
 
-        pval_maxT = FS_maxT.next(compute_pval=True,
-                                 use_identity=False,
-                                 ndraw=ndraw,
-                                 burnin=burnin)
-        
-        pval_maxT_U = FS_maxT_U.next(compute_pval=True,
+        if not screened: 
+
+            # take a step of FS
+
+            pval_maxT = FS_maxT.next(compute_pval=True,
                                      use_identity=False,
                                      ndraw=ndraw,
-                                     burnin=burnin,
-                                     sigma_known=False)
-        
-        if compute_maxT_identify:
+                                     burnin=burnin)
 
-            pval_maxT_identify = FS_identity.next(compute_pval=True,
-                                                  use_identity=True,
-                                                  ndraw=ndraw,
-                                                  burnin=burnin)
+            pval_maxT_U = FS_maxT_U.next(compute_pval=True,
+                                         use_identity=False,
+                                         ndraw=ndraw,
+                                         burnin=burnin,
+                                         sigma_known=False)
 
-            pval_maxT_identify_U = FS_identity_U.next(compute_pval=True,
+            if compute_maxT_identify:
+
+                pval_maxT_identify = FS_identity.next(compute_pval=True,
                                                       use_identity=True,
                                                       ndraw=ndraw,
-                                                      burnin=burnin,
-                                                      sigma_known=False)
+                                                      burnin=burnin)
+
+                pval_maxT_identify_U = FS_identity_U.next(compute_pval=True,
+                                                          use_identity=True,
+                                                          ndraw=ndraw,
+                                                          burnin=burnin,
+                                                          sigma_known=False)
+
+            else:
+                FS_identity.next(compute_pval=False)
+                pval_maxT_identify = np.random.sample()
+                pval_maxT_identify_U = np.random.sample()
 
         else:
-            FS_identity.next(compute_pval=False)
-            pval_maxT_identify = np.random.sample()
-        var_select, pval_saturated = FS_maxT.model_pivots(i+1, alternative='twosided',
+            FS_maxT.next(compute_pval=False)
+            pval_maxT, pval_maxT_identify, pval_maxT_U, pval_maxT_identify_U = np.random.sample(4)
+            if not completed:
+                completed = True
+                completion_idx = i
+
+        alternative = {1:'greater',
+                       -1:'less'}[FS_maxT.signs[-1]]
+
+        var_select, pval_saturated = FS_maxT.model_pivots(i+1, 
+                                                          alternative=alternative,
                                                           which_var=[FS_maxT.variables[-1]],
                                                           saturated=True)[0]
 
@@ -94,17 +122,26 @@ def compute_pvalues(y, X, sigma=1., maxstep=np.inf,
 
         LSfunc = np.linalg.pinv(FS_maxT.X[:,FS_maxT.variables])
         Z = np.dot(LSfunc[-1], FS_maxT.Y) / (np.linalg.norm(LSfunc[-1]) * sigma)
+        # assuming known variance
         pval_nominal = 2 * ndist.sf(np.fabs(Z))
-        results.append((var_select, pval_maxT_identify, pval_saturated, pval_nominal, pval_maxT, pval_maxT_U, pval_maxT_identify_U))
+
+        # using T
+
+        OLS_model = sm.OLS(y, np.hstack([FS_maxT.fixed_regressors,
+                                         X[:,FS_maxT.variables]]))
+        pval_nominalT = OLS_model.fit().pvalues[-1]
+
+        results.append((var_select, pval_maxT_identify, pval_saturated, pval_nominal, pval_nominalT, pval_maxT, pval_maxT_U, pval_maxT_identify_U))
             
     results = np.array(results).T
     return pd.DataFrame({'variable_selected': results[0].astype(np.int),
                          'maxT_identify_pvalue': results[1],
                          'saturated_pvalue': results[2],
                          'nominal_pvalue': results[3],
-                         'maxT_pvalue': results[4],
-                         'maxT_unknown_pvalue': results[5],
-                         'maxT_identify_unknown_pvalue': results[6]}), FS_maxT
+                         'nominalT_pvalue': results[4],
+                         'maxT_pvalue': results[5],
+                         'maxT_unknown_pvalue': results[6],
+                         'maxT_identify_unknown_pvalue': results[7]}), FS_maxT
 
 def completion_index(selected, active_set):
     """
