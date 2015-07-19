@@ -62,7 +62,7 @@
 \newcommand{\tR}{\widetilde{R}}
 \newcommand{\tL}{\widetilde{L}}
 \newcommand{\hk}{\hat{k}}
-\newcommand{\hr}{\hat{r}}
+\newcommand{\hr}{\hat{r}}       
 \newcommand{\cN}{\mathcal{N}}
 \newcommand{\cJ}{\mathcal{J}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
@@ -83,7 +83,7 @@
   Many model selection algorithms produce a ``path'' of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, our $p$-values improve on the power of the spacings test of \citet{taylor2014exact}, often dramatically.
   We also show that the selected models test  bears a close relationship to parametric bootstrap sampling.
 
-To choose a model we feed the resulting $p$-values as inputs into sequential stopping rules proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving adaptive control of the familywise error rate or false discovery rate. These stopping rules assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values, a condition that is not satisfied by the $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values.
+To choose a model we feed the resulting $p$-values as inputs into sequential stopping rules proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving adaptive control of the familywise error rate or false discovery rate. These stopping rules assume that the single-step null $p$-values are independent of each other and of the non-null $p$-values, a condition that bmiis not satisfied by the $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values.
 \end{abstract}
 
 
@@ -116,37 +116,6 @@ and six blood serum measurements---plus quadratic terms, giving a total of 64 fe
 p-values from the ``saturated'' model, and the ``max-T'' p-values (computed without knowing $\sigma^2$) that are presented in this paper. The red annotation indicates the stopping step
 prescribed by {\tt forwardStop}. For the max-T p-values, this stopping rule gives exact $\text{FDR}_{\text{model}}$ control at the 10\% level.}
 \label{tab:diab}
-\end{table}
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline\\
- Step& Predictor& Naive pvalue& Saturated pvalue& Max-t pvalue\cr
-  \hline\\
-1 & 3& 0.00 & 0.00 & 0.00 \\ 
-  2 & 9 & 0.00 & 0.00 & 0.00 \\ 
-  3 & 4 & 0.00 & \color{red}{0.05} & 0.00 \\ 
-  4 & 20 & 0.00 & 0.33 & 0.01 \\ 
-  5 & 37 & 0.00 & 0.76 & 0.05 \\ 
-  6 & 7 & 0.00 & 0.25 & 0.05 \\ 
-  7 & 2 & 0.00 & 0.00 & 0.00 \\ 
-  8 & 19 & 0.02 & 0.03 & \color{red}{0.37} \\ 
-  9 & 11 & 0.11 & 0.55 & 0.95 \\ 
-  10 & 52 & 0.21 & 0.91 & 0.92 \\ 
-  11 & 57 & 0.05 & 0.37 & 0.21 \\ 
-  12 & 24 & 0.22 & 0.15 & 0.00 \\ 
-  13 & 5 & 0.18 & 0.07 & 0.10 \\ 
-  14 & 49 & 0.16 & 0.97 & 0.75 \\ 
-  15 & 30& 0.21 & 0.15 & 0.05 \\ 
-  16 & 46 & \color{red}{0.16} & 0.05 & 0.53 \\ 
-  17 & 59 & 0.27 & 0.45 & 0.68 \\ 
-  18 & 33 & 0.12 & 0.71 & 0.80 \\ 
-  19 & 62 & 0.08 & 0.40 & 0.48 \\ 
-  20 & 27 & 0.17 & 0.60 & 0.50 \\ 
-   \hline\\
-\end{tabular}
-\caption{Rob's data}
 \end{table}
 
 
