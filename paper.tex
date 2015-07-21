@@ -993,7 +993,7 @@ As usual, we have reduced computation of the $p$-value at step $k$ to a sampling
 
 Given a model $M_{k-1}$   we need to sample from 
 \begin{eqnarray}
-L(X'_jY | E_{k-1},X'_{E_{k-1}})
+L(X'_jY | E_{k-1},X'_{E_{k-1}}Y)
 \label{eqn:maxtsamp}
 \end{eqnarray}
 with $Y\sim N(\mu, I \cdot \sigma^2)$.
@@ -1003,7 +1003,7 @@ Y^*=\proj_{E_{k-1}} Y + (I- \proj_{E_{k-1}}) Z; \;Z\sim N(0,I\cdot\sigma^2)
 \label{eq:boot}
 \end{eqnarray}
 and then conditioning on the event $E_{k-1}(Y^*)= E_k(Y)$ (a polyhedron).
-In other words, we need to condition on data vectors  $Y*$ that yields the same
+In other words, we need to condition on data vectors  $Y^*$ that yields the same
 sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
 
 Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, but  with  a novel twist:  the bootstrap residuals are projected into the subspace
@@ -1030,7 +1030,7 @@ Hence we use accept/reject for as many steps of the sequence is possible,  until
 In detail, we employ a hybrid computational strategy; we use accept-reject sampling, and do so as long as we obtain at least 300 (say) samples in the first set
 of $B$ realizations ($75,000$ in our code)  This is an effective approach until we have reached a point in the model path where all predictors have little or no signal.
 When the acceptance rate gets too low, we switch to a hit-and run Monte Carlo approach. We exploit the fact that each move along a random direction 
-has a truncated Gaussian distribution whose truncation limits are easily computed from the properties of the polyhedral. Unlike accept-reject, sampling
+has a truncated Gaussian distribution whose truncation limits are easily computed from the properties of the polyhedron. Unlike accept-reject, sampling
 which produces independent samples,  the hit and run method produces dependent samples. Hence we must run it for longer with an initial burn in period,
 and hope that it has mixed sufficiently well.
 
