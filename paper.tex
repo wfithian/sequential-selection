@@ -1331,6 +1331,48 @@ The details are given in \citet{choi2014selecting}, with their ``integrated CSV'
 
 \RTcomment{Jon- add more details?}
 
+\section{Decision trees and interaction models}
+In this section we discuss another application of adaptive sequential inference, to binary decision trees.
+Specifically, the classification and regression tree  (CART)  method builds a decision tree in a top down manner, finding the best available split
+at each node.  When considering splitting two daughter nodes, the generic CART algorithm splits the nodes in an arbitrary order, only stopping when a node
+reaches a minimum size.  We instead consider a  special version of CART  algorithm:  the   "best first"  method, which order splits by their achieved reduction in loss.
+This procedure is used, for example in the R package for gradient boosting, called {\tt gbm}.
+The best first tree-builder is thus a sequential selection  procedure,  to which we can apply the results in this paper. Hence we can obtain independent, sequential p-values
+for each successive split in the decision  tree. We now give some details and an example.
+
+Given data $(y_i, x_{i1}, x_{i2},\ldots x_{ip})$ for $i=1,2,\ldots N$,
+we choose a splitting  variable $j_1$ and split point $t_1$, leading to a model of the form
+\begin{eqnarray}
+\hat y_i=\beta_0 +\beta_{11} I(x_{ij_1} \leq t_1) +\beta_{12} I(x_{ij_1} > t_1)
+\end{eqnarray}
+Then at the second stage, we try splitting one of the two daughter nodes, and choose the split and most reduces the residual sum of squares.
+Suppose that a split of the first node is chosen, using predictor $j_2$ at split point $t_2$.  This leads to the interaction model of the form
+\begin{eqnarray}
+\hat y_i=\beta_0 +\beta_{11} I(x_{ij_1} \leq t_1) \cdot \beta_{31} I(x_{ij_2} \leq t_2)+   \beta_{11} I(x_{ij_1} \leq t_1) \cdot  \beta_{31} I(x_{ij_2} > t_2)  +\beta_{12} I(x_{ij_1} > t_1).\cr
+\label{eqn:intmodel}
+\end{eqnarray}
+Note that the search for possible split points can be expressed through an exhaustive set of basis functions $I(x_{ij} \leq  t_i), (x_{ij}  > t_i)$ for each $t_i \in (x_{1j}, x_{2j}, \ldots x_{nj})$.
+The procedure is somewhat similar to foreward stepwise regression, but with differences.
+For example the set of candidate basis functions available at each stage are a function of what has been  previously entered into the model
+Nonetheless,  the selection procedure  for the first set of $k$ splits can be expressed in polyhedral from $Ay \leq b$, and the saturated and selective inference procedures can be applied.
+As before, the saturated p-values have an explicit truncated Gaussian form, while computation of the selective p-values require accept-reject sampling.
+
+Figure \ref{fig:cart} shows an example with independent standard Gaussian features, and $n=30, p=3$.
+We 
+consider just the first two splits, in a null case (top row) and non-null (bottom row).
+In the non-null case,  the data are generated from a  model of the form (\ref{eqn:intmodel}).
+
+As expect, the nominal p-values are far too small and hence don't control type I error.
+Both the saturated and selective p-values control type I error, with the selective p-values are somewhat more powerful in the non-null case.
+Rules like the forwardStop procedure could be applied  to the selective p-values to choose a ``best'' model size.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.65\textwidth]{figs/cart.pdf}
+  \caption{\em Cumulative distribution functions of P-values for  the first two splits in a CART decision tree. In the top row, the true model is null,
+  while in the bottom row, the data are generated from a  model of the form (\ref{eqn:intmodel})}
+  \label{fig:cart}
+\end{figure}
+
 \section{Discussion}
 \label{sec:pca}
 
