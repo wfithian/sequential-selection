@@ -1351,7 +1351,7 @@ Suppose that a split of the first node is chosen, using predictor $j_2$ at split
 \hat y_i=\beta_0 +\beta_{11} I(x_{ij_1} \leq t_1) \cdot \beta_{31} I(x_{ij_2} \leq t_2)+   \beta_{11} I(x_{ij_1} \leq t_1) \cdot  \beta_{31} I(x_{ij_2} > t_2)  +\beta_{12} I(x_{ij_1} > t_1).\cr
 \label{eqn:intmodel}
 \end{eqnarray}
-Note that the search for possible split points can be expressed through an exhaustive set of basis functions $I(x_{ij} \leq  t_i), (x_{ij}  > t_i)$ for each $t_i \in (x_{1j}, x_{2j}, \ldots x_{nj})$.
+Note that the search for possible split points can be expressed through an exhaustive set of basis functions $I(x_{ij} \leq  t_i), I(x_{ij}  > t_i)$ for each $t_i \in (x_{1j}, x_{2j}, \ldots x_{nj})$.
 The procedure is somewhat similar to foreward stepwise regression, but with differences.
 For example the set of candidate basis functions available at each stage are a function of what has been  previously entered into the model
 Nonetheless,  the selection procedure  for the first set of $k$ splits can be expressed in polyhedral from $Ay \leq b$, and the saturated and selective inference procedures can be applied.
