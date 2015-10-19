@@ -94,7 +94,8 @@ Given such a path, we consider the problem of choosing the simplest model in the
 
 
 
-To select a model, we compute a set of sequential $p$-values at each step of the model path, and then feed them into a stopping rule that is guaranteed to control the FDR, familywise error rate (FWER), or a similar quantity. Recently \citet{gsell2013sequential} and \citet{li2015accumulation} proposed sequential stopping rules of this kind. Both sets of rules require that once we have reached the first correct model in our path, the $p$-values in subsequent steps are uniform (or conservative),
+To select a model, we compute a set of sequential $p$-values at each step of the model path, and then feed them into a stopping rule that is guaranteed to control the FDR, familywise error rate (FWER), or a similar quantity. Recently \citet{gsell2013sequential} and \citet{li2015accumulation} proposed sequential stopping rules of this kind. 
+Both sets of rules require that once we have reached the first correct model in our path, the $p$-values in subsequent steps are uniform (or conservative),
 and independent. In this paper we develop a theoretical framework for constructing sequential $p$-values that are both uniform and independent under the correct model, and show how to construct them in forward stepwise regression, LAR and the ever-active path in $\ell_1$-regularized models. 
 
 While our approach and analysis are quite general, we begin by introducing a specific example: the selective max-$t$ test for forward stepwise regression, a selective sequential version of the max-$t$ test of \citet{buja2014}, generalized using the theory in \citet{fithian2014optimal}.
@@ -128,7 +129,7 @@ The max-$t$ test $p$-values are computed using the same test statistic $|t_E^*|$
 \begin{equation}
   M(E):\; Y \sim N(X_E\beta, \sigma^2 I), \quad \beta\in \R^{|E|}, \sigma^2>0,
 \end{equation}
-where $X_E$ is the matrix with columns $(X_j)_{j\in E}$. Because $U_E=\left(X_E'Y,\, \|Y\|^2\right)$ is the complete sufficient statistic for $M(E)$, we can sample from the conditional null distribution of $t_E^*$ given $U_E$ and the current active set $E$, using the {\em selected-model test} framework of \citet{fithian2014optimal}. In step one, because $E=\{1_n\}$ is fixed and $t_E^*$ is independent of $U_E$, the conditional test reduces to the max-$t$ test proposed in \citet{buja2014}. In later steps, $t_E^*$ and $U_E$ are not conditionally independent of $E$, but we can determine the null conditional distribution through Monte Carlo sampling.
+where $X_E$ is the matrix with columns $(X_j)_{j\in E}$. Because $U_E=\left(X_E'Y,\, \|Y\|^2\right)$ is the complete sufficient statistic for $M(E)$, we can sample from the conditional null distribution of $t_E^*$ given $U_E$ and the current active set $E$, using the {\em selected-model test} framework of \citet{fithian2014optimal}. In step one, because $E=\{1_n\}$ is fixed and $t_E^*$ is independent of $U_E$, the conditional test reduces to the max-$t$ test proposed in \citet{buja2014}. In later steps, $t_E^*$ and $U_E$ are not conditionally independent of $E$, but we can estimate the null conditional distribution through Monte Carlo sampling.
 
 The saturated-model $p$-values also account for selection, but they rely on somewhat different assumptions, condition on more information, and test a slightly less restrictive null hypothesis. We discuss these distinctions in detail in Section~\ref{sec:whichnull}.
 
@@ -146,7 +147,7 @@ In contrast, the max-$t$ $p$-values test whether the current model is adequate; 
 
 For the remainder of the article we will discuss the problem of selective sequential model selection in some generality, returning periodically to the selective max-$t$ test in forward stepwise regression and its lasso regression counterpart, the next-$\lambda$ test, as intuitive and practically important running examples. 
 
-In comparison to their saturated-model counterparts, we will see that the selected-model tests proposed here have three main advantages: power, independence (in some cases), and generalizability beyond linear regression. These advantages do not come entirely for free, as we will see: the selected-model methods test a more restrictive null hypothesis than the saturated-model methods.
+In comparison to their saturated-model counterparts, we will see that the selected-model tests proposed here have three main advantages: power, independence (in some cases), and generalizability beyond linear regression. These advantages do not come entirely for free, as we will see: the selected-model methods test a more restrictive null hypothesis than the saturated-model methods. In addition, the selected-model test require accept-reject or MCMC sampling, while the saturated-model tests are available in closed form.
 
 Section~\ref{sec:genericSetting} introduces the general problem setting, gives important definitions, and reviews relevant literature on testing ordered hypotheses using a sequence of $p$-values. Many of these methods require the $p$-values to be uniform and independent under the null, and we derive general conditions to ensure this property in Section~\ref{sec:pValsIndep}. In Section~\ref{sec:selective-reg} we contrast selected-model and saturated-model tests for linear regression setting, and illustrate why selected-model tests are often much more powerful in early steps of the path. In Section~\ref{sec:computation} we discuss strategies for sampling from the null distribution for our tests, and prove that in forward stepwise regression and $\ell_1$-regularized likelihood methods, the number of constraints in the sampling problem is never more than twice the number of variables. We provide a simulation study in Section~\ref{sec:sparseReg} and briefly discuss applications of our framework to principal components analysis in Section~\ref{sec:pca}. The paper ends with a Discussion.
 
@@ -157,7 +158,8 @@ In the general setting, we observe data $Y \in \cY$ with unknown sampling distri
 \[
 M_0(Y) \sub M_1(Y) \sub \cdots \sub M_d(Y) \sub M_\infty.
 \]
-By {\em model}, we mean a family of candidate probability distributions for $Y$. Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. We will use the notation $M_{0:d}$ to denote the sequence $M_0, \ldots, M_d$, which we call the {\em model path}. We assume throughout that for each candidate model $M$ there is a minimal sufficient statistic $U(Y; \,M)$, and write
+By {\em model}, we mean a family of candidate probability distributions for $Y$. For example in  linear regression, a model specifies  the set of
+predictors with nonzero coefficients (but not the  values of their coefficients). Without loss of generality, we can take $M_\infty$ as the union of all models under consideration. We will use the notation $M_{0:d}$ to denote the sequence $M_0, \ldots, M_d$, which we call the {\em model path}. We assume throughout that for each candidate model $M$ there is a minimal sufficient statistic $U(Y; \,M)$, and write
 \[
 U_k(Y) = U(Y; \,M_k(Y)).
 \]
@@ -254,16 +256,19 @@ Because the likelihood in linear regression is a monotone decreasing function of
 For simplicity, we have made two assumptions: that only one variable is added at each step, and that the set of candidate variables we choose from is the same in each step. It is relatively straightforward to relax either assumption, as we discuss briefly in Section~\ref{sec:discussion}.
 
 \subsubsection{Ever-Active Regularization Paths and next-$\lambda$ Tests}
-Another important class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. For some ordered set $\Lambda$, let $\lambda\in\Lambda$ parameterize the regularization penalty $P_\lambda(\theta)$. In the case of lasso-penalized regression, we could take $P_\lambda = \lambda\|\beta\|_1$ for $\lambda\in (0,\infty]$. 
+Another important class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. 
+The notion of ever-active sets is needed since these solution paths can drop  (as well as add) predictors along the way. 	For some ordered set $\Lambda$, let $\lambda\in\Lambda$ parameterize the regularization penalty $P_\lambda(\theta)$. In the case of lasso-penalized regression, we could take $P_\lambda = \lambda\|\beta\|_1$ for $\lambda\in (0,\infty]$. 
+We assume $P_\lambda(\beta)$  has the property  that the model becomes less constrained as $\lambda$ decreases, that is,
+ if $\lambda_2<\lambda_1$ then $\{\beta:P_{\lambda_2}(\beta)\} \supset \{\beta:P_{\lambda_1}(\beta)\}$.  \RTcomment{Will: is this correct?}
 
 We then define
 \begin{align}
   \hat\theta^{\lambda}(Y) &= 
   \argmin_{\theta\in\Theta} -\ell(\theta; Y) + P_\lambda(\theta) \\
-  \tE_\lambda(Y) &= \left\{j:\; \hat\theta_j^\nu \neq 0 
+  \tE_\lambda(Y) &= \left\{j:\; \hat\theta_j^\nu(Y) \neq 0 
     \text{ for any } \nu\in \Lambda, \nu \geq \lambda \right\}
 \end{align}
-It may be impossible or inconvenient to compute $\hat\theta^\lambda$ for every $\lambda\in(0,\infty]$. If so, we can instead take $\Lambda$ to be a grid of finitely many positive values.
+It may be impossible or inconvenient to compute $\hat\theta^\lambda(Y)$ for every $\lambda\in(0,\infty]$. If so, we can instead take $\Lambda$ to be a grid of finitely many positive values.
 
 Note that the active sets $\tE_\lambda$ are nested by construction. In addition, we will assume that $|\tE_\lambda|<\infty$ for every $\lambda\in\Lambda$. Our model path will correspond to the sequence of distinct ever-active sets. 
 Formally, let 
@@ -300,7 +305,7 @@ These are the true ``partial regression coefficients''  for design matrix $X_E$.
 
 \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
 \begin{description}
-\item[Complete Null:] $M_{k-1}$ is already correct. That is, 
+\item[Complete Null:] $M_{k-1}$ is (already) correct. That is, 
 \[
 H_k:\;\mu = X_{E_{k-1}} \theta^{E_{k-1}}.
 \]
@@ -334,18 +339,20 @@ M(\emptyset) \sub M(\{1\}) \sub M(\{1,2\}) \sub \cdots \sub M(\{1,\ldots, p\}).
 
 In the first procedure, we construct an analysis-of-variance (ANOVA) table performing an $F$- or $t$-test of each model against the next. We then stop and select model $M_k=M(\{1,\ldots,k\})$ the first time the $F$-test $p$-value is larger than $\alpha$. This procedure would control the complete-null and incremental-null FWER, but {\em not} the full-model-null FWER. The methods we consider in this article are essentially generalizations of this procedure for the setting where the model sequence is selected adaptively, and where we may wish to control FDR instead of FWER.
 
-In the second procedure, we fit the full model $M(\{1,\ldots,p\})$ and compute a $t$-statistic for each variable with respect to that model, yielding $t$-statistics $t_1, t_2, \ldots, t_p$ (not ordered by size). Iterating for $j=1,\ldots,p$, we compare each $|t_j|$ to the level-$\alpha$ cutoff for a $t$-test with $n-p$ degrees of freedom, and stop selecting variables the first time $|t_{k+1}|$ is not larger than this cutoff. This procedure would control the full-model-null FWER, but {\em not} the incremental-null FWER. Note that the {\em model} $M_k$ plays no role in this procedure: its fit to the data is never evaluated and it is not really selected in any meaningful sense. Even if the fit of $M_k$ is far worse than that of $M_{k+1}$, we may not be able to select $X_{k+1}$ if (say) it is highly collinear with $X_{k+100}$. Conversely, even if the fit of $M_k$ is no better than that of $M_{k-1}$, we may still select $X_k$ if it is a highly useful predictor when used in concert with $X_{k+100}$.
+In the second procedure, we fit the full model $M(\{1,\ldots,p\})$ and compute a $t$-statistic for each variable with respect to that model, yielding $t$-statistics $t_1, t_2, \ldots, t_p$ (not ordered by size). For $k=1,\ldots,p$, we compare each $|t_j|$ to the level-$\alpha$ cutoff for a $t$-test with $n-p$ degrees of freedom, and stop selecting variables the first time $|t_{k+1}|$ is not larger than this cutoff. We might use this procedure if the variables had a  fixed ordering.
+This procedure would control the full-model-null FWER, but {\em not} the incremental-null FWER. Note that the {\em model} $M_k$ plays no role in this procedure: its fit to the data is never evaluated and it is not really selected in any meaningful sense. Even if the fit of $M_k$ is far worse than that of $M_{k+1}$, we may not be able to select $X_{k+1}$ if (say) it is highly collinear with $X_{k+100}$. Conversely, even if the fit of $M_k$ is no better than that of $M_{k-1}$, we may still select $X_k$ if it is a highly useful predictor when used in concert with $X_{k+100}$.
 
-More generally, methods that control full-model error rates are best viewed not as {\em model-selection} procedures --- since all inferences are made with respect to the full model, which is specified ahead of time --- but {\em variable-selection} procedures that test multiple hypotheses with respect to a single fixed model. Note that the truth or falsity of these hypotheses can depend sensitively on the set of $p$ predictors: rejecting $H_j^{\text{full}}$ has no meaning without reference to the list of all variables that we controlled for, which can make a rejection difficult to interpret when $p$ is large. Thus, error rates like $\text{FDR}^{\text{full}}$ are best motivated when the full model has some special scientific status. For example, the scientist may believe due to theoretical considerations that the linear model in $X_1,\ldots,X_p$ is fairly credible, and that a nonzero coefficient $\beta_j$, controlling for all of the other variables, would constitute evidence for a causal effect of $X_j$ on the response.
+More generally, methods that control full-model error rates are best viewed not as {\em model-selection} procedures --- since all inferences are made with respect to the full model, which is specified ahead of time --- but {\em variable-selection} procedures that test multiple hypotheses with respect to a single fixed model. Note that the truth or falsehood of these hypotheses can depend sensitively on the set of $p$ predictors: rejecting $H_j^{\text{full}}$ has no meaning without reference to the list of all variables that we controlled for, which can make a rejection difficult to interpret when $p$ is large. Thus, error rates like $\text{FDR}^{\text{full}}$ are best motivated when the full model has some special scientific status. For example, the scientist may believe due to theoretical considerations that the linear model in $X_1,\ldots,X_p$ is fairly credible, and that a nonzero coefficient $\beta_j$, controlling for all of the other variables, would constitute evidence for a causal effect of $X_j$ on the response.
 
 In this article we will concern ourselves primarily with testing the complete null, reflecting our stated aim of choosing the least complex model that is not rejected by the data. As we discuss further in Section~\ref{sec:selective-reg}, the saturated-model tests of \citet{taylor2014exact} are valid selective tests of $H_k^{\text{inc}}$. Unfortunately, this requires us to assume $\sigma^2$ is known, can result in a large reduction in power, creates dependence between $p$-values at different steps, and is difficult to generalize beyond the case of linear regression. See \citet{gsell2013false} for an in-depth discussion of the relative conceptual advantages and disadvantages between the three approaches.
 
 
 \subsection{Related Work}
 
-The problem of model selection is an old one, with quite an extensive literature. However, with the exception of the works above, very few methods offer finite-sample guarantees on the model that is selected except in the orthogonal-design case. One additional exception is the knockoff filter of \citet{barber2014controlling}, a variant of which provably controls the full-model FDR.
+The problem of model selection is an old one, with quite an extensive literature. However, with the exception of the works above, very few methods offer finite-sample guarantees on the model that is selected except in the orthogonal-design case. One  exception is the knockoff filter of \citet{barber2014controlling}, a variant of which provably controls the full-model FDR.
+We compare our proposal to the Knockoff method in Section \ref{sec:sparseReg}.
 
-Methods like AIC \citet{akaike1974new} and BIC \citep{schwarz1978estimating} are designed for the non-adaptive case, where the sequence of models is determined in advance of observing the data. Cross-validation, another general-purpose algorithm for tuning parameter selection, targets out-of-sample error and tends to select many noise variables when the signal is sparse \WFcomment{Whom to cite?}. \citet{benjamini2009simple} extend the AIC by using an adaptive penalty $\sigma^2\lambda_{k,p} k$ to select a model, based on generalizing the Benjamini-Hochberg procedure \citet{benjamini1995controlling}, but do not prove finite-sample control. The stability selection approach of \citet{meinshausen2010stability} uses an approach based on splitting the data many times and offers asymptotic control of the FDR, but no finite-sample guarantees are available.
+Methods like AIC \citet{akaike1974new} and BIC \citep{schwarz1978estimating} are designed for the non-adaptive case, where the sequence of models is determined in advance of observing the data. Cross-validation, another general-purpose algorithm for tuning parameter selection, targets out-of-sample error and tends to select many noise variables when the signal is sparse (e.g. \cite{LY2015}).   \citet{benjamini2009simple} extend the AIC by using an adaptive penalty $\sigma^2\lambda_{k,p} k$ to select a model, based on generalizing the Benjamini-Hochberg procedure \citet{benjamini1995controlling}, but do not prove finite-sample control. The stability selection approach of \citet{meinshausen2010stability} uses an approach based on splitting the data many times and offers asymptotic control of the FDR, but no finite-sample guarantees are available.
 
 \section{Stopping Rules, Ordered Testing, and Independence}
 
@@ -415,7 +422,7 @@ This implies that the class of sequential $p$-values proposed in this paper can 
 \subsection{Random Hypotheses}
 
 In our problem setting, the sequence of selected models is random; thus, the truth or falsehood of each $H_k$ is not fixed, as assumed in the previous section. This could in principle lead to violation of the error control guarantees that hold in the fixed-hypothesis case.
-
+\RTcomment{As Will and I discussed, this example is confusing and needs improvement.}
 To see why we a problem could arise, consider apply BasicStop in the following counterexample: let $d=2$ and let $k_0$ be 0 or 1 with probability 1/2 each. Then, let 
 \[
 p_1 \sim U[0,1], \quad p_2 \sim (1-k_0 + U[0,1])/2.
@@ -582,7 +589,7 @@ Define the {\em sufficient filtration} for the path $M_{0:d}$ as the filtration 
 
 The sufficient filtration separates $p_{1:d}$ if and only if 
 \begin{enumerate}
-\item $p_k$ is conservative given $M_{0:k-1}$ and $U_{k-1}$, and
+\item $p_k$ is conservative given $M_{0:k-1}$ and $U_{k-1}$, and \RTcomment{clearer to say ``sub-uniform''?}
 \item $p_k$ is a function of $M_{0:k}$ and $U_k$.
 \end{enumerate}
 
@@ -1306,7 +1313,7 @@ does not yields variable-wise FDR control, as it should.
 \label{sec:pca}
 
 \WFcomment{Can we do this one?}
-Here we consider model selection for   principal components analysis. In that case we are given a data matrix $X \in \R^{n\times d}$, with which we form a sample %covariance matrix
+Here we consider model selection for principal components analysis. In that case we are given a data matrix $X \in \R^{n\times d}$, with which we form a sample %covariance matrix
 \[
 S = \frac{1}{n-1} \sum_{i=1}^n(x_i - \bar x)^2
 \]
@@ -1366,7 +1373,8 @@ Rules like the forwardStop procedure could be applied  to the selective $p$-valu
   \label{fig:cart}
 \end{figure}
 
-\section{Discussion}\label{sec:discussion}
+\section{Discussion}
+\label{sec:discussion}
 
 \WFcomment{Adding variables in groups? Changing the set of variables to select from at each step?}
 
