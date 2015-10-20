@@ -166,6 +166,10 @@ U_k(Y) = U(Y; \,M_k(Y)).
 
 Given data $Y$ and model path $M_{0:d}$, we set ourselves the formal goal of selecting the simplest correct model: the smallest $k$ for which $F\in M_k(Y)$. Of course, in most real data problems all of the $M_k(Y)$, as well as all other models under consideration, are incorrect. In more informal terms, then, we seek the simplest model in the path that is not refuted by the available data.
 
+\JTcomment{ Not sure if stopping rule is a great name. It suggests it is a ``stopping time'' with respect to some filtration (which it often is). But it doesn't have to be. Or maybe we should say we call it stopping because we use the property of it being a stopping time? 
+
+Another notation quibble for $M(E)$ I kind of prefer the notation $(\beta_E, \sigma^2_E)$ instead of $(\beta, \sigma^2)$. It emphasizes that these are parameters of different models.}
+
 Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. A {\em stopping rule} is any estimator $\hk(Y)$ of $k_0$, with $M_k$ ``rejected'' if $k < \hk$, and ``accepted'' otherwise. Because $\hk$ is the number of models we do reject, and $k_0$ is the number we should reject, the number of type I errors is $V=(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. Depending on the scientific context, we might want to control the familywise error rate (FWER) $\P(V>0)$, the false discovery rate (FDR) $\E[V/\hk; \hk>0]$ \citep{benjamini1995controlling}, or another error rate defined by the expectation of some loss function $g(\hk, k_0)$:
 \begin{equation}\label{eq:errRate}
 \Err_F(\hk(\cdot), g) = \E_F\left[ g\left(\hk(Y), k_0(Y)\right)\right]
@@ -259,7 +263,12 @@ For simplicity, we have made two assumptions: that only one variable is added at
 Another important class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. 
 The notion of ever-active sets is needed since these solution paths can drop  (as well as add) predictors along the way. 	For some ordered set $\Lambda$, let $\lambda\in\Lambda$ parameterize the regularization penalty $P_\lambda(\theta)$. In the case of lasso-penalized regression, we could take $P_\lambda = \lambda\|\beta\|_1$ for $\lambda\in (0,\infty]$. 
 We assume $P_\lambda(\beta)$  has the property  that the model becomes less constrained as $\lambda$ decreases, that is,
- if $\lambda_2<\lambda_1$ then $\{\beta:P_{\lambda_2}(\beta)\} \supset \{\beta:P_{\lambda_1}(\beta)\}$.  \RTcomment{Will: is this correct?}
+ if $\lambda_2<\lambda_1$ then $\{\beta:P_{\lambda_2}(\beta)\} \supset \{\beta:P_{\lambda_1}(\beta)\}$.  \RTcomment{Will: is this correct?} \JTcomment{Yes, this looks a little funny to me too. Not all penalties produce
+sparsity (for example, the generalized LASSO). So, I think this section is really thinking 
+of $\ell_1$ norm (maybe a group LASSO norm). As written, 
+we are also assuming that
+there is a unique solution to (11) (which is not a big assumption but we might
+as well make it.) Finally, $\ell$ does not actually have to be a likelihood.}
 
 We then define
 \begin{align}
@@ -338,6 +347,8 @@ M(\emptyset) \sub M(\{1\}) \sub M(\{1,2\}) \sub \cdots \sub M(\{1,\ldots, p\}).
 \]
 
 In the first procedure, we construct an analysis-of-variance (ANOVA) table performing an $F$- or $t$-test of each model against the next. We then stop and select model $M_k=M(\{1,\ldots,k\})$ the first time the $F$-test $p$-value is larger than $\alpha$. This procedure would control the complete-null and incremental-null FWER, but {\em not} the full-model-null FWER. The methods we consider in this article are essentially generalizations of this procedure for the setting where the model sequence is selected adaptively, and where we may wish to control FDR instead of FWER.
+
+\JTcomment{Maybe a comment about Type I and Type III ANOVA tables here? I think these are the correct types of ANOVA tables but am not sure...This issue of full vs incremental at least has some classical literature on it.}
 
 In the second procedure, we fit the full model $M(\{1,\ldots,p\})$ and compute a $t$-statistic for each variable with respect to that model, yielding $t$-statistics $t_1, t_2, \ldots, t_p$ (not ordered by size). For $k=1,\ldots,p$, we compare each $|t_j|$ to the level-$\alpha$ cutoff for a $t$-test with $n-p$ degrees of freedom, and stop selecting variables the first time $|t_{k+1}|$ is not larger than this cutoff. We might use this procedure if the variables had a  fixed ordering.
 This procedure would control the full-model-null FWER, but {\em not} the incremental-null FWER. Note that the {\em model} $M_k$ plays no role in this procedure: its fit to the data is never evaluated and it is not really selected in any meaningful sense. Even if the fit of $M_k$ is far worse than that of $M_{k+1}$, we may not be able to select $X_{k+1}$ if (say) it is highly collinear with $X_{k+100}$. Conversely, even if the fit of $M_k$ is no better than that of $M_{k-1}$, we may still select $X_k$ if it is a highly useful predictor when used in concert with $X_{k+100}$.
@@ -589,7 +600,7 @@ Define the {\em sufficient filtration} for the path $M_{0:d}$ as the filtration 
 
 The sufficient filtration separates $p_{1:d}$ if and only if 
 \begin{enumerate}
-\item $p_k$ is conservative given $M_{0:k-1}$ and $U_{k-1}$, and \RTcomment{clearer to say ``sub-uniform''?}
+\item $p_k$ is conservative given $M_{0:k-1}$ and $U_{k-1}$, and \RTcomment{clearer to say ``sub-uniform''?} \JTcomment{I think you mean ``super-uniform'', i.e. it is larger than a uniform random variable?}
 \item $p_k$ is a function of $M_{0:k}$ and $U_k$.
 \end{enumerate}
 
@@ -852,6 +863,9 @@ Selected-model inference is typically more computationally involved than saturat
 
 For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ could cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less important: we are not looking for a scientifically interpretable interval for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject $M_{k-1}$ and move on if it is demonstrably incompatible with the data. If there are many remaining strong signal variables to be found, then both $M_k$ and $M_{k-1}$ are badly misspecified; the more true this is, the stronger the grounds are for rejecting $M_{k-1}$.
 
+\JTcomment{I would say our goal is a good stopping rule AND inference on parameters of selected (or perhaps saturated) model. We do not consider it here
+because we don't know how to do it, not because it is not interesting.}
+
 There are several major statistical benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and $\proj_{\eta_k}^\perp Y$ results in a degenerate conditional distribution for $\eta_k'Y$.
 
 Second, we have seen in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}.
@@ -1008,6 +1022,9 @@ and then conditioning on the event $E_{k-1}(Y^*)= E_k(Y)$ (a polyhedron).
 In other words, we need to condition on data vectors  $Y^*$ that yields the same
 sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
 
+\JTcomment{We actually don't really need to condition on the signs
+for the theory to go through. It is only so that sampling is feasible.}
+
 Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, but  with  a novel twist:  the bootstrap residuals are projected into the subspace
 orthogonal to the current fit.  The typical justification for the bootstrap is asymptotic, relying on the convergence of the parameter estimates to the true parameters.
 But something magical  occurs in the selective sampling scheme (\ref{eq:boot}): this  sampling fixes the value of $ X_{E_{k-1}}^Ty$ and this conditioning
@@ -1148,6 +1165,8 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
   linear equality constraints on $U(Y)$.
 \end{theorem}
 
+\JTcomment{Is there a reason you have $\psi$ and $\ell$ above instead of just $\ell$? I think the $(E,t)$ above should be $(E,u)$. It seems you never come back to $\psi$.}
+
 \begin{proof}
   Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
   \[
@@ -1170,6 +1189,10 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
     \E_{\hat\theta^r}[U_j] + \lambda_r .
   \end{align}
 \end{proof}
+
+\JTcomment{The notation $R_k$ isn't really defined. I don't think you need an
+index $r$ and $k$, so we could talk about for every $\lambda \in \Lambda \geq \lambda_k$ instead of every $r \leq R_k$. No?
+Here we do use the fact that the objective is a likelihood.}
 
 \WFcomment{Give more general characterization of when we can do it, including group lasso? QP? Generalized Lasso?}
 
@@ -1313,6 +1336,10 @@ does not yields variable-wise FDR control, as it should.
 \label{sec:pca}
 
 \WFcomment{Can we do this one?}
+\JTcomment{In principle, we can. But, paper is a little long. Maybe
+just point out in discussion
+that the $p$-values in Choi et al. are examples of this setup?}
+
 Here we consider model selection for principal components analysis. In that case we are given a data matrix $X \in \R^{n\times d}$, with which we form a sample %covariance matrix
 \[
 S = \frac{1}{n-1} \sum_{i=1}^n(x_i - \bar x)^2
@@ -1386,7 +1413,7 @@ Of course, the answer depends on the scientific context: for example, suppose th
 
 We plan to distribute  open source software, in both the R and Python languages,  for computing the max-$t$ and other tests discussed in this paper.
 
-
+\JTcomment{Max $T$ available in python code on github. I suppose R as well, but not sure.}
 
 \section*{Acknowledgments}
 
