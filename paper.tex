@@ -90,9 +90,7 @@ To select a model, we can feed the resulting $p$-values as inputs into sequentia
 \label{sec:introduction}
 Many model selection procedures produce a sequence of increasingly complex models, leaving the data analyst to choose among them. 
 %While methods like cross-validation aim at minimizing out-of-sample prediction error, such methods tend to select a large fraction of noise variables. 
-Given such a path, we consider the problem of choosing the simplest model in the path that is not falsified by the available data. Examples of path algorithms include forward stepwise linear regression, least angle regression (LAR) and  the ever-active path in $\ell_1$-regularized models. \citet{taylor2014exact} study methods for generating exact $p$-values at each step of these path algorithms, and their methods provide a starting point for our proposals. In addition, \citet{choi2014selecting} discuss a selective approach to determining the correct rank of the covariance matrix in principle components analysis.
-
-
+Given such a path, we consider the problem of choosing the simplest model in the path that is not falsified by the available data. Examples of path algorithms include forward stepwise linear regression, least angle regression (LAR) and  the ever-active path in $\ell_1$-regularized models. \citet{taylor2014exact} study methods for generating exact $p$-values at each step of these path algorithms, and their methods provide a starting point for our proposals. In addition, \citet{choi2014selecting} discuss a selective approach to estimating the rank of the covariance matrix in principle components analysis.
 
 To select a model, we compute a set of sequential $p$-values at each step of the model path, and then feed them into a stopping rule that is guaranteed to control the FDR, familywise error rate (FWER), or a similar quantity. Recently \citet{gsell2013sequential} and \citet{li2015accumulation} proposed sequential stopping rules of this kind. 
 Both sets of rules require that once we have reached the first correct model in our path, the $p$-values in subsequent steps are uniform (or conservative),
@@ -999,13 +997,91 @@ To eliminate the nuisance parameter $\mu_1$, the test conditions on $Y_1$. Thus,
 \section{Computation}
 \label{sec:computation}
 
-Until this point, we have deferred discussing the question of how to actually compute the rejection cutoffs for the max-$t$ test, next-$\lambda$ test, or any of the other tests we have discussed. In each case, we have a test that rejects when some test statistic $T_k$ is large compared to the law
+Until this point, we have deferred discussing the question of how to actually compute the rejection cutoffs for the max-$t$ test, next-$\lambda$ test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
 \begin{equation}\label{eq:genDist}
-\L(T_k \,\mid\, M_{k-1}, U_{k-1}),
+\L(T_k(Y) \,\mid\, M_{k-1}(Y), U_{k-1}(Y)),
 \end{equation}
-under the null hypothesis that $F\in M_{k-1}$. As such, we have reduced computation of the $p$-value at step $k$ to a sampling problem: if we can sample values of $Y$ from the law~\eqref{eq:genDist}, we can numerically approximate the $p$-value to whatever precision we desire.
+under the null hypothesis that $F\in M_{k-1}$. Because $U_{k-1}$ is sufficient for $Y$ under the null, this law is completely known. Thus, we have reduced computation of the $p$-value at step $k$ to a sampling problem: if we can sample values of $Y$ from its null distribution given $M_{k-1}(Y), U_{k-1}(Y)$, we can numerically approximate the $p$-value to whatever precision we desire.
 
-Due to the generality in which we have posed the problem here, we cannot give a general prescription for how to carry out this sampling. Instead, we give details of our computational strategy here for one case, the max-$z$ test in forward stepwise regression with known $\sigma^2$.
+Due to the generality in which we have posed the problem here, we cannot give a general prescription for how to carry out this sampling. However, we can go into some detail for the important case of linear regression.
+
+\subsection{Details for Linear Regression}
+
+As discussed in Section~\ref{sec:singleStep}, we will set
+\[
+p_k(Y) = p_{k, E_{k-1}(Y)}(Y),
+\]
+where $p_{k,E}(Y)$ for each $E\sub \{1,\ldots, p\}$ is a conditional $p$-value for the {\em fixed} null model $M(E):\, Y \sim N(X_E\beta, \sigma^2)$, valid on the selection event $A=\{E_{k-1}(Y)=E\}$.
+
+We focus here on the simpler case where $\sigma^2$ is known. For $\sigma^2$ unknown, see \citet{fithian2014optimal}. If $\sigma^2$ is known, then $U_{k-1}(Y) = X_{E}'Y$ on $A$, so our task is to sample under the null from
+\[
+\L(Y \mid X_E'Y, Y\in A),
+\]
+a truncated multivariate Gaussian distribution.
+
+\begin{comment}
+ If $\sigma^2$ is unknown, then $U_{k-1}=(X_E'Y,\, \|Y\|^2)$ on $A$ and we must sample under the null from
+\[
+\L(Y \mid X_E'Y,\, \|Y\|^2,\, Y\in A).
+\]
+\end{comment}
+
+\paragraph{Accept-Reject Sampling:}
+Note that sampling from $\L(Y \mid X_E'Y)$ is easy. Letting $\proj_{X_E}$ denote projection into the column space of $X_E$, we can decompose $Y$ into two independent terms:
+\[
+Y = \proj_{X_E}Y + \proj_{X_E}\perp Y.
+\]
+The first term is fixed conditional on $X_E'Y$, while the second is a degenerate Gaussian distribution with mean zero and covariance matrix $\sigma^2\proj_{X_E}^\perp$.
+
+
+
+For a fixed set $E$, we must be able to ample from 
+
+we must be able to sample from the event on the event $E_{k-1}(Y)=E$,
+
+
+ if $\sigma^2$ is known, and $(X_{E_{k-1}}'Y, \|Y\|^2)$ otherwise. Thus for a fixed active
+
+
+ In either case, sampling from $\L(Y \mid U_{k-1})$ is easy under the null hypothesis that $\E Y$ lies in the column span of $X_{E_{k-1}}$. Write
+\[
+Y = \proj_{E_{k-1}} 
+\]
+
+
+If $\sigma^2$ is known, then
+\[
+Y = 
+\]
+
+
+
+
+, and we need to sample under the null hypothesis that $Y$ is marginally Gaussian, with $\E Y$ in the column span of $X_{E_{k-1}}$.
+
+
+
+
+
+: if $\sigma^2$ is known, then $Y$ 
+
+
+but sampling from $\L(Y \mid E_{k-1}, \, U_{k-1})$ . We focus first on the casIf $\sigma^2$ is known, we can sample
+
+
+ therefore not a given $U_{k-1}$ is n
+
+The event that $M_{k-1}(Y)$
+
+\subsection{Linear Regression}
+
+
+
+See \citet{fithian2014optimal}
+
+
+
+ Instead, we give details of our computational strategy here for one case, the max-$z$ test in forward stepwise regression with known $\sigma^2$.
 
 Given a model $M_{k-1}$   we need to sample from 
 \begin{eqnarray}
