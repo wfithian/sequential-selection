@@ -50,6 +50,7 @@
 %\newcommand{\cP}{\mathcal{P}}
 \newcommand{\proj}{\cP}
 \newcommand{\pow}{\text{Pow}}
+\newcommand{\supp}{\text{supp}}
 \newcommand{\sF}{\mathscr{F}}
 \newcommand{\cF}{\mathcal{F}}
 \newcommand{\sC}{\mathscr{C}}
@@ -173,7 +174,7 @@ Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the inde
 \Err_F(\hk(\cdot), g) = \E_F\left[ g\left(\hk(Y), k_0(Y)\right)\right]
 \end{equation}
 
-\subsection{Single-Step $p$-Values}
+\subsection{Single-Step $p$-Values}\label{sec:singleStep}
 
 We will restrict our attention to stopping rules like those recently proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, which operate on a sequence $p_{1:d}$ of $p$-values. At each step $k$, we will construct a $p$-value for testing
 \[
@@ -1003,9 +1004,15 @@ Until this point, we have deferred discussing the question of how to actually co
 \end{equation}
 under the null hypothesis that $F\in M_{k-1}$. Because $U_{k-1}$ is sufficient for $Y$ under the null, this law is completely known. Thus, we have reduced computation of the $p$-value at step $k$ to a sampling problem: if we can sample values of $Y$ from its null distribution given $M_{k-1}(Y), U_{k-1}(Y)$, we can numerically approximate the $p$-value to whatever precision we desire.
 
-Due to the generality in which we have posed the problem here, we cannot give a general prescription for how to carry out this sampling. However, we can go into some detail for the important case of linear regression.
+In many cases it is easy to sample $Y$ given $U_{k-1}$, so computational difficulties only arise insofar as the selection event $\{M_{k-1}(Y)=M\}$ is difficult to condition on. Due to the generality in which we have posed the problem, we cannot give a general prescription for how to carry out this sampling. However, we give some details for the important case of linear regression in Section~\ref{sec:linRegComputation}.
 
-\subsection{Details for Linear Regression}
+For a completely general selection algorithm, we might expect severe computational difficulties when we attempt to condition on the null model at stage $k$, $M_{k-1}(Y)$. For example, in forward stepwise regression, $M_{k-1}$ is the accumulated result of $k-1$ steps of greedy variable selection. At each step $s<k$, the selection of variable $j_s$ is a result of comparing its $t$-statistic with the $t$-statistics of the other $p-k$ inactive variables. Based on this logic, we might expect to accumulate at least $O(p)$ constraints at each step, resulting in $O(kp)$ constraints after $k$ steps.
+
+For lasso linear regression, the situation seems even more dire: for any fixed value of $\lambda$, the event $\{\supp(\hat\beta^\lambda) = E\}$ is a union of up to $2^{|E|}$ polytopes in $\R^n$, each satisfying $O(p)$ constraints \citep{lee2013exact}. \footnote{To finesse this issue, \citet{lee2013exact} propose conditioning on the signs of $\hat\beta^\lambda$ as well. If we do this, the conditioning set becomes a single polytope.}. But the event $\{E_{k-1}(Y)=E\}$ depends on $\supp(\hat\beta^\lambda)$ for every $\lambda > \lambda_k$ --- i.e., on the solution to {\em infinitely many} lasso problems.
+
+Remarkably, however, in both forward-stepwise and lasso linear regression, the computational problem actually becomes easier when we move to the sequential setting considered here. Indeed, Section~\ref{sec:constraints} shows that for both forward-stepwise regression and lasso linear regression --- and their respective generalizations to exponential family models --- conditioning on the event $\{E_{k-1}=E\}$, for any $k$, only introduces $2p$ linear constraints, taking the form of a rectangular constraint on the sufficient statistics for the inactive variables.
+
+\subsection{Details for Linear Regression}\label{sec:linRegComputation}
 
 As discussed in Section~\ref{sec:singleStep}, we will set
 \[
@@ -1013,94 +1020,43 @@ p_k(Y) = p_{k, E_{k-1}(Y)}(Y),
 \]
 where $p_{k,E}(Y)$ for each $E\sub \{1,\ldots, p\}$ is a conditional $p$-value for the {\em fixed} null model $M(E):\, Y \sim N(X_E\beta, \sigma^2)$, valid on the selection event $A=\{E_{k-1}(Y)=E\}$.
 
-We focus here on the simpler case where $\sigma^2$ is known. For $\sigma^2$ unknown, see \citet{fithian2014optimal}. If $\sigma^2$ is known, then $U_{k-1}(Y) = X_{E}'Y$ on $A$, so our task is to sample under the null from
-\[
+If $\sigma^2$ is known, then $U_{k-1}(Y) = X_{E}'Y$ on $A$, so our task is to sample under the null from
+\begin{equation}\label{eq:truncNorm}
 \L(Y \mid X_E'Y, Y\in A),
-\]
-a truncated multivariate Gaussian distribution.
+\end{equation}
+which is a multivariate Gaussian distribution supported on the hyperplane of dimension $n-|E|$ with $X_E'Y$ fixed at its realized value, and truncated to the event $A$. 
 
-\begin{comment}
- If $\sigma^2$ is unknown, then $U_{k-1}=(X_E'Y,\, \|Y\|^2)$ on $A$ and we must sample under the null from
-\[
-\L(Y \mid X_E'Y,\, \|Y\|^2,\, Y\in A).
-\]
-\end{comment}
+If $\sigma^2$ is unknown, then $U_{k-1}=(X_E'Y,\, \|Y\|^2)$ on $A$ and we must sample under the null from
+\begin{equation}\label{eq:truncUnif}
+\L(Y \mid X_E'Y,\, \|Y\|^2,\, Y\in A),
+\end{equation}
+which is a uniform distribution supported on a sphere of dimension $n-|E|-1$ defined by fixing $X_E'Y$ and $\|Y\|^2$ at their realized values, and truncated to the event $A$. For the simulations in this article, we use a hybrid of two strategies:
 
-\paragraph{Accept-Reject Sampling:}
-Note that sampling from $\L(Y \mid X_E'Y)$ is easy. Letting $\proj_{X_E}$ denote projection into the column space of $X_E$, we can decompose $Y$ into two independent terms:
-\[
-Y = \proj_{X_E}Y + \proj_{X_E}\perp Y.
-\]
-The first term is fixed conditional on $X_E'Y$, while the second is a degenerate Gaussian distribution with mean zero and covariance matrix $\sigma^2\proj_{X_E}^\perp$.
+\paragraph{Accept/Reject Sampler} In either of these two cases, sampling would be very easy if $A$ were the entire sample space $\R^n$; the only reason we might encounter difficulty is that $A$ could be an irregular set that is difficult to condition on. However, we can always sample from $\L(Y \mid U)$ and then keep each new sample $Y$ if it lies in the selection event.
 
+\paragraph{Hit-and-Run Sampler} \citet{fithian2014optimal} propose sampling from laws like that in~\eqref{eq:truncNorm} via a hit-and-run sampler for the $n-|E|$-dimensional multivariate Gaussian distribution: at each step, to generate $Y^{t+1}$ from $Y^t$, we choose a uniformly random unit vector $\nu$ in the hyperplane, and resample $\nu'Y$ conditional on the constraints $\proj_{\nu}^\perp Y^{t+1}=\proj_{\nu}^\perp Y^t$ and the constraint $Y^{t+1}\in A$. If $A$ is a polytope this amounts to resampling a univariate Gaussian distribution with known mean and variance, truncated to an interval defined by maximizing and minimizing $\nu'Y^{t+1}$ subject to linear constraints. For the case with $\sigma^2$ unknown, the sampler is a bit more involved; see \citet{fithian2014optimal}.
 
-
-\subsection{Linear Regression}
-
-
-
-See \citet{fithian2014optimal}
-
-
-
- Instead, we give details of our computational strategy here for one case, the max-$z$ test in forward stepwise regression with known $\sigma^2$.
-
-Given a model $M_{k-1}$   we need to sample from 
-\begin{eqnarray}
-L(X'_jY \,|\, E_{k-1},X'_{E_{k-1}}Y)
-\label{eqn:maxtsamp}
-\end{eqnarray}
-with $Y\sim N(\mu, I \cdot \sigma^2)$.
-The current model fit is $\proj_{E_{k-1}} Y$ and it is easy to see that (\ref{eqn:maxtsamp})  is equivalent to sampling
-\begin{eqnarray}
-Y^*=\proj_{E_{k-1}} Y + (I- \proj_{E_{k-1}}) Z; \;Z\sim N(0,I\cdot\sigma^2)
-\label{eq:boot}
-\end{eqnarray}
-and then conditioning on the event $E_{k-1}(Y^*)= E_k(Y)$ (a polyhedron).
-In other words, we need to condition on data vectors  $Y^*$ that yields the same
-sequence of variables and coefficient signs up to step $k-1$. This is the challenging aspect of this computation.
-
-\JTcomment{We actually don't really need to condition on the signs
-for the theory to go through. It is only so that sampling is feasible.}
-
-Note that  (\ref{eq:boot})  has the form of  (conditional) parametric bootstrap sampling, but  with  a novel twist:  the bootstrap residuals are projected into the subspace
-orthogonal to the current fit.  The typical justification for the bootstrap is asymptotic, relying on the convergence of the parameter estimates to the true parameters.
-But something magical  occurs in the selective sampling scheme (\ref{eq:boot}): this  sampling fixes the value of $ X_{E_{k-1}}^Ty$ and this conditioning
-removes the dependence on nuisance parameters.
-Hence  (\ref{eq:boot}) yields the exact (non-asymptotic) conditional distributions and $p$-values.
-
-Figure \ref{fig:comparison} shows an example with $n=100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.
-The ``exact'' answer  was determined from bootstrap sampling with $20,000$ replications.
-The Figures show the bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged
+Figure \ref{fig:comparison} compares the two samplers in an example with $n=100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.
+The ``exact'' answer was determined from bootstrap sampling with $20,000$ replications.
+The Figures show the bias, variance and mean squared error (MSE) of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged
 over 10 different starting seeds.
 \begin{figure}[htp]
 \centering
   \includegraphics[width=\textwidth]{figs/comparison.pdf}
-  \caption{\em Simulated example with $n= 100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.  Shown are bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged
-over 10 different starting seeds.
+  \caption{\em Simulated example with $n= 100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.  Shown are bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged over 10 different starting seeds.
 }
-  \label{fig:comparison}
+\label{fig:comparison}
 \end{figure}
-We see that accept/reject is far more efficient, yielding a smaller MSE with 1000 samples then hit and run gives for  8000 samples.
-Hence we use accept/reject for as many steps of the sequence is possible,  until the point where the acceptance rate is too low to make is practical.
+We see that accept/reject is far more efficient, yielding a smaller MSE with 1000 samples then hit and run gives for 8000 samples. As we move further along the path, the set $A$ becomes more and more constraining, so that we must discard the vast majority of the samples we generate. Thus we use accept/reject for as many steps of the sequence is possible,  until the point where the acceptance rate is too low to make is practical.
 
-In detail, we employ a hybrid computational strategy; we use accept-reject sampling, and do so as long as we obtain at least 300 (say) samples in the first set
-of $B$ realizations ($75,000$ in our code)  This is an effective approach until we have reached a point in the model path where all predictors have little or no signal.
-When the acceptance rate gets too low, we switch to a hit-and run Monte Carlo approach. We exploit the fact that each move along a random direction 
-has a truncated Gaussian distribution whose truncation limits are easily computed from the properties of the polyhedron. Unlike accept-reject, sampling
-which produces independent samples,  the hit and run method produces dependent samples. Hence we must run it for longer with an initial burn in period,
-and hope that it has mixed sufficiently well.
+In detail, we employ a hybrid computational strategy; we use accept-reject sampling, and do so as long as we obtain at least 300 (say) samples in the first set of $B$ realizations ($75,000$ in our code)  This is an effective approach until we have reached a point in the model path where all predictors have little or no signal. When the acceptance rate gets too low, we switch to a hit-and run Monte Carlo approach. We exploit the fact that each move along a random direction  has a truncated Gaussian distribution whose truncation limits are easily computed from the properties of the polyhedron. Unlike accept/reject sampling, which produces independent samples,  the hit and run method produces dependent samples. Hence we must run it for longer with an initial burn in period, and hope that it has mixed sufficiently well.
 
+The task is made much simpler by the fact that the selection event can we written as a polytope $A=\{y: \Gamma y \geq u\}$. Hence we don't need to run the entire forward stepwise procedure on $Y^*$: instead, we pre-compute $\Gamma$ and $u$ and then check if $\Gamma Y^* \geq u$. In the case of forward stepwise and lasso regression, $\Gamma$ has $2(p-k)$ rows after $k$ steps, as we see next.
 
+\subsection{Constraints}\label{sec:constrainsts}
+Happily, it turns out that the conditioning polytope can be expressed with only $2(p-k)$ constraints in forward stepwise regression and the lasso, as we show here. This increases the speed of both accept/reject and hit-and-run sampling for our problem.
 
-The task is made much simpler by the fact that the selection event can we written as $S_M=\{y: \Gamma y \geq u\}$.
-Hence we don't need to run the entire forward stepwise procedure on $y^*$: instead, we pre-compute $\Gamma$ and $u$ and then check
-if $\Gamma y^* \geq u$. Further, since $\Gamma$ has on the  order of $2pk$ rows after $k$ steps,  we can save 
-substantially in computation by checking the row-wise inequalities starting from the last row, where the inequality is most likely to fail.
-
-\subsection{Reducing the number of constraints}
-Happily, it turns out that the conditioning polytope can be expressed with only $2p$ constraints in forward stepwise regression, as we show here.
-This increases the speed of both accept/reject and hit and Run sampling for our problem.
+We begin by proving the result for forward stepwise linear regression, followed by a more general result for the forward stepwise likelihood path in exponential families.
 
 \begin{theorem}
   Assume the model path $M_{0:d}$ is obtained by forward stepwise 
@@ -1124,21 +1080,13 @@ This increases the speed of both accept/reject and hit and Run sampling for our 
   \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
   {\|\proj_{E_i}^\perp X_j\|}
   \]
-  The crucial observation is that, 
-  once we know the $k$th active set 
-  $E_k$ and its sufficient statistics
-  $X_{E_k}'Y$, we know the entire 
-  path of fitted models up to step $k$.
-  On the set $\{E_k=E\}$, all of the quantities 
-  $j_{i+1}$, $E_i$, $\hat\beta^i$, and $\proj_{E_i}^\perp$
-  depend only on $X_E'Y$. For brevity, write
+  Because forward stepwise regression satisfies the SSP, we know the entire path of fitted models up to step $k$ once we condition on the $k$th active set $E_k$ and its sufficient statistics $X_{E_k}'Y$. On the set $\{E_k=E\}$, all of the quantities $j_{i+1}$, $E_i$, $\hat\beta^i$, and $\proj_{E_i}^\perp$ depend only on $X_E'Y$. For brevity, write 
   \[
   C_i^* = \max_{j \notin E_i} 
   \frac{\left| X_j ' (Y - X_{E_i}\hat\beta^i) \right|}
   {\|\proj_{E_i}^\perp X_j\|}.
   \]
-  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $i$th 
-  variable added.
+  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $i$th variable added.
 
   If $X_E'Y$ is fixed at $u$, and $j \notin E$, then the condition for 
   $X_j$ {\em not} to enter at step $i+1 < k$ is
@@ -1173,7 +1121,71 @@ This increases the speed of both accept/reject and hit and Run sampling for our 
   \end{align}  
 \end{proof}
 
-As we see below, a similar result holds for the LASSO ever-active path. In fact, it holds for a much larger class of $\ell_1$-regularized exponential family models including the graphical LASSO.
+As we see below, the same result holds for the much larger class of forward stepwise likelihood paths in exponential family models.
+
+\begin{theorem}
+  Assume that $M_\infty$ is an exponential family model
+  of the form
+  \[
+  Y \sim \exp\{ \theta'U(y) - \psi(\theta) \}\,d\nu(y),
+  \]
+  with $\Theta \sub \R^p$ convex, and assume that the model path $M_{0:d}$ is given by the forward stepwise likelihood path with
+\begin{equation}
+j_k = \argmax_j \;\;\sup \left\{\ell(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\}, \quad \text{ and } \quad
+E_k = E_{k-1} \cup \{j_k\}.
+\end{equation}
+
+  Then, for a candidate active set $E$ of size $k$, the set $A = \{E_k = E, \;U_E = u\}$ is characterized exactly by the constraints $U_E = u$ and
+  \[
+  v_j^-(E,u) \leq U_j(Y) \leq v_j^+(E,u), \quad\forall j \notin E,
+  \]
+  for $v_j^-$ and $v_j^+$ given in Equations~(\ref{eq:vMinus_FSL}--\ref{eq:vPlus_FSL}).
+  Thus, $A$ corresponds exactly to a set with $2(p-k)$ linear inequality constraints and $k$ linear equality constraints on $U(Y)$.
+\end{theorem}
+
+\begin{proof}
+  For a set $E\sub \{1,\ldots,p\}$ define
+  \[
+  \ell_E^*(U_E(Y)) 
+  = \sup\left\{\theta'U(Y) - \psi(\theta) :\; \theta\in \Theta(E) \right\}
+  = \sup\left\{\theta_E'U_E(Y) - \psi_E(\theta_E):\; \theta\in\Theta(E) \right\},
+  \]
+  where $\psi_E:\; \R^{|E|} \to \R$ is defined such that $\psi(\theta)=\psi_E(\theta_E)$ if $\theta_{\setminus E}=0$. Note that $\ell_E^*$ is the convex dual of the convex function $\psi_E$, so $\ell_E^*$ is also convex. At stage $i<k$, the next variable to enter is the one that maximizes $\ell_{E_i\cup \{j\}}^*(U(Y))$.
+
+  Because the forward stepwise likelihood path satisfies the SSP, we know the entire path of fitted models up to step $k$ once we condition on $E_k$ and its sufficient statistics $U_{E_k}(Y)$. On the set $\{E_k=E\}$, all of the quantities $j_{i+1}$, $E_i$, $\hat\theta^i$, and $\proj_{E_i}^\perp$ depend only on $U_E(Y)$. For brevity, write 
+  \[
+  C_i^* = \max_{j \notin E_i} 
+    \sup \left\{ \theta ' U - \psi(\theta):\; \theta \in \Theta(E_i\cup \{j\}) \right\}.
+  \]
+  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $i$th variable added.
+
+  If $U_E(Y)$ is fixed at $u$, and $j \notin E$, then the condition for 
+  variable $j$ {\em not} to enter at step $i+1 < k$ is
+  \[
+  \ell_{E_i\cup \{j\}}^*(U(Y)) \leq C_i^*.
+  \]
+  Note that $\ell_{E_i\cup \{j\}}^*$ depends only on the sufficient statistics $U_{E_i}(Y)$ --- which is fixed, on $A$ --- and the remaining sufficient statistic $U_j(Y)$. Since $\ell_{E_i\cup\{j\}}^*$ is convex, the set
+  \begin{equation}\label{eq:noEnterBounds_FSL}
+  \{U_E=u, \ell_{E_i\cup \{j\}}^*(U(Y)) \leq C_i^*\} 
+  = \{ U_E=u, v_{j,i}^-(E,u) \leq U_j \leq v_{j,i}^+(E,u)\},
+  \end{equation}
+  where $v_j^{-}$ and $v_j^+$ are the two values where $\ell_{E_i\cup \{j\}}^*(U)=C_i^*$.
+
+  The set $A$ is equivalent to 
+  Equation~\eqref{eq:noEnterBounds_FSL} holding
+  for every $i < k$ and $j \notin E$. Nominally, this gives $2k(p-k)$
+  linear inequality constraints to satisfy, but most of them are
+  non-binding. On $A$, the upper and lower bounds
+  in~\eqref{eq:noEnterBounds_FSL}
+  are all known functions of $E$ and $u$, so we can set
+  \begin{align}\label{eq:vMinus_FSL}
+    v_j^-(E,u) &= \max_{0 \leq i < k} \;\;v_{j,i}^-(E,u)\\
+    \label{eq:vPlus_FSL}
+    v_j^+(E,u) &= \min_{0 \leq i < k} \;\;v_{j,i}^-(E,u)
+  \end{align}
+\end{proof}
+
+A similar result also holds for the class of $\ell_1$-regularized exponential family models including the graphical LASSO.
 
 \begin{theorem}
   Assume that $M_\infty$ is an exponential family model
@@ -1185,16 +1197,16 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
   that the model path $M_{0:d}$ is given 
   by the ever-active set for the $\ell_1$-penalized problem
   \begin{equation}\label{eq:regProblem}
-  \hat\theta^r = \argmin_{\theta\in \Theta} 
-  -\ell(\theta) + \lambda_r\|\theta\|_1,
+  \hat\theta^\lambda = \argmin_{\theta\in \Theta} 
+  -\ell(\theta) + \lambda\|\theta\|_1,
   \end{equation}
-  for some sequence $\lambda_r > 0$.
+  for $\lambda\in \Lambda \sub [0,\infty)$.
 
   Then, for a candidate active set $E$ of size $k$, 
   the set $A = \{E_k = E, \;U_E = u\}$ is characterized 
   exactly by the constraints $U_E = u$ and
   \[
-  v_j^-(E,t) \leq U_j(Y) \leq v_j^+(E,t), \quad\forall j \notin E,
+  v_j^-(E,u) \leq U_j(Y) \leq v_j^+(E,u), \quad\forall j \notin E,
   \]
   for $v_j^-$ and $v_j^+$ given explicitly in
   Equations~(\ref{eq:vMinus_L1}--\ref{eq:vPlus_L1}).
@@ -1204,35 +1216,31 @@ As we see below, a similar result holds for the LASSO ever-active path. In fact,
 \end{theorem}
 
 \JTcomment{Is there a reason you have $\psi$ and $\ell$ above instead of just $\ell$? I think the $(E,t)$ above should be $(E,u)$. It seems you never come back to $\psi$.}
+\WFcomment{Fixed t/u. $\psi$ is the log-proportionality constant, I think we need it. Maybe I'm misunderstanding your question?}
 
 \begin{proof}
   Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
   \[
-  \hat\theta^r = \hat\theta^{(E,r)}
+  \hat\theta^\lambda = \hat\theta^{(E,\lambda)}
   \]
-  for every $r \leq R_k$, so we know the entire path of fits up to and including $R_k$. But then, excluding variable $j \notin E$ at Lagrange parameter $\lambda_r$ is equivalent to
+  for every $\lambda \geq \lambda_k$, so we know the entire path of fits up to and including $\lambda_k$. But then, excluding variable $j \notin E$ at Lagrange parameter $\lambda$ is equivalent to
   \[
-  \lambda_r \geq 
-  \left| \pardd{\ell(\hat\theta^r)}{\theta_j} \right|
-  = \left|U_j - \E_{\hat\theta^r}[U_j]\right|
+  \lambda \geq 
+  \left| \pardd{\ell(\hat\theta^\lambda)}{\theta_j} \right|
+  = \left|U_j - \E_{\hat\theta^\lambda}[U_j]\right|
   \]
-  On $A$, for $r \leq R_k$, 
-  $\E_{\hat\theta^r}[U_j]$ is a known function of $E$ and $u$,
+  On $A$, for $\lambda \geq\lambda_k$, 
+  $\E_{\hat\theta^\lambda}[U_j]$ is a known function of $E$ and $u$,
   so we can set
   \begin{align}\label{eq:vMinus_L1}
-    v_j^-(E,u) &= \sup_{r \leq R_k} \;\; 
-    \E_{\hat\theta^r}[U_j] - \lambda_r \\
+    v_j^-(E,u) &= \sup_{\lambda \geq \lambda_k} \;\; 
+    \E_{\hat\theta^\lambda}[U_j] - \lambda \\
     \label{eq:vPlus_L1}
-    v_j^+(E,u) &= \inf_{r \leq R_k} \;\;
-    \E_{\hat\theta^r}[U_j] + \lambda_r .
+    v_j^+(E,u) &= \inf_{\lambda \geq \lambda_k} \;\;
+    \E_{\hat\theta^\lambda}[U_j] + \lambda .
   \end{align}
 \end{proof}
 
-\JTcomment{The notation $R_k$ isn't really defined. I don't think you need an
-index $r$ and $k$, so we could talk about for every $\lambda \in \Lambda \geq \lambda_k$ instead of every $r \leq R_k$. No?
-Here we do use the fact that the objective is a likelihood.}
-
-\WFcomment{Give more general characterization of when we can do it, including group lasso? QP? Generalized Lasso?}
 
 \begin{comment}
 \subsection{An analytic approximation for the max-$t$ test}
@@ -1365,11 +1373,32 @@ The {\tt Simple} rule stops at the first time that a $p$-value exceeds $\alpha=0
 \label{tab:stopping20}
 \end{table}
 
-We see that 1) strongStop and forwardStop control FWER and modelwise FDR, respectively, using $p$-values from MaxT or MaxT-identify, as predicted by theory
-2) the nominal $p$-values do not lead to control of FWER or FDR, as expected, 3) the $p$-values from the saturated model show FWER and modelwise-FDR control,
-although not guaranteed by theory, 4) the MaxT rules show higher probabilities of selecting the true model, especially using forwardStop, 5) the knockoff method
-does not yields variable-wise FDR control, as it should.
-5)
+We see that basicStop and forwardStop control model-wise FWER and FDR, respectively, using $p$-values from max-$t$ or max-$t$-identify, as predicted by the theory, 2) the nominal $p$-values do not lead to control of FWER or FDR, as expected due to their anti-conservatism. Although not guaranteed by the theory, the $p$-values from the saturated model do control FWER and model-wise FDR in this example, 4) the max-$t$ rules show higher probabilities of selecting the true model, especially using forwardStop, 5) the knockoff method does not yield variable-wise FDR control.
+
+
+\section{Futher Examples and Extensions}
+
+Although our our 
+
+\subsection{Principal Components Analysis}
+
+\subsection{Classification and Regression Trees}
+
+\subsection{Nonparametric Changepoint Detection}
+
+Consider a problem in which we observe a time series $(y_1,\ldots,y_T)\in \cY^T$, and wish to detect times $t_1,\ldots,t_k$ where the distribution of $y_t$ changes. For example, given a historical document, we may wish to determine 
+
+Assuming independence between observation times, we can model
+\[
+y_t \simind F_t, \quad t=1,\ldots, T,
+\]
+with the 
+
+
+ independent $y_t$ for $t=1,\ldots,T$, with
+
+
+
 \section{Principal Components Analysis}
 \label{sec:pca}
 
@@ -1445,7 +1474,7 @@ Rules like the forwardStop procedure could be applied  to the selective $p$-valu
 
 It is a commonplace that ``essentially all models are wrong, but some are useful'' \citep{box1987empirical}. In essence, a statistical model is useful if it is large enough to capture the most important features of the data, but still small enough that inference procedures can achieve adequate power and precision. Apart from theoretical considerations, the only way to know whether a model is large enough is to test whether it is, using available data.
 
-Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the most threat to our inferential conclusions, and how powerful are our tests against these most troublesome sources of misspecification? 
+Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the greatest threat to our inferential conclusions, and how powerful are our tests against these troublesome sources of misspecification?
 
 Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
 
