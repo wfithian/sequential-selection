@@ -1378,27 +1378,94 @@ We see that basicStop and forwardStop control model-wise FWER and FDR, respectiv
 
 \section{Futher Examples and Extensions}
 
-Although our our 
+Although we have focused our discussion on the case of linear regression --- a very common and important application of sequential model selection --- our theory is quite general and applies to many other parametric and nonparametric models. To give a sense of the broader applicability, we now discuss one parametric and one nonparametric example, each of which fit nicely into our theory.
 
-\subsection{Principal Components Analysis}
+\subsection{Decision Trees}
+In this section we discuss another application of adaptive sequential inference, to binary decision trees. Specifically, the classification and regression tree  (CART)  method builds a decision tree in a top down manner, finding the best available split at each node.  When considering splitting two daughter nodes, the generic CART algorithm splits the nodes in an arbitrary order, only stopping when a node reaches a minimum size.  We instead consider a  special version of CART  algorithm:  the "best first"  method, which orders splits by their achieved reduction in loss. This procedure is used, for example in the R package for gradient boosting, called {\tt gbm}. The best-first algorithm is thus a sequential selection  procedure, to which we can apply the results in this paper. Hence we can obtain independent, sequential $p$-values for each successive split in the decision tree.
 
-\subsection{Classification and Regression Trees}
+Given predictor matrix $X \in \R^{n\times p}$ and binary response vector $Y\in \{0,1\}^n$, we begin with the intercept-only model $\logit \P(Y_i \mid X_i = x) \equiv \beta_0$.
+
+At the first step we choose a splitting variable $j_1$ and split point $t_1$ which is a midpoint between two observed values of variable $j$, leading to a model of the form
+\begin{equation}
+\logit \P(Y_i \mid X_i=x) = \beta_0 + \beta_{1} 1\{x_{j_1} > t_1\}.
+\end{equation}
+While there are various ways to choose among potential variables and split points, we assume for the sake of simplicity that $(j_1,t_1)$ are chosen to maximize binomial likelihood (or equivalently, to minimize binomial deviance).
+
+At the second stage, we then split one of the two daughter nodes, choosing the split that gives the greatest increase in likelihood. If (say) we split the first node using predictor $j_2$ at split point $t_2$, it leads to the interaction model of the form
+\begin{equation}
+\logit \P(Y_i \mid X_i=x) = \beta_0 + \beta_{1} 1\{x_{j_1} > t_1\} + \beta_2 1\{x_{j_1} \leq t_1, x_{j_2} > t_2\}
+\label{eqn:intmodel}
+\end{equation}
+
+After $k$ steps we obtain a logistic regression model with $k$ features, each of which is an interaction of step functions. The model $M_k$ is thus an exponential family whose complete sufficient statistics are the sums of $Y_i$ in each leaf in the tree.
+
+The best-first search for split points can be expressed as a modified form of greedy forward stepwise logistic regression in which the set of candidate features changes at each step, depending on what features have already been included. Nevertheless, the proof of Proposition~\ref{prop:forwardSSP} goes through essentially without modification to show that this algorithm satisfies the SSP, and the greedy likelihood ratio test gives $p$-values that are independent on nulls\footnote{Since the test statistic is discrete, we need to randomize if we want truly exact $p$-values}.
+
+This development suggests a possible modification to the CART algorithm in which the tree is ``pruned'' using a rule like ForwardStop applied. It could be interesting to investigate whether cross-validation using the target FDR $\alpha$ as a tuning parameter might yield better results in predictive performance, compared to (say) using the tree depth or minimum leaf size as a tuning parameter.
+
+
+\begin{comment}
+For example the set of candidate basis functions available at each stage are a function of what has been  previously entered into the model
+Nonetheless,  the selection procedure  for the first set of $k$ splits can be expressed in polyhedral from $Ay \leq b$, and the saturated and selective inference procedures can be applied.
+As before, the saturated $p$-values have an explicit truncated Gaussian form, while computation of the selective $p$-values require accept-reject sampling.
+
+Figure \ref{fig:cart} shows an example with independent standard Gaussian features, and $n=30, p=3$.
+We 
+consider just the first two splits, in a null case (top row) and non-null (bottom row).
+In the non-null case,  the data are generated from a  model of the form (\ref{eqn:intmodel}).
+
+As expect, the nominal $p$-values are far too small and hence don't control type I error.
+Both the saturated and selective $p$-values control type I error, with the selective $p$-values are somewhat more powerful in the non-null case.
+Rules like the forwardStop procedure could be applied  to the selective $p$-values to choose a ``best'' model size.
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=.65\textwidth]{figs/cart.pdf}
+  \caption{\em Cumulative distribution functions of $p$-values for  the first two splits in a CART decision tree. In the top row, the true model is null,
+  while in the bottom row, the data are generated from a  model of the form (\ref{eqn:intmodel})}
+  \label{fig:cart}
+\end{figure}
+\end{comment}
 
 \subsection{Nonparametric Changepoint Detection}
 
-Consider a problem in which we observe a time series $(y_1,\ldots,y_T)\in \cY^T$, and wish to detect times $t_1,\ldots,t_k$ where the distribution of $y_t$ changes. For example, given a historical document, we may wish to determine 
+Consider a problem in which we observe a time series $(Y_1,\ldots,Y_T)\in \cY^T$, and wish to detect times $t_1,\ldots,t_k$ where the distribution of $Y_t$ changes. For example, given a historical document, we may wish to investigate whether the entire document was written by the same author or different sections were written by different authors, by quantitatively comparing the writing style across different sections. For example, $Y_t$ could could represent the usage distribution in section $t$ over ``context-free'' words such as articles, conjunctions, and prepositions \citep[][see e.g. ]{chen2015graph}.
 
-Assuming independence between observation times, we can model
+For simplicity we assume independence between values of $t$ and model the distribution as piecewise constant between $k$ unknown changepoints. For an active set of $k$ changepoints $E\sub \{1,\ldots, T-1\}$, let $t(j,E)$ denote the $j$th smallest element of $E$, and let $t(0,E)=0$ and $t(k+1, E)=T$. Then, the nonparametric model with changepoints $E$ is given by
+\begin{equation}\label{eq:nonpar-model}
+  M(E):\; Y_t \simind F_j, \quad \text{ for } \;\;t(j,E) < t \leq t(j+1,E).
+\end{equation}
+
+For $t_2>t_1$ let $V(Y;\, t_1, t_2)\in \cY^{t_2-t_1}$ denote the order statistics of $(Y_{t_1+1},\ldots, Y_{t_2})$. Then the complete sufficient statistic for $M(E)$ is
 \[
-y_t \simind F_t, \quad t=1,\ldots, T,
+U(Y; \, E) = 
+\bigg(
+V(Y; t(0, E), t(1, E)), \ldots, V(Y;\, t(k, E), t(k+1,E))
+\bigg).
 \]
-with the 
+Under $M(E)$, resampling from $Y$ given $U$ amounts to randomly permuting $(Y_{t(j,E)+1}, \ldots, Y_{t(j+1,E)})$ independently for each $j=0,\ldots,k$.
 
+For $s \notin E$, testing $M(E)$ against $M(E \cup \{s\})$ amounts to a two-sample test comparing the observations coming immediately before $s$ against the observations coming immediately after $s$. Specifically, if $t(j, E) < s < t(j+1, E)$, let $W(Y; \, E, s)$ denote any two-sample test statistic that is measurable with respect to the samples $V(Y; t(j, E), s)$ and $V(Y; s, t(j+1, E))$, and large when there is strong evidence that the two samples come from different distributions. 
 
- independent $y_t$ for $t=1,\ldots,T$, with
+We can build a model in a greedy fashion beginning with $E_0 = \emptyset$ and then at step $k=1,\ldots,d$ setting
+\begin{equation}
+  t_k = \argmax_t \;\; W(Y; \, E_{k-1}, t), 
+  \quad \text{ and } \quad E_k = E_{k-1} \cup \{t_k\}.
+\end{equation}
+This path algorithm satisfies the SSP because $W(Y; \, E_{i}, t_j)$ is measurable with respect to $U_k=U(Y; \, E_k)$ for every $i<j\leq k$. Thus, by inspecting $U_k$ we can determine in what order the first $k$ changepoints were added.
 
+By analogy to the greedy likelihood ratio statistic, a natural choice of test statistic at step $k$ is
+\[
+W_k^*(Y) = \max_t W(Y; \, E_{k-1}, t),
+\]
+which is measurable with respect to $\sF(E_k, U_k)$ by construction. Thus, if we base the step-$k$ $p$-value $p_k$ on the law
+\begin{equation}\label{eq:condPerm}
+\L\left(W_k^* \mid E_{k-1}, U_{k-1}\right),
+\end{equation}
+randomizing to obtain an exactly uniform $p$-value under $M(E_{k-1})$, we will obtain an exact $\sF_k$-measurable $p$-value. As a result, the $p$-values will be independent on nulls per Theorem~\ref{thm:suffCond}.
 
+Note that sampling from the law in~\eqref{eq:condPerm} can be carried out by permuting subsequences $(Y_{t(j,E)+1}, \ldots, Y_{t(j+1,E)})$ and accepting the permutation only if it gives the same $E_{k-1}$ as we get in the original data. When this simple accept/reject algorithm is impractical we may need to resort to an MCMC strategy. We do not pursue these computational matters here.
 
+\begin{comment}
 \section{Principal Components Analysis}
 \label{sec:pca}
 
@@ -1424,6 +1491,7 @@ for the complete null hypothesis $H_0: \lambda_j=0 \; \forall j \neq k$.  The co
 The details are given in \citet{choi2014selecting}, with their ``integrated CSV'' test  corresponding to the sequential selective test of this paper.
 
 \RTcomment{Jon- add more details?}
+
 
 \section{Decision trees and interaction models}
 In this section we discuss another application of adaptive sequential inference, to binary decision trees.
@@ -1466,25 +1534,26 @@ Rules like the forwardStop procedure could be applied  to the selective $p$-valu
   while in the bottom row, the data are generated from a  model of the form (\ref{eqn:intmodel})}
   \label{fig:cart}
 \end{figure}
+\end{comment}
 
 \section{Discussion}
 \label{sec:discussion}
 
-\WFcomment{Adding variables in groups? Changing the set of variables to select from at each step?}
+It is a commonplace that ``essentially all models are wrong, but some are useful'' \citep{box1987empirical}. In essence, a statistical model is useful if it is large enough to capture the most important features of the data, but still small enough that inference procedures can achieve adequate power and precision. Apart from theoretical considerations, the only way to know whether a model is large enough is to test it using available data.
 
-It is a commonplace that ``essentially all models are wrong, but some are useful'' \citep{box1987empirical}. In essence, a statistical model is useful if it is large enough to capture the most important features of the data, but still small enough that inference procedures can achieve adequate power and precision. Apart from theoretical considerations, the only way to know whether a model is large enough is to test whether it is, using available data.
+Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the greatest threat to our inferential conclusions, and how powerful are our tests against these troublesome sources of misspecification? 
 
-Although model-checking is commonly recommended to practitioners as an important step in data analysis, it formally invalidates any inferences that are performed with respect to the model selected. Our work takes a step in the direction of reconciling that contradiction, but there are important questions left to be resolved. In particular: which sorts of model misspecification pose the greatest threat to our inferential conclusions, and how powerful are our tests against these troublesome sources of misspecification?
+In future work we also plan to address the matter of performing selective inference for parameters of the model actually selected. In principle, we already know how to do this using the framework of \citet{fithian2014optimal} --- we simply condition on the event that $M_{\hk}$ is selected and perform inference with respect to $M_{\hk}$ --- but there is some work to do in understanding the computational complexity of this task.
 
+\begin{comment}
 Of course, the answer depends on the scientific context: for example, suppose that at step 1, forward stepwise regression selects a variable $X_1$, and then at some later step it selects another variable $X_2$, which is almost perfectly correlated with $X_1$. There may be little evidence to support adding $X_2$ to the model once $X_1$ is already included, even if including $X_2$ would greatly change our inference about the coefficient for $X_1$ (for example, by making its confidence interval much wider). Depending on the context, we could draw the conclusion that 1) $X_1$ and $X_2$ are near-duplicate variables and it is therefore unnecessary (and possibly counterproductive) to include both in the model, or 2) $X_2$ is a vital confounding variable for $X_1$ and the confidence interval for $\beta_1$ ought to reflect the resultant uncertainty. If the second interpretation is the scientifically appropriate one, then we should probably use a different selection algorithm --- for example, a variant of forward stepwise that always adds both $X_1$ and $X_2$ to the model as a group in the same step.
+\end{comment}
 
-We plan to distribute  open source software, in both the R and Python languages,  for computing the max-$t$ and other tests discussed in this paper.
-
-\JTcomment{Max $T$ available in python code on github. I suppose R as well, but not sure.}
+Open-source code is available at this article's github repository at \texttt{www.github.com/wfithian/sequential-selection}.
 
 \section*{Acknowledgments}
 
-The authors are grateful for stimulating and informative conversations with Stefan Wager, Lucas Janson, Trevor Hastie, ....
+The authors are grateful for stimulating and informative conversations with Stefan Wager, Lucas Janson, Trevor Hastie, Yoav Benjamini, and Larry Brown. \WFcomment{Funding}.
 
 \bibliographystyle{plainnat}
 \bibliography{biblio}
