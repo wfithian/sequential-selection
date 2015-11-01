@@ -267,7 +267,17 @@ sparsity (for example, the generalized LASSO). So, I think this section is reall
 of $\ell_1$ norm (maybe a group LASSO norm). As written, 
 we are also assuming that
 there is a unique solution to (11) (which is not a big assumption but we might
-as well make it.) Finally, $\ell$ does not actually have to be a likelihood.}
+as well make it.) Finally, $\ell$ does not actually have to be a likelihood.
+BUT later on we implicitly assume that it is the likelihood for 
+$M_{\infty}$. Why not just say this here, i.e. when talking
+about $\ell_1$ regularization paths the models we have in mind are typically
+going to be ones which correspond to a likelihood for some ``largest model'' for which we are trying to find a sub-model. 
+
+An example where we might not take $\ell$ to be a likelihood would be
+if it were a pseudo-likelihood as in the neighborhood selection 
+instead of graphical LASSO.
+}
+
 
 We then define
 \begin{align}
@@ -297,6 +307,36 @@ In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, wi
 \begin{equation}
 \L\left(\lambda_k \;\mid\; U_{k-1}, M_{k-1}\right).
 \end{equation}
+
+\JTcomment{The next-$\lambda$ test is actually a little expensive to compute if we a finite set of $\lambda$  as, say, glmnet does. Should we not mention this? On the plus side, 
+it gives us tests that do not require LAR and can be used with glmnet. 
+Formally, to carry this out test, we need to draw samples of $Y$ conditioned
+on the necessary sufficient statistics satisfying the necessary constraints 
+(for LASSO, there $2(p-k)$ constraints on $X_{-E}^Ty$). Then, for each sample
+we restart glmnet and run until the active set changes, storing this
+value of $\lambda$. Then we compare our observed next-$\lambda$ to this
+sample of $\lambda$'s.
+
+In the LAR-LASSO case, this is easier as there is an explicit formula
+to compute the next event. But, LAR is limited to LASSO whereas next-$\lambda$
+in principle works for group LASSO.
+
+Finally, the simplification of constraints we get really only works for
+almost only for $\ell_1$. For group LASSO, the simplification
+doesn't happen. The constraints after $k$ steps look like
+$$
+\left\{y: P_Ey=z, \|X_g^T(y - \hat{\mu}_l(z))\|_2 \leq \lambda_l \omega_g, 
+g \in -E, 1 \leq l \leq k, \|(I-P_E)y\|=c\right\}
+$$
+where $z$ is the projection of our observed $y$ onto the ever active set.
+So, for a given ``ever inactive group'', this says that $X_g^Ty$ is in
+an intersection of $k$ balls which does not necessarily have a simple structure.
+When all the groups are of size 1, i.e. in the LASSO, the intersection 
+of $k$ balls is the intersection of $k$ intervals and we get a simplification.
+
+All this to say, that we are really only talking about $\ell_1$ here, and 
+next-$\lambda$ is essentially only practical BLAH
+}
 
 \subsection{Which Null Hypothesis?}
 \label{sec:whichnull}
@@ -775,6 +815,8 @@ If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficien
 Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on $n-1$-dimensional projection of $Y$. Conditioning on more information tends to sap the power of a test, and as we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests can pay a heavy price for this extra conditioning.
 
 \subsubsection{Testing Against the Upper Model}
+
+
 To avoid conditioning on the next model $M_k$, we could instead test $M_{k-1}$ against the alternative $M_{\infty}\setminus M_{k-1}$. In that case, we could modify~\eqref{eq:selModel_cond} and base the test on
 \begin{equation}\label{eq:selModel_marg}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right).
@@ -784,6 +826,8 @@ We could also replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. As long 
 In the case of known $\sigma^2$, the greedy likelihood ratio statistic is the max-$z$ statistic: the maximum of $z_{j,E_{k-1}}$, the largest multivariate $z$-statistic of any held-out variable, controlling for the variables in the current model.
 
 For the most part we do not pursue tests like those in Section~\ref{sec:identify}, which condition on the next model $M_k$. It is not necessary to condition on $M_k$ to obtain the FDR and FWER guarantees that we want to establish, and so we follow the rule of thumb that we should condition on as little information as possible. In Section~\ref{sec:sparseReg}, we empirically compare the max-$t$ test with the test that uses the same test statistic but also conditions on the identity of the next variable $j_k$. We call the resulting test the {\em max-$t$-identify test}. Its performance in our simulation is similar to that of the max-$t$ test.
+
+
 
 \begin{comment}
 Two specific examples are worth discussing in detail. First, consider the {\em selective max-$t$ test}, a generalization of the max-$t$ test described in 
@@ -1217,6 +1261,18 @@ A similar result also holds for the class of $\ell_1$-regularized exponential fa
 
 \JTcomment{Is there a reason you have $\psi$ and $\ell$ above instead of just $\ell$? I think the $(E,t)$ above should be $(E,u)$. It seems you never come back to $\psi$.}
 \WFcomment{Fixed t/u. $\psi$ is the log-proportionality constant, I think we need it. Maybe I'm misunderstanding your question?}
+\JTcomment{I guess I meant that I am assuming that
+$$
+\ell(\theta) = \theta'U(y) - \psi(\theta)
+$$
+but I don't see how I would conclude that from what is written.
+In principle, as written the $\psi$ above might be some other function but
+(44) and (45) imply that the objective function is of the form
+$$
+\ell(\theta) = \tilde{\psi}(\theta) - \theta'U(y)
+$$
+for some $\tilde{\psi}$. In the proof when you say $\mathbb{E}_{\hat{\theta}^{\lambda}}[U_j]$ I am assuming this is $e_j^T\nabla \psi (\hat{\theta}^{\lambda})$ soshould I conclude that $\tilde{\psi}=\psi$?
+}
 
 \begin{proof}
   Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
