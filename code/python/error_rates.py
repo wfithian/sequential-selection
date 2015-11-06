@@ -13,9 +13,9 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
     guarantees = []
 
     name_map = dict(zip(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
-                        ['Nominal', 'MaxT', 'MaxT identify', 'MaxT unknown', 'Saturated']))
+                        ['Nominal', 'MaxZ', 'MaxZ identify', 'MaxT', 'Saturated']))
     for test, rule in product(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
-                              ['simple', 'forward', 'strong']):
+                              ['simple', 'forward']):
         name = '_'.join([test, rule])
         screen = np.mean(getvar("screen"))
         FDR_var = np.mean(getvar("FDP_var"))
