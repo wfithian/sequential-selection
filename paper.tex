@@ -1364,7 +1364,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
-  \caption{\em  CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The MaxT approaches are much more powerful than the saturated-model test. The nominal test appears to be powerful, 
+  \caption{\em  CDFs of nominal (black), MaxZ (red), MaxT (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The MaxT approaches are much more powerful than the saturated-model test. The nominal test appears to be powerful, 
   but is not $U(0,1)$ under the null, as shown below in Figure \ref{fig:simulation_null_true}.}
   \label{fig:simulation_null_false}
 \end{figure}
@@ -1373,7 +1373,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
-  \caption{\em  CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$.  The nominal test is badly anti-conservative, while all of the other methods  show uniform $p$-values as desired.}
+  \caption{\em  CDFs of nominal (black), MaxZ (red), MaxT (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$.  The nominal test is badly anti-conservative, while all of the other methods  show uniform $p$-values as desired.}
   \label{fig:simulation_null_true}
 \end{figure}
 
@@ -1381,7 +1381,7 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
-  \caption{\em CDFs of nominal (black), MaxT (red), MaxT with unknown $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
+  \caption{\em CDFs of nominal (black), MaxZ (red), MaxT $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
   \label{fig:simulation_noise_var}
 \end{figure}
 
