@@ -89,7 +89,7 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
             yield ' & '.join(val) + r' \\ '
 
     table = r'''
-\newcommand{\guarantee}[1]{{\color{blue} #1}}
+\newcommand{\guarantee}[1]{{\bf #1}}
 \begin{tabular}{|l|rrrrrr|}
  \hline
 {} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \hline
