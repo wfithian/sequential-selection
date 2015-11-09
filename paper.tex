@@ -83,7 +83,7 @@
 \maketitle
 
 \begin{abstract}
-  Many model selection algorithms produce a path of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, we propose two specific tests, the max-$t$ test for forward stepwise regression (generalizing a proposal of \citet{buja2014}), and the next-$\lambda$ test for the lasso. These tests improve on the power of the spacings test of \citet{taylor2014exact}, sometimes dramatically. In addition, our framework extends beyond linear regression to a much more general class of parametric and nonparametric model selection problems.
+  Many model selection algorithms produce a path of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, we propose two specific tests, the max-$t$ test for forward stepwise regression (generalizing a proposal of \citet{buja2014}), and the next-entry test for the lasso. These tests improve on the power of the spacings test of \citet{taylor2014exact}, sometimes dramatically. In addition, our framework extends beyond linear regression to a much more general class of parametric and nonparametric model selection problems.
 
 To select a model, we can feed our single-step $p$-values as inputs into sequential stopping rules such as those proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving control of the familywise error rate (FWER) or false discovery rate (FDR) as desired. The FDR-controlling rules require the null $p$-values to be independent of each other and of the non-null $p$-values, a condition not satisfied by the saturated-model $p$-values of \citet{taylor2014exact}. We derive intuitive and general conditions for independence and show that our proposed constructions yield independent $p$-values. We also discuss connections between the selected-model test and parametric bootstrap sampling.
 \end{abstract}
@@ -138,7 +138,7 @@ Because the null max-$t$ $p$-values are independent, while the saturated-model $
 
 \subsection{Outline}
 
-For the remainder of the article we will discuss the problem of selective sequential model selection in some generality, returning periodically to the selective max-$t$ test in forward stepwise regression and its lasso regression counterpart, the next-$\lambda$ test, as intuitive and practically important running examples. 
+For the remainder of the article we will discuss the problem of selective sequential model selection in some generality, returning periodically to the selective max-$t$ test in forward stepwise regression and its lasso regression counterpart, the next-entry test, as intuitive and practically important running examples. 
 
 In comparison to their saturated-model counterparts, we will see that the selected-model tests proposed here have three main advantages: power, independence (in many cases), and generalizability beyond linear regression. These advantages do not come entirely for free, as we will see: the selected-model methods test a more restrictive null hypothesis than the saturated-model methods. In addition, the selected-model tests require accept-reject or MCMC sampling, while the saturated-model tests can be carried out in closed form.
 
@@ -248,7 +248,7 @@ Because the likelihood in linear regression is a monotone decreasing function of
 
 For simplicity, we have made two assumptions: that only one variable is added at each step, and that the set of candidate variables we choose from is the same in each step. It is relatively straightforward to relax either assumption, but we do not pursue such generalizations here.
 
-\subsubsection{Ever-Active Regularization Paths and next-$\lambda$ Tests}
+\subsubsection{Ever-Active Regularization Paths and next-entry Tests}
 Another important class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path. 
 The notion of ever-active sets is needed since these solution paths can drop  (as well as add) predictors along the way. 	For some ordered set $\Lambda$, let $\lambda\in\Lambda$ parameterize the regularization penalty $P_\lambda(\theta)$. In the case of lasso-penalized regression, we could take $P_\lambda = \lambda\|\beta\|_1$ for $\lambda\in (0,\infty]$. 
 
@@ -268,6 +268,7 @@ An example where we might not take $\ell$ to be a likelihood would be
 if it were a pseudo-likelihood as in the neighborhood selection 
 instead of graphical LASSO.
 }
+\WFcomment{Took out some of the confusing language. We are explicitly defining $\ell$ as the likelihood for $M_\infty$ at the beginning of 2.2.1. I have a remark later that $\ell$ doesn't really need to be a likelihood, but we can't accommodate completely general loss functions without losing some of the results. What we do ``need'' for the SSP is that $\ell(\theta)$ is a function of $U(Y; E)$ for $\theta \in \Theta(E)$. This is true for likelihoods but probably not true in general for pseudo-likelihoods. I'm not sure why you say this is ``really'' about $\ell_1$: it's also about elastic net, group lasso, nuclear norm, $\ell_0$, and much more. True, $\ell_1$ is the prototypical example, but I don't see how we get anything from explicitly restricting ourselves to $\ell_1$.}
 
 Assuming for simplicity that there is a unique solution to each penalized problem of the form
 \begin{equation}\label{eq:pen-lik}
@@ -296,22 +297,22 @@ and for $k\geq 1$ let $\lambda_k$ denote the (random) value of $\lambda$ where t
   E_k = \bigcap_{\lambda\in\Lambda_k} \tE_{\lambda}.
 \end{equation}
 
-In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, with larger values suggesting a poorer fit. The {\em selective next-$\lambda$ test} is the test that rejects for large $\lambda_k$, based on the law
+In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, with larger values suggesting a poorer fit. The {\em selective next-entry test} is the test that rejects for large $\lambda_k$, based on the law
 \begin{equation}
 \L\left(\lambda_k \;\mid\; U_{k-1}, M_{k-1}\right).
 \end{equation}
 
-\JTcomment{The next-$\lambda$ test is actually a little expensive to compute if we a finite set of $\lambda$  as, say, glmnet does. Should we not mention this? On the plus side, 
+\JTcomment{The next-entry test is actually a little expensive to compute if we a finite set of $\lambda$  as, say, glmnet does. Should we not mention this? On the plus side, 
 it gives us tests that do not require LAR and can be used with glmnet. 
 Formally, to carry this out test, we need to draw samples of $Y$ conditioned
 on the necessary sufficient statistics satisfying the necessary constraints 
 (for LASSO, there $2(p-k)$ constraints on $X_{-E}^Ty$). Then, for each sample
 we restart glmnet and run until the active set changes, storing this
-value of $\lambda$. Then we compare our observed next-$\lambda$ to this
+value of $\lambda$. Then we compare our observed next-entry to this
 sample of $\lambda$'s.
 
 In the LAR-LASSO case, this is easier as there is an explicit formula
-to compute the next event. But, LAR is limited to LASSO whereas next-$\lambda$
+to compute the next event. But, LAR is limited to LASSO whereas next-entry
 in principle works for group LASSO.
 
 Finally, the simplification of constraints we get really only works for
@@ -328,8 +329,13 @@ When all the groups are of size 1, i.e. in the LASSO, the intersection
 of $k$ balls is the intersection of $k$ intervals and we get a simplification.
 
 All this to say, that we are really only talking about $\ell_1$ here, and 
-next-$\lambda$ is essentially only practical BLAH
+next-entry is essentially only practical BLAH
 }
+\WFcomment{Actually I don't think the computation is bad at all. The point is that you don't need to compute the distribution of $\lambda_k$, you only need the probability, under the null hypothesis, that $\lambda_k$ is larger than its observed value. So at least for convex penalized-likelihood problems, you should only ever have to compute one path --- the path for the observed data set --- and then store those fits. And then when you resample, you just check whether $Y^*$ satisfies the KKT conditions at $\hat\theta^\lambda(Y)$ for each $\lambda > \lambda_k$. Then $\lambda_k(Y^*)>\lambda_k(Y)$ iff the KKT conditions are violated for any $\lambda > \lambda_k(Y)$. (It is probably worth pointing this out in the computation section somewhere).
+
+For group lasso, it's the same situation -- we should only need to compute one path. Though it sounds like you think in that case the sampling itself is a problem. But at least for non-overlapping groups, is it really so bad?
+
+I think it is worth distinguishing between what procedures we can define and prove things about (which we discuss here), and what subset of those we currently have efficient algorithms for (which we discuss in the Computation section). After all, some problems are small, some scientists are willing to wait a while for their results, and we have various cudgels at our disposal such as accept/reject, Besag \& Clifford MCMC tests that are exact even if the chain doesn't mix, etc. etc.}
 
 \paragraph{Remark} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion:
 \[
@@ -691,9 +697,9 @@ If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p
 
 Note that if our path algorithm did not satisfy the SSP, we could in many cases still repair the situation by constructing $p$-values that are uniform conditional on $(M_{0:k-1},U_{k-1})$, not just conditional on $(M_{k-1},U_{k-1})$.
 
-\subsection{Independence for Greedy Likelihood and next-$\lambda$ $p$-values}\label{sec:SSP}
+\subsection{Independence for Greedy Likelihood and next-entry $p$-values}\label{sec:SSP}
 
-In this section we establish that in the generic sparse parametric model of Section~\ref{sec:genSparse}, the forward stepwise path and all ever-active regularization paths satisfy the SSP. What is more, the greedy likelihood ratio statistic $G_k$ is $\sF_k$-measurable with respect to the forward stepwise path's sufficient filtration, and the next-$\lambda$ statistic $\lambda_k$ is $\sF_k$-measurable with respect to the regularized-likelihood path's sufficient filtration. As a result, the selective greedy likelihood $p$-values in the forward stepwise path are independent on nulls, as are the next-$\lambda$ $p$-values in the regularized-likelihood path, per Theorem~\ref{thm:suffCond}.
+In this section we establish that in the generic sparse parametric model of Section~\ref{sec:genSparse}, the forward stepwise path and all ever-active regularization paths satisfy the SSP. What is more, the greedy likelihood ratio statistic $G_k$ is $\sF_k$-measurable with respect to the forward stepwise path's sufficient filtration, and the next-entry statistic $\lambda_k$ is $\sF_k$-measurable with respect to the regularized-likelihood path's sufficient filtration. As a result, the selective greedy likelihood $p$-values in the forward stepwise path are independent on nulls, as are the next-entry $p$-values in the regularized-likelihood path, per Theorem~\ref{thm:suffCond}.
 
 Define the restricted log-likelihood
 \begin{equation}
@@ -750,7 +756,7 @@ denotes a minimal sufficient statistic.
   Second, the null distribution $\L\left(G_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $G_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
 \end{proof}
 
-Analogous results hold for ever-active regularized likelihood paths and the next-$\lambda$ $p$-values.
+Analogous results hold for ever-active regularized likelihood paths and the next-entry $p$-values.
 
 \begin{proposition}\label{prop:regPathSSP}
 Ever-active regularized likelihood paths satisfy the
@@ -771,7 +777,7 @@ But $\hat\theta^{(E,\lambda)}$ depends only on $U(Y)$. Therefore, on $A$, we can
 \end{proof}
 
 \begin{corollary}\label{cor:nextLambdaIndep}
-  If $U(Y; M)$ is complete sufficient for model $M$, the selective next-$\lambda$ $p$-values computed for any ever-active regularized likelihood path are independent on nulls.
+  If $U(Y; M)$ is complete sufficient for model $M$, the selective next-entry $p$-values computed for any ever-active regularized likelihood path are independent on nulls.
 \end{corollary}
 \begin{proof}
   Per Theorem~\ref{thm:suffCond}, it is enough to show that $p_k$ is $\sF_k$-measurable with respect to the regularized-likelihood path's sufficient filtration.
@@ -791,7 +797,7 @@ But $\hat\theta^{(E,\lambda)}$ depends only on $U(Y)$. Therefore, on $A$, we can
   Second, the null distribution $\L\left(\lambda_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $\lambda_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
 \end{proof}
 
-As we have shown, the selective max-$t$ test is equivalent to the selective greedy likelihood test in the case of linear regression. In the next section, we will compare and contrast the max-$t$ and next-$\lambda$, and other {\em selected-model tests}, with the {\em saturated-model tests} proposed by \citet{taylor2014exact} and others. 
+As we have shown, the selective max-$t$ test is equivalent to the selective greedy likelihood test in the case of linear regression. In the next section, we will compare and contrast the max-$t$ and next-entry, and other {\em selected-model tests}, with the {\em saturated-model tests} proposed by \citet{taylor2014exact} and others. 
 
 \section{Selective $p$-Values in Regression}
 \label{sec:selective-reg}
@@ -849,7 +855,7 @@ To avoid conditioning on the next model $M_k$, we could instead test $M_{k-1}$ a
 \begin{equation}\label{eq:selModel_marg}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right).
 \end{equation}
-We could also replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. As long as $T(Y)$ is measurable with respect to $(M_k, U_k)$, and the path algorithm is subpath-sufficient, the $p$-values are guaranteed to be independent on nulls. The next-$\lambda$ test for the lasso and the max-$t$ test in forward-stepwise regression with unknown $\sigma^2$ are both examples of this approach. Note that under resampling from the law in~\eqref{eq:selModel_marg}, the selected variable $j_k$ is random; by contrast, \eqref{eq:selModel_cond} conditions on $j_k$.
+We could also replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. As long as $T(Y)$ is measurable with respect to $(M_k, U_k)$, and the path algorithm is subpath-sufficient, the $p$-values are guaranteed to be independent on nulls. The next-entry test for the lasso and the max-$t$ test in forward-stepwise regression with unknown $\sigma^2$ are both examples of this approach. Note that under resampling from the law in~\eqref{eq:selModel_marg}, the selected variable $j_k$ is random; by contrast, \eqref{eq:selModel_cond} conditions on $j_k$.
 
 In the case of known $\sigma^2$, the greedy likelihood ratio statistic is the max-$z$ statistic: the maximum of $z_{j,E_{k-1}}$, the largest multivariate $z$-statistic of any held-out variable, controlling for the variables in the current model.
 
@@ -867,7 +873,7 @@ The saturated-model tests are simpler and do not require sampling, while the sel
 Procedure& Complete Null & Incremental Null\\
 \hline
 LAR/lasso& Covariance test/Saturated&Spacing test/Saturated \\
-        & next-$\lambda$ test/Selected& \\
+        & next-entry test/Selected& \\
         \hline
 Forward Stepwise &max-$t$, max-$t$-identify/Selected &Gaussian pivot/Saturated\\
 \hline
@@ -875,13 +881,13 @@ Forward Stepwise &max-$t$, max-$t$-identify/Selected &Gaussian pivot/Saturated\\
 \end{center}
 \caption{\em Summary of different tests that have been proposed for least angle regression, lasso and forward stepwise regression.
 Tests are described by the null hypothesis that they test (complete or incremental)  and the underlying model (saturated or selected).
-The max-$t$, max-$t$-identify and next-$\lambda$ tests are proposed in this paper, while the covariance test was proposed in \citet{lockhart2014significance}, and the spacing and Gaussian
+The max-$t$, max-$t$-identify and next-entry tests are proposed in this paper, while the covariance test was proposed in \citet{lockhart2014significance}, and the spacing and Gaussian
 pivot tests are given in \citet{taylor2014exact}. The latter paper shows that the covariance and spacing test are asymptotically equivalent for the first null step, when the complete null holds.}
 \label{tab:testsummary}
 \end{table}
 Figure  \ref{fig:larexample} shows an example of the LAR/lasso tests with $N=50, p=10$ and two strong signals.
 We plot the $p$-values only for those realizations in which the correct model was selected in the first two steps (about 95\% of the time).
-We see that the next-$\lambda$ test is the most powerful, especially at step 1. The next-$\lambda$ and spacing test have the correct type I error in steps 3 and 4,
+We see that the next-entry test is the most powerful, especially at step 1. The next-entry and spacing test have the correct type I error in steps 3 and 4,
 while the covariance test becomes conservative in step 4, as we move further into the null part of the sequence.
 \begin{figure}
   \includegraphics[width=\textwidth]{figs/larexample.pdf}
@@ -918,7 +924,7 @@ M_0:\; Y\sim \cN(0,I_2), \quad \text{ and } \quad
 M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, \; I_2\right).
 \]
 
-The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$ conditional on $A_1$, a test of $H_0:\;\mu_1=0$ in model $M_1$.\footnote{In this very simple example, the max-$z$, max-$z$-identify, and next-$\lambda$ tests all coincide.} By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Thus, it must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, comparing $Y_1$ to its null distribution given $A_1$ and the observed value of $Y_2$.
+The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$ conditional on $A_1$, a test of $H_0:\;\mu_1=0$ in model $M_1$.\footnote{In this very simple example, the max-$z$, max-$z$-identify, and next-entry tests all coincide.} By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Thus, it must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, comparing $Y_1$ to its null distribution given $A_1$ and the observed value of $Y_2$.
 
 Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9, 2.5)$. Beside it, Figure~\ref{fig:bv_nullDists} shows the null conditional distribution of the test statistic $Y_1$ for each test. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
 \end{example}
@@ -1010,7 +1016,7 @@ Saturated-model $p$-values are generically non-independent. Continuing with Exam
 \section{Computation}
 \label{sec:computation}
 
-Until this point, we have deferred discussing the question of how to actually compute the rejection cutoffs for the max-$t$ test, next-$\lambda$ test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
+Until this point, we have deferred discussing the question of how to actually compute the rejection cutoffs for the max-$t$ test, next-entry test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
 \begin{equation}\label{eq:genDist}
 \L(T_k(Y) \,\mid\, M_{k-1}(Y), U_{k-1}(Y)),
 \end{equation}
