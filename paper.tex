@@ -336,6 +336,38 @@ For group lasso, it's the same situation -- we should only need to compute one p
 
 I think it is worth distinguishing between what procedures we can define and prove things about (which we discuss here), and what subset of those we currently have efficient algorithms for (which we discuss in the Computation section). After all, some problems are small, some scientists are willing to wait a while for their results, and we have various cudgels at our disposal such as accept/reject, Besag \& Clifford MCMC tests that are exact even if the chain doesn't mix, etc. etc.}
 
+\JTcomment{I agree that it is worth distinguishing ``provable''
+and ``computable''.
+I agree that the collection of things we can prove things about
+includes group LASSO perhaps other many penalties, but
+I would say
+that we only have a practical algorithm for computing
+when the penalty is $\ell_1$ in this paper. I'm not sure exactly
+how to fit nuclear norm here because I'm not sure what
+we should call the  ever active set when the loss is not Frobenius (i.e. unless
+we are doing PCA or SVT). That is, in matrix
+completion or reduced-rank regression I'm not sure what I would call the 
+ever-active set. For PCA or SVT, the spaces produced by the data's left and
+right singular vectors make up (a reasonable version of an) ever-active set.
+
+I also understand your argument that for $\ell_1$  the next entry test is less bad than I thought. 
+To check the KKT conditions at $\hat{\theta}^{\lambda}(Y)$ for $\ell_1$ is 
+straightforward, as $\hat{\theta}^{\lambda}(Y^*)$ has 
+an explicit candidate form so we have a very good guess
+at what the residuals at slightly later $\lambda$'s should look like and we
+can check the KKT conditions easily.
+For group LASSO, things are more complicated
+as we probably will not want to condition on the ``signs'' which are now
+a collection of unit vectors. If we don't condition on them
+then we have to solve group LASSO for response $Y^*$ until the set of
+active groups changes.
+Even if we do condition on them (which is OK
+as they are measurable with respect the right $\sigma$-algebra) the simplification for sampling that we observe for $\ell_1$ goes away. After $k$ steps on the
+discrete $\Lambda$ path I think we are back to having 
+$O(p*k)$ constraints roughly for any penalty that is not $\ell_1$. (For group
+LASSO, the $O(p*k)$ estimate assumes $k$ is not huge, and each group has roughly bounded number of features in it.)}
+
+
 \paragraph{Remark} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion:
 \[
 \hat\beta_{\text{lasso}}^\lambda = \frac{1}{2}\|Y-X\beta\|_2^2 + \lambda\|\beta\|_1,
