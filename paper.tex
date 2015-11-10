@@ -365,7 +365,11 @@ Even if we do condition on them (which is OK
 as they are measurable with respect the right $\sigma$-algebra) the simplification for sampling that we observe for $\ell_1$ goes away. After $k$ steps on the
 discrete $\Lambda$ path I think we are back to having 
 $O(p*k)$ constraints roughly for any penalty that is not $\ell_1$. (For group
-LASSO, the $O(p*k)$ estimate assumes $k$ is not huge, and each group has roughly bounded number of features in it.)}
+LASSO, the $O(p*k)$ estimate assumes $k$ is not huge, and each group has roughly bounded number of features in it.) Finally, conditioning on the
+direction vectors needs a sampling algorithm that is not as simple as
+Gaussian subject to affine constraints. Describing this sampler is something
+I think we just don't want to touch in this paper.
+}
 
 
 \paragraph{Remark} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion:
