@@ -562,8 +562,8 @@ it is enough to condition on $(M_{k-2}, M_{k-1})$ when we construct our $p$-valu
 
 Similarly, the error control guarantees of \citet{gsell2013sequential} and \citet{li2015accumulation} do not directly apply to case where the null hypotheses are random. However, we recover these guarantees if we have {\em conditional} independence and uniformity of null $p$-values given $k_0$:
 \begin{equation}\label{eq:indepCond_random_k0}
-  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-  \mid p_1, \ldots, p_k, \; k_0 = k) = \prod_{i=k+1}^d \alpha_i
+  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d, k_0 = k
+  \mid p_1, \ldots, p_k ) \eqAS \left(\prod_{i=k+1}^d \alpha_i\right) 1_{\{k_0=k\}}
 \end{equation}
 For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
 
@@ -655,9 +655,9 @@ Separated $p$-values are independent on nulls, as we see next.
   If they are super-uniform, then for all
   $\alpha_{k+1},\ldots,\alpha_d \in [0,1]$,
   \begin{equation}\label{eq:jointConserv}
-  \P_F\left(p_{k+1}\leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d\;
-    \mid\; k_0 \leq k, \; \sF_k\right) \leqAS \prod_{i=k+1}^d
-  \alpha_i.
+  \P_F\left(p_{k+1}\leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d, k_0 \leq k \;
+    \mid\; \sF_k\right) \leqAS \left(\prod_{i=k+1}^d
+  \alpha_i\right) 1_{\{k_0 \leq k\}}
   \end{equation}
 \end{proposition}
 
@@ -666,7 +666,8 @@ Separated $p$-values are independent on nulls, as we see next.
   by induction. Define $B_i = \{p_i \leq \alpha_i\}$. 
   The base case is
   \[
-  \P_F\left(B_d \mid \sF_{d-1}\right)1_{\{k_0 \leq d-1\}} \leqAS \alpha_d,
+  \P_F\left(B_d \mid \sF_{d-1}\right)1_{\{k_0 \leq d-1\}} \leqAS \alpha_d
+1_{\{k_0 \leq d-1\}},
   \]
   which is true by construction of $p_d$. 
   For the inductive case, note that the
@@ -680,8 +681,8 @@ Separated $p$-values are independent on nulls, as we see next.
       \mid \sF_{k+1}\right)1_{\{k_0 \leq k+1\}}
     \mid \sF_k\bigg]1_{\{k_0 \leq k\}}\\
     &\leqAS \P_F\left[ B_{k+1}
-      \mid \sF_k\right]1_{\{k_0 \leq k+1\}}\prod_{i=k+2}^d \alpha_i
-    &\leqAS \prod_{i=k+1}^d \alpha_i
+      \mid \sF_k\right]1_{\{k_0 \leq k\}}\prod_{i=k+2}^d \alpha_i \\
+    &\leqAS \left(\prod_{i=k+1}^d \alpha_i \right)1_{\{k_0 \leq k\}} .
   \end{align*}
 
   If the $p_k$ are exact then the above 
