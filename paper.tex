@@ -159,6 +159,8 @@ U_k(Y) = U(Y; \,M_k(Y)).
 
 Given data $Y$ and model path $M_{0:d}$, we set ourselves the formal goal of selecting the simplest correct model: the smallest $k$ for which $F\in M_k(Y)$. Of course, in most real data problems all of the $M_k(Y)$ in the path, as well as all other models under consideration, are incorrect. In more informal terms, then, we seek the simplest model in the path that is not refuted by the available data.
 
+\JTcomment{Maybe we should write $k_F$ instead of $k_0$? Or $k_0(Y,F)$?}
+
 Define the {\em completion index} $k_0(Y) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. A {\em stopping rule} is any estimator $\hk$ of $k_0$, with $M_k$ ``rejected'' if $k < \hk$, and ``accepted'' otherwise. Because $\hk$ is the number of models we do reject, and $k_0$ is the number we should reject, the number of type I errors is $V=(\hk-k_0)_+$, while the number of type II errors is $(k_0-\hk)_+$. Depending on the scientific context, we might want to control the FWER $\P(V>0)$, the FDR $\E[V/\hk; \hk>0]$ , or another error rate such as a modified FDR, defined by the expectation of some loss function $g(\hk, k_0)$:
 \begin{equation}\label{eq:errRate}
 \Err_F(\hk(\cdot), g) = \E_F\left[ g\left(\hk(Y), k_0(Y)\right)\right]
