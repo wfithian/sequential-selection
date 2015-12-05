@@ -160,9 +160,6 @@ U_k(Y) = U(Y; \,M_k(Y)).
 \]
 Given data $Y$ and model path $M_{0:d}$, we set ourselves the formal goal of selecting the simplest correct model: the smallest $k$ for which $F\in M_k(Y)$. Of course, in most real data problems all of the $M_k(Y)$ in the path, as well as all other models under consideration, are incorrect. In more informal terms, then, we seek the simplest model in the path that is not refuted by the available data.
 
-\JTcomment{Maybe we should write $k_F$ instead of $k_0$? Or $k_0(Y,F)$?}\\
-\WFcomment{$\hat k_F$ is already the ForwardStop estimator. But $k_0(Y,F)$ is good.}\\
-
 Define the {\em completion index} by $k_0(Y, F) = \min\{k:\; F \in M_k(Y)\}$, the index of the first correct model. By construction, $F\in M_k \iff k \geq k_0$. A {\em stopping rule} is any estimator \smash{$\hk$} of $k_0$, with $M_k$ ``rejected'' if $k < \hk$, and ``accepted'' otherwise. Because \smash{$\hk$} is the number of models we do reject, and $k_0$ is the number we should reject, the number of type I errors is \smash{$V=(\hk-k_0)_+$}, while the number of type II errors is \smash{$(k_0-\hk)_+$}. Depending on the scientific context, we might want to control the FWER: $\P(V>0)$, the FDR: \smash{$\E[V/\hk; \hk>0]$}, or another error rate such as a modified FDR, defined by the expectation of some loss function \smash{$g(\hk, k_0)$}:
 \begin{equation}\label{eq:errRate}
 \Err_F(\hk(\cdot), g) = \E_F\left[ g\left(\hk(Y), k_0(Y, F)\right)\right].
@@ -229,7 +226,7 @@ $M_\infty$. A generic {\em forward stepwise} algorithm proceeds as follows: we b
 j_k = \argmax_j \; \sup \left\{\ell(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\}, \quad \text{ and } \quad
 E_k = E_{k-1} \cup \{j_k\}.
 \end{equation}
-That is, at each step we select the next variable to maximize the likelihood of the next fitted model.
+That is, at each step we select the next variable to maximize the likelihood of the next fitted model (in the case of ties, we could either choose randomly or select both variables).
 
 A natural choice of test statistic is the {\em greedy likelihood ratio statistic}
 \begin{equation}\label{eq:greedyLRT}
@@ -241,7 +238,7 @@ which is the generalized likelihood ratio statistic for testing $M(E_{k-1})$ aga
 \end{equation*}
 Because the likelihood in linear regression is a monotone decreasing function of the residual sum of squares, the max-$t$ test is equivalent to the greedy likelihood ratio test. The counterpart of the max-$t$ test in linear regression with known $\sigma^2$ is the max-$z$ test, which differs only in replacing the $t$-statistics $t_{j,E}$ with their corresponding $z$-statistics. The max-$z$ test is also equivalent to the selective greedy likelihood ratio test.
 
-For simplicity, we have made two assumptions: that only one variable is added at each step, and that the set of candidate variables we choose from is the same in each step. It is relatively straightforward to relax either assumption, but we do not pursue such generalizations here.
+For simplicity, we have implicitly made two assumptions: that only one variable is added at each step, and that the set of candidate variables we choose from is the same in each step. It is relatively straightforward to relax either assumption, but we do not pursue such generalizations here.
 
 \subsubsection{Ever-Active Regularization Paths and Next-Entry Tests}
 Another important class of model selection procedures is the sequence of {\em ever-active} sets for a regularized likelihood path, under a sparsity-inducing regularizer such as a scaled $\ell_1$ norm. The notion of ever-active sets is needed since these solution paths can drop  (as well as add) predictors along the way. For some ordered set $\Lambda$, let $\lambda\in\Lambda$ parameterize the regularization penalty $P_\lambda(\theta)$. As an example, for a lasso penalty, this is $P_\lambda = \lambda\|\beta\|_1$ with $\lambda\in (0,\infty)$. 
@@ -277,7 +274,7 @@ In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, wi
 \L\left(\lambda_k \;\mid\; U_{k-1}, M_{k-1}\right).
 \end{equation*}
 
-\paragraph{Remark.} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion. If we replace $-\ell$ with any strictly decreasing function of the log-likelihood, all of the results in this article hold without modification.
+\paragraph{Remark.} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion. If we replace $-\ell$ with any strictly decreasing function of the log-likelihood such as RSS, all of the results in this article hold without modification.
 
 
 \subsection{Which Null Hypothesis?}
@@ -405,8 +402,8 @@ it is enough to condition on $(M_{k-2}, M_{k-1})$. As we will see in Section~\re
 
 Similarly, the error control guarantees of \citet{gsell2013sequential} and \citet{li2015accumulation} do not directly apply to case where the null hypotheses are random. However, we recover these guarantees if we have {\em conditional} independence and uniformity of null $p$-values given $k_0$:
 \begin{equation}\label{eq:indepCond_random_k0}
-  \P(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-  \mid p_1, \ldots, p_k, k_0 = k ) \eqAS \left(\prod_{i=k+1}^d \alpha_i\right) .
+  \P_F(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
+  \mid p_1, \ldots, p_k) \eqAS \left(\prod_{i=k+1}^d \alpha_i\right) \quad \text{on } \{k_0(Y, F) = k\}.
 \end{equation}
 For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
 
@@ -525,7 +522,7 @@ If we think of $\sF_k$ as representing information available at step $k$, then t
       \mid \sF_k\right]1_{\{k_0 \leq k\}}\prod_{i=k+2}^d \alpha_i \\
     &\leqAS \left(\prod_{i=k+1}^d \alpha_i \right)1_{\{k_0 \leq k\}} .
   \end{align*}
-Lastly, if the $p_k$ are exact then the inequalities above become equalities, implying uniformity and joint independence.
+Lastly, if the $p_k$ are exact then the inequalities above become equalities, implying uniformity and mutual independence.
 \end{proof}
 
 The sufficient filtration separates $p_{1:d}$ if and only if (1) $p_k$ is super-uniform given $M_{0:(k-1)}$ and $U_{k-1}$, and (2) $p_k$ is a function of $M_{0:k}$ and $U_k$.
@@ -562,7 +559,7 @@ If $p_k$ is also $\sF_k$-measurable, then the sufficient filtration separates $p
 
 In this section, we apply Theorem~\ref{thm:suffCond} to establish that in the generic sparse parametric model of Section~\ref{sec:genSparse}, the forward stepwise path and all ever-active regularization paths satisfy the SSP. Moreover, the greedy likelihood ratio statistic $G_k$ and the next-entry statistic $\lambda_k$ are $\sF_k$-measurable with respect to the sufficient filtrations of the forward stepwise and ever-active regularization paths, respectively. As a result, the $p$-value sequences in each setting are independent on nulls, per Theorem~\ref{thm:suffCond}.
 
-We begin by proving both paths satisfy the SSP
+We begin by proving both paths satisfy the SSP:
 \begin{proposition}\label{prop:forwardSSP}
 Forward stepwise paths and ever-active regularization paths both satisfy the subpath sufficiency principle.
 \end{proposition}
@@ -652,18 +649,14 @@ M_{\text{sat}}:\; Y \sim \cN(\mu, \sigma^2I_n),
 \]
 so named because there is a mean parameter for every observation. Because the parameter $\mu$ has the same dimension as the data $Y$, we must assume that $\sigma^2$ is known. If $\sigma^2$ is unknown, we can estimate $\sigma^2$ and apply the test while plugging in the estimated value; this is what we have done with the diabetes data to compute the $p$-values in Table~\ref{tab:diab}.  \citet{tibshirani2015uniform} discuss this and other strategies for unknown $\sigma^2$.
 
-Saturated-model tests perform inference on selected linear functionals of $\mu$. In the context of sequential linear model selection,  we can use the saturated-model framework to test the incremental null 
-\[
-H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0,
-\]
-where $\theta^E$ minimizes \smash{$\|\mu - X_E\theta\|_2$}.
+Saturated-model tests perform inference on selected linear functionals of $\mu$. In the context of sequential linear model selection,  we can use the saturated-model framework to test the incremental null \smash{$H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$}, where $\theta^E$ minimizes \smash{$\|\mu - X_E\theta\|_2$}.
 
-Let $\eta_k\in \R^n$ denote the vector for which \smash{$\theta_{j_k}^{E_k} = \eta_k'\mu$}, and let \smash{$\proj_{\eta_k}^\perp$} denote the projection operator into the space orthogonal to $\eta_k$. The UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution
-\begin{equation*}
-\L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right).
-\end{equation*}
+Let $\eta_k\in \R^n$ denote the vector for which \smash{$\theta_{j_k}^{E_k} = \eta_k'\mu$}, and let \smash{$\proj_{\eta_k}^\perp$} denote the projection operator into the space orthogonal to $\eta_k$. The UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution \smash{$\L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)$}, or equivalently
+\begin{equation}\label{eq:satModel}
+\L\left( X_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)
+\end{equation}
 
-While the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, the null distribution we compare it against is not: it depends on \smash{$\proj_{\eta_k}^\perp Y$}, which is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values constructed as in~\eqref{eq:satModel} are in general {\em not} independent on nulls.
+While the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, the null distribution we compare it against is not: it depends on \smash{$\proj_{\eta_k}^\perp Y$}, which is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values are in general {\em not} independent on nulls.
 
 \subsection{Selected-Model Tests}
 Selected-model inference, introduced in \citet{fithian2014optimal},
@@ -674,9 +667,9 @@ One option for selected-model inference is to perform a selective test of $M_{k-
 \begin{equation}\label{eq:selModel_cond}
 \L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
 \end{equation}
-If $\sigma^2$ were unknown we would also need to condition on $\|Y\|^2$. We can construct $p$-values from the UMPU, equal-tailed, or one-sided test based on~\eqref{eq:selModel_cond}; the only difference is in how much of the overall level $\alpha$ is apportioned to the right or left tail \citep{fithian2014optimal}. If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficient path algorithm, the resulting $p$-values are always guaranteed to have independence on nulls. This is because the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, and so is the null distribution we compare it against, which depends on $E_{k-1}, j_k,$ and \smash{$U_{k-1} = X_{E_{k-1}}'Y$}.
+If $\sigma^2$ were unknown we would also need to condition on $\|Y\|^2$. We can construct $p$-values from the UMPU, equal-tailed, or one-sided test based on the one-parameter exponential family~\eqref{eq:selModel_cond}; the only difference is in how much of the overall level $\alpha$ is apportioned to the right or left tail \citep{fithian2014optimal}. If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficient path algorithm, the resulting $p$-values are always guaranteed to have independence on nulls. This is because the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, as is the reference null distribution.
 
-Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on an $(n-1)$-dimensional projection of $Y$. Conditioning on more information can sap the power of a test; as we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests tend to pay a heavy price for this extra conditioning.
+Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\eqref{eq:selModel_cond}, we only need to condition on an $|E_{k-1}|$-dimensional projection of $Y$, whereas in~\eqref{eq:satModel} we condition on an $(n-1)$-dimensional projection of $Y$. Conditioning on more information can sap the power of a test; as we will see in Sections~\ref{sec:bivariate} and~\ref{sec:sparseReg}, the saturated-model tests often pay a heavy price for this extra conditioning.
 
 \subsubsection{Testing Against the Upper Model}
 
@@ -687,33 +680,31 @@ To avoid conditioning on the next model $M_k$, we could instead test $M_{k-1}$ a
 \end{equation}
 Again, if $\sigma^2$ were unknown we would also need to condition on $\|Y\|^2$. We could also replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. As long as $T(Y)$ is measurable with respect to $(M_k, U_k)$, and the path algorithm is subpath-sufficient, the $p$-values are guaranteed to be independent on nulls. The next-entry test for the lasso and the max-$t$ test in forward-stepwise regression with unknown $\sigma^2$ are both examples of this approach. Note that under resampling from the law in~\eqref{eq:selModel_marg}, the selected variable $j_k$ is random; by contrast, \eqref{eq:selModel_cond} conditions on $j_k$.
 
-%In the case of known $\sigma^2$, the greedy likelihood ratio statistic is the max-$z$ statistic: the maximum of $z_{j,E_{k-1}}$, the largest multivariate $z$-statistic of any held-out variable, controlling for the variables in the current model.
-
-For the most part we do not pursue tests like those in Section~\ref{sec:identify}, which condition on the next model $M_k$. It is not necessary to condition on $M_k$ to obtain the FDR and FWER guarantees that we want to establish, and so we follow the rule of thumb that we should condition on as little information as possible. In Section~\ref{sec:sparseReg}, we empirically compare the max-$t$ test with the test that uses the same test statistic but also conditions on the identity of the next variable $j_k$. We call the resulting test the {\em max-$t$-identify test}. Its performance in our simulation is similar to that of the max-$t$ test.
+We will not pursue tests like those in Section~\ref{sec:identify}. It is not necessary to condition on $M_k$ to obtain the FDR and FWER guarantees that we want to establish, and so we follow the general principle of conditioning on as little information as possible. In Section~\ref{sec:sparseReg}, we empirically compare the max-$z$ test with the test that uses the same test statistic but also conditions on the identity of the next variable $j_k$. In our simulation this test, which we call the {\em max-$z$-identify test}, performs similarly to the max-$z$ test.
 
 \subsection{Comparison of Selected- and Saturated-Model Inference}\label{sec:bivariate}
 
 We now briefly compare the computational, conceptual, and statistical advantages and disadvantages of selected- and saturated-model tests, focusing on the problem of sequential model selection. For a detailed general discussion, see Section 5 of \citet{fithian2014optimal}.
 
-Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable, and inference can be carried out analytically. By contrast, selected-model tests typically require sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
+Selected-model inference is typically more computationally involved than saturated-model inference. Because the saturated-model test conditions on $n-1$ dimensions, the resulting distribution in~\eqref{eq:satModel} is nothing more than a truncated univariate Gaussian random variable, and inference can be carried out analytically. By contrast, selected-model tests typically require MCMC sampling from a truncated multivariate Gaussian distribution of dimension $p-|E_{k-1}|$.
 
-For some applications, a major conceptual advantage of the saturated-model approach is that, when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ could cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less important: we are not constructing intervals for $\theta_{j_k}^{E_k}$; rather, the goal of the test at step $k$ is to reject $M_{k-1}$ and move on if it is demonstrably incompatible with the data.
+For some applications, a major conceptual advantage of the saturated-model approach is that, even when $M(E)$ is misspecified, $\theta^{E}$ is still a well-defined quantity on which we can perform exact inference. For example, a 95\% confidence interval for $\theta_{j_k}^{E_k}$ could cover that coefficient with probability 95\% even if $M(E_k)$ is misspecified. In the setting of sequential model selection, this advantage is less important: at an intermediate step $k$, we are not constructing intervals for $\theta_{j_k}^{E_k}$ but rather deciding whether to reject $M_{k-1}$ and move on. However, the saturated-model framework could be quite helpful after selection is finished, if we want to construct intervals for the least-squares parameters for the selected active set $E_{\hk}$.
 
-There are several major statistical benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known. This is not an option for the saturated model because conditioning on both $\|Y\|^2$ and \smash{$\proj_{\eta_k}^\perp Y$} results in a degenerate conditional distribution for $\eta_k'Y$. Second, we have seen in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}. Finally, and perhaps most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we illustrate now with an extended example.
+There are several major statistical benefits to selected-model inference. First, selected-model inference allows us to drop the assumption that $\sigma^2$ is known. This is not possible for the saturated model because conditioning on both $\|Y\|^2$ and \smash{$\proj_{\eta_k}^\perp Y$} results in a degenerate conditional distribution for $\eta_k'Y$. Second, we have seen in Section~\ref{sec:pValsIndep} that tests of the form~\eqref{eq:selModel_cond} or~\eqref{eq:selModel_marg} yield independent $p$-values under general conditions, allowing us to apply  the sequential stopping rules of~\citet{gsell2013sequential} and \citet{li2015accumulation}. Finally, and most importantly, selected-model tests can be dramatically more powerful than saturated-model tests, as we illustrate in the next example.
 
 \begin{example}[Bivariate Regression with Identity Design]\label{ex:bivariate}
   Consider forward stepwise selection in a regression model with $n=p=2$, with known $\sigma^2=1$ and identity design 
 \[
 X = I_2=\begin{pmatrix} 1 & 0 \\ 0 & 1\end{pmatrix}.
 \] 
-The forward stepwise path and the lasso path both select $j_1=1$ if and only if $|Y_1|>|Y_2|$. The selection event $A_1=\{|Y_1| > |Y_2|\}$ is shown in yellow in Figure~\ref{fig:bv_condSets}. If $j_1=1$ then
+The forward stepwise path and the lasso path both select $j_1=1$ if and only if $|Y_1|>|Y_2|$. The selection event $A_1=\{|Y_1| > |Y_2|\}$ is shown in yellow in Figure~\ref{fig:bv_condSets}. On $A_1$, the first two models are
 \[
 M_0:\; Y\sim \cN(0,I_2), \quad \text{ and } \quad
 M_1:\; Y \sim \cN\left(\binom{\mu_1}{0}, \; I_2\right).
 \]
-The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$ conditional on $A_1$, a test of $H_0:\;\mu_1=0$ in model $M_1$.\footnote{In this very simple example, the max-$z$, max-$z$-identify, and next-entry tests all coincide.} By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Thus, it must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, comparing $Y_1$ to its null distribution given $A_1$ and the observed value of $Y_2$.
+The selected-model test at step 1 compares $Y_1$ to its distribution under $M_0$, the global null, conditional on $A_1$.\footnote{In this very simple example, the max-$z$, max-$z$-identify, and next-entry tests are all equivalent.} By contrast, the saturated-model test is a test of $H_0:\; \mu_1=0$ in the model $M_{\text{sat}}:\; Y \sim \cN(\mu, I_2)$. Thus, it must condition on $Y_2$ to eliminate the nuisance parameter $\mu_2$, comparing $Y_1$ to its null distribution given $A_1$ and the observed value of $Y_2$.
 
-Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9, 2.5)$. Beside it, Figure~\ref{fig:bv_nullDists} shows the null conditional distribution of the test statistic $Y_1$ for each test. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. These two plots are reproduced from \citet{fithian2014optimal}, in which the same example was presented in less detail.
+Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=(2.9, 2.5)$. Beside it, Figure~\ref{fig:bv_nullDists} shows the null conditional distribution of the test statistic $Y_1$ for each test. The $p$-values for the selected and saturated models are 0.007 and 0.3, respectively. Figure~\ref{fig:bv} is reproduced from \citet{fithian2014optimal}, where the same example was presented in less detail.
 \end{example}
 
 \begin{figure}
@@ -741,7 +732,7 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \label{fig:bv}
 \end{figure}
 
-Figure~\ref{fig:bv} illustrates a general phenomenon in saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the resulting $p$-value my be very weak. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=(4,4)$, a very strong signal. While the selected-model test has nearly perfect power, it is not uncommon for the saturated-model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise when there is a near tie between the variables.
+Figure~\ref{fig:bv} illustrates a general phenomenon in saturated-model tests: when there are near-ties between strong variables that are competing to enter the model, the resulting $p$-value may be very weak. Figure~\ref{fig:bv_rocCurve} displays the cumulative distribution function for the first $p$-value when $\mu=(4,4)$, a very strong signal. While the selected-model test has nearly perfect power, it is not uncommon for the saturated-model test to produce large $p$-values, even in the range of 0.5-0.9. These large $p$-values arise when there is a near tie between the variables.
 
 \begin{figure}
   \centering
@@ -751,7 +742,7 @@ Figure~\ref{fig:bv} illustrates a general phenomenon in saturated-model tests: w
   \label{fig:bv_rocCurve}
 \end{figure}
 
-Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct, i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves} shows the power curve for each test when $\mu_2=0$ (left panel) and $\mu_2=4$ (right panel). While the selected-model test is more powerful when the selected model is correct, the difference between the two is relatively small. The difference is much more pronounced when $\mu_2=4$. Note that if $\mu=(0,4)$, the incremental null is true, but the complete null is false. That is, the model $M_0 = M(\emptyset)$ is missing an important signal variable, but the missing variable is not $X_1 = (1,0)$. Because the saturated-model test is a valid test of the incremental null, its power is $\alpha=0.05$. By contrast, the selected-model test rejects about half of the time when $\mu=(0,4)$, detecting the fact that $M_0$ is a poor fit to the data.
+Results in \citet{fithian2014optimal} show that the selected-model test is strictly more powerful when the selected model is correct, i.e., when $\mu_2=0$. Figure~\ref{fig:bv_powCurves} shows the power curve for each test when $\mu_2=0$ (left panel) and $\mu_2=4$ (right panel). While the selected-model test is more powerful when the selected model is correct, the difference between the two is relatively small. The difference is much more pronounced when $\mu_2=4$. Note that if $\mu=(0,4)$, the incremental null is true, but the complete null is false. That is, the global null model $M_0$ is missing an important signal variable, but the missing variable is not $X_1 = (1,0)$. Because the saturated-model test is a valid test of the incremental null, its power is $\alpha=0.05$. By contrast, the selected-model test rejects about half of the time when $\mu=(0,4)$, successfully detecting the poor fit of $M_0$ to the data.
 
 \begin{figure}
   \centering
@@ -771,7 +762,7 @@ Results in \citet{fithian2014optimal} show that the selected-model test is stric
    \label{fig:bv_powCurves}
 \end{figure}
 
-Saturated-model $p$-values are generically non-independent. Continuing with Example~\ref{ex:bivariate}, Table~\ref{tab:bv_twoWayTable} shows a two-way contingency table for the saturated-model $p$-values $(p_1(Y), p_2(Y))$, binned into cells of height and width 0.2, simulated under the global null $\mu=0$. Because $k_0=0$, both $p$-values are uniform by construction, but the saturated-model $p$-values are strongly dependent, with correlation $-0.48$. By contrast, the selected-model $p$-values $(p_1,p_2)$ are independent under the global null, a consequence of Theorem~\ref{thm:suffCond}.
+Saturated-model $p$-values are generically non-independent. Continuing with Example~\ref{ex:bivariate}, Table~\ref{tab:bv_twoWayTable} shows a two-way contingency table for the saturated-model $p$-values $(p_1(Y), p_2(Y))$, binned into cells of height and width 0.2, simulated under the global null $\mu=0$. Because $k_0=0$, both $p$-values are uniform by construction, but the saturated-model $p$-values are strongly dependent, with correlation $-0.48$. By contrast, the selected-model $p$-values $(p_1,p_2)$ are independent under the global null.
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Mon May  4 21:11:15 2015
@@ -801,22 +792,19 @@ Saturated-model $p$-values are generically non-independent. Continuing with Exam
 \section{Computation}
 \label{sec:computation}
 
-Until this point, we have deferred discussing the question of how to actually compute the rejection cutoffs for the max-$t$ test, next-entry test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
+Until this point, we have deferred discussing how to compute the reference distribution for the max-$t$ test, next-entry test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
 \begin{equation}\label{eq:genDist}
 \L(T_k(Y) \,\mid\, M_{k-1}(Y), U_{k-1}(Y)),
 \end{equation}
 under the null hypothesis that $F\in M_{k-1}$. Because $U_{k-1}$ is sufficient for $Y$ under the null, this law is completely known. Thus, we have reduced computation of the $p$-value at step $k$ to a sampling problem: if we can sample values of $Y$ from its null distribution given $M_{k-1}(Y), U_{k-1}(Y)$, we can numerically approximate the $p$-value to whatever precision we desire.
 
-In many cases it is easy to sample $Y$ given $U_{k-1}$, in which case computational difficulties only arise insofar as the selection event $\{M_{k-1}(Y)=M\}$ is difficult to condition on. Due to the generality in which we have posed the problem, we cannot give a general prescription for how to carry out this sampling. However, we give some details for the important case of linear regression in Appendix~\ref{sec:linRegComputation}.
+In many cases it is easy to sample $Y$ given $U_{k-1}$, in which case computational difficulties only arise insofar as the selection event $\{M_{k-1}(Y)=M\}$ is difficult to condition on, or the test statistic $T_k(Y)$ is difficult to evaluate. Due to the generality in which we have posed the problem, we cannot give a general prescription for how to carry out this sampling. However, we give some details for the important case of linear regression in Appendix~\ref{sec:linRegComputation}.
+
+\subsection{Constraints}\label{sec:constraints}
 
 For a completely general selection algorithm, we might expect severe computational difficulties when we attempt to condition on the null model at stage $k$, $M_{k-1}(Y)$. For example, in forward stepwise regression, $M_{k-1}$ is the cumulative result of $k-1$ steps of greedy variable selection. At each step $s<k$, the selection of variable $j_s$ is a result of comparing its $t$-statistic with the $t$-statistics of the other $p-k$ inactive variables. Based on this logic, we might expect to accumulate at least $O(p)$ constraints at each step, resulting in $O(kp)$ constraints after $k$ steps \citep{taylor2014exact}.
 
-Remarkably, however, in both forward-stepwise and lasso linear regression, the computational problem actually becomes easier when we move to the sequential setting considered here. Indeed, Section~\ref{sec:constraints} shows that for both forward-stepwise regression and lasso linear regression --- and their respective generalizations to exponential family models --- conditioning on the event $\{E_{k-1}=E\}$, for any $k$, only introduces $2p$ linear constraints, taking the form of a rectangular constraint on the sufficient statistics for the inactive variables.
-
-\subsection{Constraints}\label{sec:constraints}
-We now show that the conditioning polytope can be expressed with only $2(p-k)$ constraints in forward stepwise regression and the lasso. This increases the speed of both accept/reject and hit-and-run sampling for our problem.
-
-We begin by proving the result for forward stepwise linear regression, followed by a more general result for the forward stepwise likelihood path in exponential families.
+Remarkably, however, in both forward-stepwise and lasso linear regression, the computational problem actually becomes easier when we move to the sequential setting considered here. We now show that for both forward-stepwise regression and lasso linear regression --- and their respective generalizations to exponential family models --- conditioning on the event $\{E_{k-1}=E, U_k=u\}$, for any $k, E,$ and $u$, only introduces $2(p-k)$ linear inequality constraints, amounting to a rectangular constraint for the sufficient statistics of excluded variables. This increases the speed of both accept/reject and hit-and-run sampling for our problem. We begin by proving the result for forward stepwise linear regression, followed by a more general result for the forward stepwise likelihood path in exponential families. To avoid trivialities, we assume throughout that there are almost surely no ties. This is true, for example, in linear regression if $X$ is in general position. 
 
 \begin{theorem}
   Assume the model path $M_{0:d}$ is obtained by forward stepwise 
@@ -824,13 +812,10 @@ We begin by proving the result for forward stepwise linear regression, followed 
   the set $A = \{E_k = E, \;X_E'Y = u\}$ is characterized 
   exactly by the constraints $X_E'Y=u$ and
   \[
-  v_j^-(E,u) < X_j'Y < v_j^+(E,u), \quad\forall j \notin E,
+  v_j^-(E,u) \leq X_j'Y \leq v_j^+(E,u), \quad\forall j \notin E,
   \]
   for $v_j^-$ and $v_j^+$ given explicitly in (\ref{eq:vMinus_FS}--\ref{eq:vPlus_FS}).  Thus, $A$ corresponds exactly to a set with $2(p-k)$ linear inequality constraints and $k$ linear equality constraints on $Y$.
 \end{theorem}
-
-\RJTcomment{Can't we get rid of the strict inequalities above? The proof writes things in terms of nonstrict inequalities, and I think it makes sense to drop them; in the case of ties, $E$ is still a valid selected model.}
-\WFcomment{Thanks for noticing the inconsistency. }
 
 \begin{proof}
   At stage $i < k$, the next variable to enter is the one with maximal correlation with the residual vector, i.e.,
@@ -887,7 +872,7 @@ As we see below, the same result holds for the much larger class of forward step
   \[
   Y \sim \exp\{ \theta'U(y) - \psi(\theta) \}\,d\nu(y),
   \]
-  with $\Theta \sub \R^p$ convex, and assume that the model path $M_{0:d}$ is given by the forward stepwise likelihood path with
+  with $\Theta \sub \R^p$ convex, and assume that $M_{0:d}$ is the forward stepwise likelihood path with
 \begin{equation}
 j_k = \argmax_j \;\sup \left\{\ell(\theta; Y):\; \theta\in\Theta(E_{k-1} \cup \{j\})\right\}, \quad \text{ and } \quad
 E_k = E_{k-1} \cup \{j_k\}.
@@ -906,24 +891,18 @@ E_k = E_{k-1} \cup \{j_k\}.
   = \sup\left\{\theta'U(Y) - \psi(\theta) :\; \theta\in \Theta(E) \right\}
   = \sup\left\{\theta_E'U_E(Y) - \psi_E(\theta_E):\; \theta\in\Theta(E) \right\},
   \]
-  where $\psi_E:\; \R^{|E|} \to \R$ is defined such that $\psi(\theta)=\psi_E(\theta_E)$ if $\theta_{\{1,\ldots p\}\setminus E}=0$. Note that $\ell_E^*$ is the convex dual of the convex function $\psi_E$, so $\ell_E^*$ is also convex. \JTcomment{It would be convex even if $\psi_E$ were not convex. No? I also think $U$ in the definition of $\ell^*_E$ can be just $U(Y)$.} \RJTcomment{I would call this the ``convex conjugate'' or just the ``conjugate'' of $\ell$; and yes this will always be convex.  It doesn't require knowing anything about $\psi_E$ or even $\Theta$.} At stage $i<k$, the next variable to enter is the one that maximizes \smash{$\ell_{E_i\cup \{j\}}^*(U(Y))$}.
+  where $\psi_E:\; \R^{|E|} \to \R$ is defined such that $\psi(\theta)=\psi_E(\theta_E)$ for $\theta\in \Theta(E)$. Note that $\ell_E^*$ is the convex conjugate of the function $\psi_E$. For step $i<k$, write
+  \[
+  C_i^* = \max_{j \notin E_i} \;\ell_{E_i\cup \{j\}}^*(U(Y)).
+  \]
+  On $A$, $C_i^*$ is attained at $j=j_{i+1}\in E$, the next variable to enter. For $j\notin E$, the condition for $j$ {\em not} to enter at step $i+1$ is \smash{$\ell_{E_i\cup \{j\}}^*(U(Y)) \leq C_i^*$}. Due to the SSP, on the set $\{E_k=E\}$ all of the quantities $j_{i+1}$, $E_i$, and $C_i^*$ are functions of $U_E(Y)$.
 
-  Because the forward stepwise likelihood path satisfies the SSP, we know the entire path of fitted models up to step $k$ once we condition on $E_k$ and its sufficient statistics \smash{$U_{E_k}(Y)$}. On the set $\{E_k=E\}$, all of the quantities $j_{i+1}$, $E_i$, \smash{$\hat\theta^i$}, and \smash{$\proj_{E_i}^\perp$} depend only on $U_E(Y)$. For brevity, write 
-  \[
-  C_i^* = \max_{j \notin E_i} \;
-    \sup \left\{ \theta ' U - \psi(\theta):\; \theta \in \Theta(E_i\cup \{j\}) \right\}.
-  \]
-  On $A$, $C_i^*$ is attained at $j=j_{i+1}$, the $(i+1)$st variable added.  If $U_E(Y)$ is fixed at $u$, and $j \notin E$, then the condition for 
-  variable $j$ {\em not} to enter at step $i+1 < k$ is
-  \[
-  \ell_{E_i\cup \{j\}}^*(U(Y)) \leq C_i^*.
-  \]
-  Note that \smash{$\ell_{E_i\cup \{j\}}^*$} depends only on the sufficient statistic \smash{$U_{E_i}(Y)$} --- which is fixed, on $A$ --- and the remaining sufficient statistic $U_j(Y)$. Since \smash{$\ell_{E_i\cup\{j\}}^*$} is convex in $U$, if we fix \smash{$U_{E_i}$}, and consider it as a function of $U_j$ alone, then it is still convex in this single argument.  Hence any sublevel set of \smash{$\ell_{E_i\cup\{j\}}^*$}, with \smash{$U_{E_i}$} fixed, is just a 1-dimensional convex set, i.e., an interval, so we may write
+  Because $\ell_{E_i\cup \{j\}^*}(U)$ depends only on $U_{E_i}$ and $U_j$, the former of which is fixed at $u_{E_i}$, we can consider it as a one-dimensional convex function of $U_j$; hence any sublevel set is an interval with possibly infinite endpoints. Thus
   \begin{equation}\label{eq:noEnterBounds_FSL}
   \{U_E=u, \; \ell_{E_i\cup \{j\}}^*(U(Y)) \leq C_i^*\} 
   = \{ U_E=u, \; v_{j,i}^-(E,u) \leq U_j \leq v_{j,i}^+(E,u)\},
   \end{equation}
-  where $v_{j,i}^{-}$ and $v_{j,i}^+$ are the two values of $U_j$ such that \smash{$\ell_{E_i\cup \{j\}}^*(U)=C_i^*$}.
+  where $v_{j,i}^{-}$ and $v_{j,i}^+$ are the two values of $U_j$ such that \smash{$\ell_{E_i\cup \{j\}}^*(U)=C_i^*$}, or else $\pm\infty$.
 
   The set $A$ is equivalent to 
   \eqref{eq:noEnterBounds_FSL} holding
@@ -968,23 +947,8 @@ A similar result also holds for the class of $\ell_1$-regularized exponential fa
   linear equality constraints on $U(Y)$.
 \end{theorem}
 
-\JTcomment{Is there a reason you have $\psi$ and $\ell$ above instead of just $\ell$? I think the $(E,t)$ above should be $(E,u)$. It seems you never come back to $\psi$.}
-\WFcomment{Fixed t/u. $\psi$ is the log-proportionality constant, I think we need it. Maybe I'm misunderstanding your question?}
-\JTcomment{I guess I meant that I am assuming that
-$$
-\ell(\theta) = \theta'U(y) - \psi(\theta)
-$$
-but I don't see how I would conclude that from what is written.
-In principle, as written the $\psi$ above might be some other function but
-(44) and (45) imply that the objective function is of the form
-$$
-\ell(\theta) = \tilde{\psi}(\theta) - \theta'U(y)
-$$
-for some $\tilde{\psi}$. In the proof when you say $\mathbb{E}_{\hat{\theta}^{\lambda}}[U_j]$ I am assuming this is $e_j^T\nabla \psi (\hat{\theta}^{\lambda})$ soshould I conclude that $\tilde{\psi}=\psi$?
-}
-
 \begin{proof}
-  Note that, because exponential family likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
+  Note that, because exponential family log-likelihoods are concave in their natural parameters, the problem in~\eqref{eq:regProblem} is convex. Again, once we know the sufficient statistics $U_E(Y)$ for model $k$, and that $E_k=E$, we know that
   \[
   \hat\theta^\lambda = \hat\theta^{(E,\lambda)}
   \]
@@ -1011,7 +975,7 @@ for some $\tilde{\psi}$. In the proof when you say $\mathbb{E}_{\hat{\theta}^{\l
 
 Here we compare several model selection procedures in simulation. We generate data from a linear regression model with $n=100$ observations and $p=40$ variables. The design matrix $X\in\R^{n\times p}$ is a random Gaussian design with pairwise correlations of 0.3 between predictor variables.
 
-The columns of $X$ are normalized to have length 1, and we simulate $Y \sim \cN(X\beta,I_n)$, using a seven-sparse model with signal-to-noise ratio 5:
+The columns of $X$ are normalized to have length $\|X_j\|=1$, and we simulate $Y \sim \cN(X\beta,I_n)$, using a seven-sparse model with signal-to-noise ratio 5:
 \[
 \beta_j = \left\{\begin{matrix}5 & j = 1,\ldots,7\\ 0 &
     j = 7,\ldots 100 \end{matrix}\right. .
@@ -1020,7 +984,7 @@ We use known $\sigma^2=1$, so that we can compare the saturated-model test with 
 
 \subsection{Single-Step $p$-Values}
 
-For each step we compute one-step selected-model and saturated-model $p$-values, as well as nominal (unadjusted) $p$-values, conditioning on the signs of the active variables to make the problem more computationally tractable. Figure~\ref{fig:simulation_null_false} shows the power of all three tests for each of the first ten steps \RJTcomment{I only see steps 6 through 9?}, conditional on the event that the null hypothesis is false. It is clear from Figure~\ref{fig:simulation_null_false} that the selected-model $p$-values are far more powerful than the saturated-model $p$-values. The nominal $p$-values are also quite powerful, but they do not have the correct level.
+For each step we compute saturated-model $p$-values, max-$t$ and max-$z$ $p$-values, and nominal (unadjusted) $p$-values, conditioning on the signs of the active variables to make the problem more computationally tractable. \WFcomment{Do we really need to condition on the signs? There's just two polytopes in each case, right?} Figure~\ref{fig:simulation_null_false} shows the power of all three tests for each of the first eight steps, conditional on the event that the null hypothesis is false. It is clear from Figure~\ref{fig:simulation_null_false} that the selected-model $p$-values are far more powerful than the saturated-model $p$-values, especially for the first five steps, where they have near-perfect power. The nominal $p$-values are also quite powerful, but they do not have the correct level.
 
 \begin{figure}[h]
   \centering
@@ -1049,20 +1013,13 @@ For each step we compute one-step selected-model and saturated-model $p$-values,
   \label{fig:simulation_noise_var}
 \end{figure}
 
-Figure~\ref{fig:simulation_null_true} shows the distribution of $p_k$ for $k = 8, \ldots, 17$ \RJTcomment{I only see steps 9 through 11?}, given that the null hypothesis tested at step $k$ is correct (i.e., that $k_0< k$). Because the correct model is seven-sparse, $k=8$ is the first index for which the null can possibly be true. All but the nominal $p$-values are uniform by construction, and the nominal $p$-values are highly anti-conservative, as expected.
+Figure~\ref{fig:simulation_null_true} shows the distribution of $p_k$ for steps eight to eleven, given that the null hypothesis tested at step $k$ is correct (i.e., that $k_0\leq k$). Because the correct model is seven-sparse, $k=8$ is the first index for which the null model can possibly be true. All but the nominal $p$-values are uniform by construction, and the nominal $p$-values are highly anti-conservative, as expected.
 
-Finally, as a warning against misinterpretation of our method, we include Figure~\ref{fig:simulation_noise_var} showing the first ten $p$-values for each method \RJTcomment{I only see steps 1 through 4?}, conditional on event that the variable added at the given step is a noise variable in the full model. Now, none of the $p$-values are uniform. This is not an error in our implementation of the method, but rather a consequence of our ``model-centric'' point of view. If we try to add a noise variable to the model before we have included all the signal variables, then we are testing a false null hypothesis. The test rejects because there is much more signal to find, and as such, it is entirely appropriate for us to reject the null and continue growing the model.  
+Finally, as a warning against misinterpretation of our method, we include Figure~\ref{fig:simulation_noise_var} showing the first four $p$-values for each method, conditional on event that the variable added at the given step is a noise variable in the full model. Now, none of the $p$-values are uniform. This is not an error in our implementation of the method, but rather a consequence of our ``model-centric'' point of view. If we try to add a noise variable to the model before we have included all the signal variables, then we are testing a false null hypothesis. The test rejects because there is much more signal to find, and as such, the null model is false.  
 
 \subsection{Model-Selection Performance}
 
-If we combine the saturated-model or selected-model $p$-values with one of our three stopping rules, we can evaluate the model-selection performance of each method in terms of:
-\begin{itemize}
-\item its probability of selecting a correct model or $p_{\text{screen}}$,
-\item its model-wise FWER,
-\item its model-wise FDR, and
-\item its variable-wise FDR, where we use $V^{\text{full}}= \#\{\text{ noise variables included in } M_{\hk}\}$ instead of \smash{$V=(\hk-k_0)_+$}.
-\end{itemize} 
-The last measure of performance is not explicitly controlled by any of the selective-inference methods, but we might nevertheless hope to perform reasonably.
+If we combine the saturated-model or selected-model $p$-values with one of our three stopping rules, we can evaluate the model-selection performance of each method. Table~\ref{tab:stopping05} reports several model-selection metrics for each combination of test and stopping rule carried out at level $\alpha=0.05$, while Table~\ref{tab:stopping20} reports the same results for the more liberal $\alpha=0.2$. The metrics are $p_{\text{screen}}$, the probability of selecting a correct model; the (model-wise) FWER, both marginally and conditional on screening, the model-wise FDR and variable-wise $\text{FDR}^{\text{full}}$, and the average number of signal variables selected. Note that $\text{FDR}^{\text{full}}$ is not explicitly controlled by any of the methods other than knockoff+, but we might nevertheless hope to perform reasonably well. Also, note that the model-wise FWER and FDR and not defined for knockoffs, since it does not select variables sequentially, and never formally tests any model.
 
 % latex table generated in R 3.0.2 by xtable 1.7-1 package
 % Fri May  1 09:29:28 2015
@@ -1091,22 +1048,18 @@ The last measure of performance is not explicitly controlled by any of the selec
 \begin{table}[ht]
 \centering
 \input{tables/error_rates_05.tex}
-\caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
-The {\tt Simple} rule stops at the first time that a $p$-value exceeds $\alpha=0.05$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:orderedProposals}. Results with theoretical guarantees are in \guarantee{bold} type.}
+\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section~\ref{sec:sparseReg}. Results that are theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type.}
 \label{tab:stopping05}
 \end{table}
 
 \begin{table}[ht]
 \centering
 \input{tables/error_rates_20.tex}
-\caption[tab:stopping]{\em Results of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section \ref{sec:sparseReg}.
-The {\tt Simple} rule stops at the first time that a $p$-value exceeds $\alpha=0.2$, while {\tt Forward} and {\tt Strong} refers to the ForwardStop and StrongStrop rules of Section \ref{sec:orderedProposals}. Results with theoretical guarantees are in \guarantee{bold} type.}
+\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section~\ref{sec:sparseReg}. Results that are theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type.}
 \label{tab:stopping20}
 \end{table}
 
-\RJTcomment{I think these captions / labels in the tables should be fixed up, but I didn't want to mess with anything.  Few pedantic things: ``simple'' should be ``basic'', because now we're calling it BasicStop, and why not just write BasicStop and ForwardStop instead of ``basic'' and ``forward''?  Also, ``MaxZ'' should be ``Max-$z$'' and same for ``Max-$t$''.  Lastly, what is with the typewriter type?}
-
-We see that BasicStop and ForwardStop control model-wise FWER and FDR, respectively, using $p$-values from max-$t$ or max-$t$-identify, as predicted by the theory, and the nominal $p$-values do not lead to control of FWER or FDR, as expected due to their anti-conservatism. Although not guaranteed by the theory, the $p$-values from the saturated model do control FWER and model-wise FDR in this example.  The max-$t$ rules show higher probabilities of selecting the true model, especially using ForwardStop.  Lastly, the knockoff method does not yield variable-wise FDR control. \RJTcomment{Ummm isn't this an unexpected failure of knockoffs?  Should we comment on this?  Or am I missing something? Oh, I see.  We've also included knockoff+, which does control the FDR (because it adds something to the denominator, right?).  We should say something about this.}
+We see that BasicStop and ForwardStop control model-wise FWER and FDR, respectively, using $p$-values from max-$t$ or max-$t$-identify, as predicted by the theory, and the nominal $p$-values do not lead to control of FWER or FDR, as expected due to their anti-conservatism. Although not guaranteed by the theory, the $p$-values from the saturated model do control model-wise FDR in this example.  The max-$t$ rules show higher probabilities of selecting the true model, especially using ForwardStop.  Lastly, the knockoff method does not yield variable-wise FDR control. While the more conservative knockoff+ method does achieve variable-wise FDR control, this comes at a cost of very low power. Because of the discrete nature of knockoff and knockoff+, these two methods might perform better in an example with a larger number of signal variables to find.
 
 
 \section{Futher Examples and Extensions}\label{sec:further-examples}

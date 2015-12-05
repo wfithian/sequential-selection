@@ -13,7 +13,9 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
     guarantees = []
 
     name_map = dict(zip(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
-                        ['Nominal', 'MaxZ', 'MaxZ identify', 'MaxT', 'Saturated']))
+                        ['Nominal', 'Max-z', 'Max-z-identify', 'Max-t', 'Saturated']))
+    rule_map = dict(zip(['simple', 'forward'],
+                        ['BasicStop', 'ForwardStop']))
     for test, rule in product(['nominalT', 'maxT', 'maxT_identify', 'maxT_unknown', 'saturated'],
                               ['simple', 'forward']):
         name = '_'.join([test, rule])
@@ -35,7 +37,7 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
         else:
             guarantees.append((False, False, False, False, False, False))
         results.append((screen, FWER_model, FWER_model_cond, FDR_model, FDR_var, S_var))
-        names.append('%s %s' % (name_map[test], rule))
+        names.append('%s %s' % (name_map[test], rule_map[rule]))
 
     # now knockoffs
 
