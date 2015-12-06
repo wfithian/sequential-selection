@@ -1,18 +1,17 @@
 
 \newcommand{\guarantee}[1]{{\bf #1}}
-\begin{tabular}{|l|rrrrrr|}
- \hline
-{} &  $p_{\text{screen}}$ &  $\text{FWER}_{\text{mod}}$ &  $\text{FWER}_{\text{mod}} \vert \text{screen}$ &  $\text{FDR}_{\text{model}}$ &  $\text{FDR}_{\text{var}}$ &  $\text{S}_{\text{var}}$ \\ \hline
-Nominal BasicStop & 0.941 & 0.932 & 0.991 & 0.415 & 0.498 & 6.939 \\ 
-Nominal ForwardStop & 0.981 & 0.977 & 0.995 & 0.640 & 0.704 & 6.980 \\ 
-Max-z BasicStop & 0.611 & \guarantee{0.119} & \guarantee{0.196} & \guarantee{0.018} & 0.073 & 6.526 \\ 
-Max-z ForwardStop & 0.857 & 0.644 & 0.752 & \guarantee{0.152} & 0.231 & 6.841 \\ 
-Max-z-identify BasicStop & 0.630 & \guarantee{0.136} & \guarantee{0.216} & \guarantee{0.020} & 0.074 & 6.556 \\ 
-Max-z-identify ForwardStop & 0.866 & 0.658 & 0.760 & \guarantee{0.152} & 0.232 & 6.851 \\ 
-Max-t BasicStop & 0.578 & \guarantee{0.112} & \guarantee{0.194} & \guarantee{0.016} & 0.069 & 6.462 \\ 
-Max-t ForwardStop & 0.843 & 0.618 & 0.733 & \guarantee{0.140} & 0.219 & 6.824 \\ 
-Saturated BasicStop & 0.065 & 0.009 & 0.132 & 0.001 & 0.031 & 3.127 \\ 
-Saturated ForwardStop & 0.386 & 0.171 & 0.442 & 0.028 & 0.074 & 4.977 \\ 
-Knockoff & 0.594 & NA & NA & NA & 0.230 & 5.717 \\ 
-Knockoff+ & 0.360 & NA & NA & NA & \guarantee{0.136} & 3.764 \\   \hline
-\end{tabular}
+{\small 
+\begin{tabular}{|l l|cccccc|}
+\hline
+{} & {} &  $\P(\hk \geq k_0)$ &  $\text{FWER}$ &  $\text{cFWER}$ &  $\text{FDR}$ &  $\text{FDR}^{\text{full}}$ &  $\E[S^{\text{full}}]$ \\ \hline
+Nominal & BasicStop & 0.94 & 0.93 & 0.99 & 0.415 & 0.498 & 6.94 \\ 
+Nominal & ForwardStop & 0.98 & 0.98 & 1.00 & 0.640 & 0.704 & 6.98 \\ 
+Max-z & BasicStop & 0.61 & \guarantee{0.12} & \guarantee{0.20} & \guarantee{0.018} & 0.073 & 6.53 \\ 
+Max-z & ForwardStop & 0.86 & 0.64 & 0.75 & \guarantee{0.152} & 0.231 & 6.84 \\ 
+Max-t & BasicStop & 0.58 & \guarantee{0.11} & \guarantee{0.19} & \guarantee{0.016} & 0.069 & 6.46 \\ 
+Max-t & ForwardStop & 0.84 & 0.62 & 0.73 & \guarantee{0.140} & 0.219 & 6.82 \\ 
+Saturated & BasicStop & 0.06 & 0.01 & 0.13 & 0.001 & 0.031 & 3.13 \\ 
+Saturated & ForwardStop & 0.39 & 0.17 & 0.44 & 0.028 & 0.074 & 4.98 \\ 
+Knockoff & & 0.59 & --- & --- & --- & 0.230 & 5.72 \\ 
+Knockoff+ & & 0.36 & --- & --- & --- & \guarantee{0.136} & 3.76 \\  \hline
+\end{tabular}}

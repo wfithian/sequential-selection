@@ -117,7 +117,7 @@ Table~\ref{tab:diab} illustrates the max-$t$ test and two others applied to the 
 \begin{table}[ht]
 \centering
 \input{tables/diabetes_edit.tex}
-\caption[tab:diab]{\em Forward stepwise regression for the diabetes data: naive $p$-values, $p$-values from the saturated model, and our max-$t$ $p$-values. The bold annotation in each column marks the model selected by ForwardStop with $\alpha=0.1$. For the max-$t$ $p$-values, this stopping rule gives exact FDR control at the 10\% level.}
+\caption[tab:diab]{Forward stepwise regression for the diabetes data: naive $p$-values, $p$-values from the saturated model, and our max-$t$ $p$-values. The bold annotation in each column marks the model selected by ForwardStop with $\alpha=0.1$. For the max-$t$ $p$-values, this stopping rule gives exact FDR control at the 10\% level.}
 \label{tab:diab}
 \end{table}
 
@@ -800,7 +800,7 @@ under the null hypothesis that $F\in M_{k-1}$. Because $U_{k-1}$ is sufficient f
 
 In many cases it is easy to sample $Y$ given $U_{k-1}$, in which case computational difficulties only arise insofar as the selection event $\{M_{k-1}(Y)=M\}$ is difficult to condition on, or the test statistic $T_k(Y)$ is difficult to evaluate. Due to the generality in which we have posed the problem, we cannot give a general prescription for how to carry out this sampling. However, we give some details for the important case of linear regression in Appendix~\ref{sec:linRegComputation}.
 
-\subsection{Constraints}\label{sec:constraints}
+\subsection{Constraints for the Greedy Likelihood and Next-Entry Tests}\label{sec:constraints}
 
 For a completely general selection algorithm, we might expect severe computational difficulties when we attempt to condition on the null model at stage $k$, $M_{k-1}(Y)$. For example, in forward stepwise regression, $M_{k-1}$ is the cumulative result of $k-1$ steps of greedy variable selection. At each step $s<k$, the selection of variable $j_s$ is a result of comparing its $t$-statistic with the $t$-statistics of the other $p-k$ inactive variables. Based on this logic, we might expect to accumulate at least $O(p)$ constraints at each step, resulting in $O(kp)$ constraints after $k$ steps \citep{taylor2014exact}.
 
@@ -918,7 +918,7 @@ E_k = E_{k-1} \cup \{j_k\}.
   \end{align}
 \end{proof}
 
-A similar result also holds for the class of $\ell_1$-regularized exponential family models. % including the graphical LASSO.
+A similar result also holds for the class of $\ell_1$-regularized exponential family models.
 
 \begin{theorem}
   Assume that $M_\infty$ is an exponential family model
@@ -970,6 +970,7 @@ A similar result also holds for the class of $\ell_1$-regularized exponential fa
   \end{align}
 \end{proof}
 
+
 \section{Simulation: Sparse Linear Regression}
 \label{sec:sparseReg}
 
@@ -984,13 +985,13 @@ We use known $\sigma^2=1$, so that we can compare the saturated-model test with 
 
 \subsection{Single-Step $p$-Values}
 
-For each step we compute saturated-model $p$-values, max-$t$ and max-$z$ $p$-values, and nominal (unadjusted) $p$-values, conditioning on the signs of the active variables to make the problem more computationally tractable. \WFcomment{Do we really need to condition on the signs? There's just two polytopes in each case, right?} Figure~\ref{fig:simulation_null_false} shows the power of all three tests for each of the first eight steps, conditional on the event that the null hypothesis is false. It is clear from Figure~\ref{fig:simulation_null_false} that the selected-model $p$-values are far more powerful than the saturated-model $p$-values, especially for the first five steps, where they have near-perfect power. The nominal $p$-values are also quite powerful, but they do not have the correct level.
+For each step we compute saturated-model $p$-values, max-$z$ $p$-values, and nominal (unadjusted) $p$-values, conditioning on the signs of the active variables as proposed by \citet{lee2013exact}. Figure~\ref{fig:simulation_null_false} shows the power of all three tests for each of the first eight steps, conditional on the event that the null hypothesis is false. It is clear from Figure~\ref{fig:simulation_null_false} that the selected-model $p$-values are far more powerful than the saturated-model $p$-values, especially for the first five steps, where they have near-perfect power. The nominal $p$-values are also quite powerful, but they do not have the correct level.
 
 \begin{figure}[h]
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_false.pdf}
-  \caption{\em  CDFs of nominal (black), max-$z$ (red), max-$t$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The max-$t$ approaches are much more powerful than the saturated-model test. The nominal test appears to be powerful, 
+  \caption{  CDFs of nominal (black), max-$z$ (red), max-$t$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a false null hypothesis at step $k$. The max-$t$ approaches are much more powerful than the saturated-model test. The nominal test appears to be powerful, 
   but is not $U[0,1]$ under the null, as shown below in Figure \ref{fig:simulation_null_true}.}
   \label{fig:simulation_null_false}
 \end{figure}
@@ -999,17 +1000,15 @@ For each step we compute saturated-model $p$-values, max-$t$ and max-$z$ $p$-val
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_null_true.pdf}
-  \caption{\em  CDFs of nominal (black), max-$z$ (red), max-$t$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$.  The nominal test is badly anti-conservative, while all of the other methods  show uniform $p$-values as desired.}
+  \caption{  CDFs of nominal (black), max-$z$ (red), max-$t$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on testing a true null hypothesis at step $k$.  The nominal test is badly anti-conservative, while all of the other methods  show uniform $p$-values as desired.}
   \label{fig:simulation_null_true}
 \end{figure}
-
- \RJTcomment{The lines in Fig 6 are super thin, thinner than Fig 5?}
 
 \begin{figure}[h]
   \centering
   % source code: ??? for simulation, sparseSim.R for plotting
   \includegraphics[width=1\textwidth]{figs/simulation_snr_5_alpha_05_noise_var.pdf}
-  \caption{\em CDFs of nominal (black), max-$z$ (red), max-$t$ $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
+  \caption{ CDFs of nominal (black), max-$z$ (red), max-$t$ $\sigma$ (green) and  saturated-model (blue) $p$-values in the simulation of Section~\ref{sec:sparseReg}, conditional on the event that the variable added at step $k$ is a noise variable in the full model. Here, none of the methods produce uniform $p$-values. The null hypothesis is false in most cases and so --- in our model-centric point of view --- rejection is the desired outcome.}
   \label{fig:simulation_noise_var}
 \end{figure}
 
@@ -1019,48 +1018,27 @@ Finally, as a warning against misinterpretation of our method, we include Figure
 
 \subsection{Model-Selection Performance}
 
-If we combine the saturated-model or selected-model $p$-values with one of our three stopping rules, we can evaluate the model-selection performance of each method. Table~\ref{tab:stopping05} reports several model-selection metrics for each combination of test and stopping rule carried out at level $\alpha=0.05$, while Table~\ref{tab:stopping20} reports the same results for the more liberal $\alpha=0.2$. The metrics are $p_{\text{screen}}$, the probability of selecting a correct model; the (model-wise) FWER, both marginally and conditional on screening, the model-wise FDR and variable-wise $\text{FDR}^{\text{full}}$, and the average number of signal variables selected. Note that $\text{FDR}^{\text{full}}$ is not explicitly controlled by any of the methods other than knockoff+, but we might nevertheless hope to perform reasonably well. Also, note that the model-wise FWER and FDR and not defined for knockoffs, since it does not select variables sequentially, and never formally tests any model.
+If we combine the saturated-model or selected-model $p$-values with one of our three stopping rules, we can evaluate the model-selection performance of each method. Table~\ref{tab:stopping05} reports several model-selection metrics for each combination of test and stopping rule carried out at level $\alpha=0.05$, while Table~\ref{tab:stopping20} reports the same results for the more liberal $\alpha=0.2$. The max-$t$ test, which we could use in place of the max-$z$ test if $\sigma^2$ were unknown, is included for comparison. The max-$z$-identify test was also included in the simulation, but not shown in Tables~\ref{tab:stopping05} and \ref{tab:stopping20} because its performance on all metrics was virtually identical to the max-$z$ test.
 
-% latex table generated in R 3.0.2 by xtable 1.7-1 package
-% Fri May  1 09:29:28 2015
-%\begin{table}[ht]
- % \centering
- % \begin{tabular}{llcccc}
-  %  \hline
-  %  Method & Stopping Rule & $p_{\text{screen}}$ & $\text{FWER}_{\text{mod}}$ an
- %   & $\text{FDR}_{\text{mod}}$ 
-  %  & $\text{FDR}_{\text{var}}$ \\ 
- %   \hline
-    %Selected & Basic & .290 & .000 & .002 & .039 \\ 
-   % Selected & Forward & .559 & .027 & .020 & .066 \\ 
-   % Selected & Strong & .041 & .014 & .008 & .042 \\ 
-  %  \hline
-   % Saturated & Basic & .000 & .000 & .000 & .028 \\ 
-  %  Saturated & Forward & .014 & .000 & .000 & .030 \\ 
-  %  Saturated & Strong & .000 & .000 & .000 & .032 \\ 
-  %  \hline
-  %  Knockoffs & & .000 & --- & --- & .231 \\ 
-  %  \hline
- % \end{tabular}
- % \caption{\WFcomment{Comment on results once they are correct. These numbers are wrong right now.}}
-%\end{table}
+The metrics are $\P(\hk \geq k_0)$, the probability of selecting a correct model; the (model-wise) FWER; the FWER conditional on $\hk \geq k_0$, labeled cFWER; the model-wise FDR and variable-wise $\text{FDR}^{\text{full}}$; and the average number of full-model signal variables selected, labeled $\E[S^{\text{full}}]$ (where $S^{\text{full}} = R-V^{\text{full}}$). Note that $\text{FDR}^{\text{full}}$ is not explicitly controlled by any of the methods other than knockoff+, but we might nevertheless hope to perform reasonably well. Also, note that the model-wise FWER and FDR and not defined for knockoffs, since it does not select variables sequentially, and never formally tests any model.
 
 \begin{table}[ht]
 \centering
 \input{tables/error_rates_05.tex}
-\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section~\ref{sec:sparseReg}. Results that are theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type.}
+\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals,  at level $\alpha=0.05$. Values theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type. The largest standard error in each of the six columns is 0.01, 0.01, 0.02, 0.004, 0.003, and 0.05.}
 \label{tab:stopping05}
 \end{table}
 
 \begin{table}[ht]
 \centering
 \input{tables/error_rates_20.tex}
-\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals,  as described at the beginning of Section~\ref{sec:sparseReg}. Results that are theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type.}
+\caption[tab:stopping]{Model-selection performance of various stopping rules applied to simulated data with 7 strong signals, at level $\alpha=0.2$. Values theoretically guaranteed to be less than $\alpha$ are in \guarantee{bold} type. The largest standard error in each of the six columns is 0.01, 0.01, 0.03, 0.004, 0.004, and 0.07.}
 \label{tab:stopping20}
 \end{table}
 
-We see that BasicStop and ForwardStop control model-wise FWER and FDR, respectively, using $p$-values from max-$t$ or max-$t$-identify, as predicted by the theory, and the nominal $p$-values do not lead to control of FWER or FDR, as expected due to their anti-conservatism. Although not guaranteed by the theory, the $p$-values from the saturated model do control model-wise FDR in this example.  The max-$t$ rules show higher probabilities of selecting the true model, especially using ForwardStop.  Lastly, the knockoff method does not yield variable-wise FDR control. While the more conservative knockoff+ method does achieve variable-wise FDR control, this comes at a cost of very low power. Because of the discrete nature of knockoff and knockoff+, these two methods might perform better in an example with a larger number of signal variables to find.
+We see that BasicStop and ForwardStop control model-wise FWER and FDR, respectively, using $p$-values from max-$z$ and max-$t$, as predicted by the theory, and the nominal $p$-values do not lead to control of FWER or FDR, as expected due to their anti-conservatism. Although not guaranteed by the theory, the $p$-values from the saturated model do control model-wise FDR in this example.  The max-$z$ method is more powerful, showing higher probabilities of selecting a correct model, especially when using ForwardStop. The max-$t$ method is also powerful but slightly less so than the max-$z$, owing to the additional nuisance variable $\sigma^2$.
 
+The knockoff method does not yield variable-wise FDR control. While the more conservative knockoff+ method does achieve variable-wise FDR control, this comes at a cost of very low power. Because of the discrete nature of knockoff and knockoff+, these two methods might perform better in an example with a larger number of signal variables to find.
 
 \section{Futher Examples and Extensions}\label{sec:further-examples}
 
@@ -1209,7 +1187,7 @@ over 10 different starting seeds.
 \begin{figure}[htp]
 \centering
   \includegraphics[width=\textwidth]{figs/comparison.pdf}
-  \caption{\em Simulated example with $n= 100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.  Shown are bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged over 10 different starting seeds.
+  \caption{ Simulated example with $n= 100, p=20$ and one strong signal, computing the max-$t$ $p$-value at Step 3.  Shown are bias, variance and MSE of the estimates from accept/reject and hit and run, using between 1000 and 8000 samples, averaged over 10 different starting seeds.
 }
 \label{fig:comparison}
 \end{figure}
