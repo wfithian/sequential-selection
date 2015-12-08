@@ -66,6 +66,7 @@
 \newcommand{\hr}{\hat{r}}       
 \newcommand{\cN}{\mathcal{N}}
 \newcommand{\cJ}{\mathcal{J}}
+\newcommand{\cL}{\mathcal{L}}
 \newcommand{\leqAS}{\overset{\textrm{a.s.}}{\leq}}
 \newcommand{\Err}{\mathcal{E}}
 \newcommand{\RSS}{\text{RSS}}
@@ -184,7 +185,7 @@ which is super-uniform on the event $\{F \in M_{k-1}(Y)\}$:
 \end{equation}
 One useful strategy for constructing exact selective tests is to condition on the sufficient statistics of the null model $M_{k-1}$. By sufficiency, the law
 \[
-\L_F(Y \;\mid\; U_{k-1}, \; M_{k-1}=M)
+\cL_F(Y \;\mid\; U_{k-1}, \; M_{k-1}=M)
 \]
 is the same for every $F\in M$. Thus, we can construct selective tests and $p$-values by comparing the realized value of any test statistic $T_k(Y)$ to its known conditional distribution under the null. It remains only to choose the test statistic and compute its conditional null distribution, which can be challenging. See \citet{fithian2014optimal} for a general treatment. Section~\ref{sec:computation} discusses computational strategies for the tests we propose in this article.
 
@@ -230,7 +231,7 @@ G_k(Y) = \sup_{\theta\in \Theta(E_k)} {\ell(\theta; Y)} \;\;- \sup_{\theta\in \T
 \end{equation}
 which is the generalized likelihood ratio statistic for testing $M(E_{k-1})$ against the ``greedy'' alternative with one more active parameter, $\bigcup_{j \notin E_{k-1}} M(E_{k-1} \cup \{j\})$. The {\em selective greedy likelihood ratio test} rejects for large $G_k$, based on the law
 \begin{equation*}
-\L\left(G_k \;\mid\; M_{k-1}, U_{k-1}\right)
+\cL\left(G_k \;\mid\; M_{k-1}, U_{k-1}\right)
 \end{equation*}
 Because the likelihood in linear regression is a monotone decreasing function of the residual sum of squares, the max-$t$ test is equivalent to the greedy likelihood ratio test. The counterpart of the max-$t$ test in linear regression with known $\sigma^2$ is the max-$z$ test, which differs only in replacing the $t$-statistics $t_{j,E}$ with their corresponding $z$-statistics. The max-$z$ test is also equivalent to the selective greedy likelihood ratio test.
 
@@ -267,7 +268,7 @@ and for $k\geq 1$, let $\lambda_k$ denote the (random) value of $\lambda$ where 
 
 In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, with larger values suggesting a poorer fit. The {\em selective next-entry test} is the test that rejects for large $\lambda_k$, based on the law
 \begin{equation*}
-\L\left(\lambda_k \;\mid\; U_{k-1}, M_{k-1}\right).
+\cL\left(\lambda_k \;\mid\; U_{k-1}, M_{k-1}\right).
 \end{equation*}
 
 \paragraph{Remark.} In its usual formulation, the lasso coefficients for linear regression minimize a penalized RSS criterion. If we replace $-\ell$ with any strictly decreasing function of the log-likelihood such as RSS, all of the results in this article hold without modification.
@@ -340,7 +341,7 @@ $k_0(Y, F) = \min\{k:\; F \in M_k(Y)\}$).
 \subsection{Proposals for Ordered Testing of Fixed Hypotheses}
 \label{sec:orderedProposals}
 
-We now review several proposals for ordered testing of fixed null hypotheses along with their error guarantees in the traditional setting, where the sequence of null hypotheses is fixed. In the next section we will extend the analysis to random null hypotheses.
+We now review several proposals for ordered hypotheses testing along with their error guarantees in the traditional setting, where the sequence of null hypotheses is fixed. In the next section we will extend the analysis to random null hypotheses.
 
 The simplest procedure is to keep rejecting until the first time that $p_k > \alpha$: 
 \[
@@ -378,7 +379,7 @@ Consider linear regression with $n=p=3$, known $\sigma^2=1$ and identity design 
 If $\mu=(0,C,0)$, then the FWER for this procedure tends to $2\alpha-\alpha^2$ as $C\to\infty$.
 \end{restatable}
 
-A proof of Proposition~\ref{prop:counterexample} is given in the appendix.  The problem is that $k_0$ is no longer a fixed index. Consequently, even though $\L(p_k \mid H_k \text{ true})=U[0,1]$ for each fixed $k$, the $p$-value \smash{$p_{k_0}$} corresponding to the {\em first} true null hypothesis is stochastically smaller than uniform. In this counterexample, $k_0=2 \iff |Y_3|>z_{\alpha/2}$, giving $\text{FWER}\eqAS 1$ on the event $k_0=2$ and leaving no room for error when $k_0\neq 2$.
+A proof of Proposition~\ref{prop:counterexample} is given in the appendix.  The problem is that $k_0$ is no longer a fixed index. Consequently, even though $\cL(p_k \mid H_k \text{ true})=U[0,1]$ for each fixed $k$, the $p$-value \smash{$p_{k_0}$} corresponding to the {\em first} true null hypothesis is stochastically smaller than uniform. In this counterexample, $k_0=2 \iff |Y_3|>z_{\alpha/2}$, giving $\text{FWER}= 1$ conditional on the event $k_0=2$ and leaving no room for error when $k_0\neq 2$.
 
 If, however, we could guarantee that for each $k=1,\ldots, d$,
 \[
@@ -390,10 +391,10 @@ then BasicStop again would control FWER, by \eqref{eq:basic-stop-control}. Note 
 \]
 it is enough to condition on $(M_{k-2}, M_{k-1})$. As we will see in Section~\ref{sec:pValsIndep}, conditioning on $(M_{k-1}, U_{k-1})$ is equivalent to conditioning on $(M_{0:(k-1)}, U_{k-1})$ in most cases of interest including forward stepwise likelihood paths and ever-active regularization paths (but not the path in Proposition~\ref{prop:counterexample}).
 
-Similarly, the error control guarantees of \citet{gsell2013sequential} and \citet{li2015accumulation} do not directly apply to case where the null hypotheses are random. However, we recover these guarantees if we have {\em conditional} independence and uniformity of null $p$-values given $k_0$:
+Similarly, the error control guarantees of \citet{gsell2013sequential} and \citet{li2015accumulation} do not directly apply to case where the null hypotheses are random. However, we recover these guarantees if we have {\em conditional} independence and uniformity of null $p$-values given $k_0$: that is, if for all $k=0,\ldots, d-1$ and $\alpha_{k+1},\ldots,\alpha_{d} \in [0,1]$, we have
 \begin{equation}\label{eq:indepCond_random_k0}
   \P_F(p_{k+1} \leq \alpha_{k+1}, \ldots, p_d \leq \alpha_d
-  \mid p_1, \ldots, p_k) \eqAS \left(\prod_{i=k+1}^d \alpha_i\right) \quad \text{on } \{k_0(Y, F) = k\}.
+  \mid p_1, \ldots, p_k) \eqAS \left(\prod_{i=k+1}^d \alpha_i\right) \quad \text{on } \{k_0(Y, F) = k\},
 \end{equation}
 For the sake of brevity, we will say that $p$-value sequences satisfying~\eqref{eq:indepCond_random_k0} are {\em independent on nulls}.
 
@@ -407,7 +408,13 @@ The following proposition shows that independence on nulls allows us to transfer
 \end{proposition}
 \begin{proof}
     For nested hypotheses, $k_0$ completely determines the truth or falsehood of $H_k(Y)$ for every $k$. If \smash{$\hk$} controls $\Err_g$ in the 
-fixed-hypothesis case, it must in particular control $\Err_g$ conditional on any fixed values of $p_{1:k_0}$. Thus, \eqref{eq:indepCond_random_k0} implies
+fixed-hypothesis case, it must in particular control $\Err_g$ conditional on any fixed values of $p_{1:k_0}$, since we could set 
+\[
+p_{1:k_0} \sim \prod_{k=1}^{k_0} \delta_{a_k}
+\]
+for any sequence $a_1,\ldots, a_{k_0}$, where $\delta_a$ is a point mass at $a \in [0,1]$.
+
+Thus, \eqref{eq:indepCond_random_k0} implies
   \[
   \E\left[ g\left(\hk(p_1,\ldots,p_d), k_0(Y, F)\right) \;\mid\;
       k_0(Y, F), \; p_{1:k_0}(Y)\right] \leqAS \alpha.
@@ -425,7 +432,7 @@ We now develop sufficient conditions for constructing $p$-values with the {\it i
 
 Recall that at step $k$, the max-$t$ test rejects for large \smash{$T_k=|t_{E_{k-1}}^*|$}, comparing its distribution to the conditional law
 \begin{equation}\label{eq:maxTnull}
-\L\left(T_k \; \mid \; E_{k-1}, \,X_{E_{k-1}}'Y, \,\|Y\|^2 \right).
+\cL\left(T_k \; \mid \; E_{k-1}, \,X_{E_{k-1}}'Y, \,\|Y\|^2 \right).
 \end{equation}
 This conditional distribution is the same for all $F\in M(E_{k-1})$, because \smash{$U_{k-1}=(X_{E_{k-1}}'Y,\; \|Y\|^2)$} is the complete sufficient statistic for $M(E_{k-1})$.
 
@@ -434,13 +441,13 @@ If $F\in M(E_{k-1})$, then $p_k$ is uniform and independent of the previous $p$-
 \item $p_k$ is uniform conditional on $E_{k-1}$ and $U_{k-1}$ by construction, and
 \item $p_1, \ldots, p_{k-1}$ are functions of $E_{k-1}$ and $U_{k-1}$, as we will see shortly.
 \end{enumerate}
-Informally, the pair $(E_{k-1}, U_{k-1})$ forms a ``wall of separation'' between $p_k$ and $p_{1:(k-1)}$, guaranteeing that $\L(p_k \mid p_{1:(k-1)}) = U[0,1]$ whenever $H_k$ is true.
+Informally, the pair $(E_{k-1}, U_{k-1})$ forms a ``wall of separation'' between $p_k$ and $p_{1:(k-1)}$, guaranteeing that $\cL(p_k \mid p_{1:(k-1)}) = U[0,1]$ whenever $H_k$ is true.
 
 Next we will see why $p_1,\ldots,p_{k-1}$ are functions of $(E_{k-1},U_{k-1})$. Observe that knowing $E_{k-1}=E$ tells us that the $k-1$ variables in $E$ are selected first, and knowing \smash{$U_{k-1}=(X_{E_{k-1}}'Y,\|Y\|^2)$} is enough information to compute the $t$-statistics $t_{j,D}$ for all $j\in E$ and $D\sub E$. As a result, we can reconstruct the order in which those $k-1$ variables were added. In other words, $(E_i, U_i)$ is a function of $(E_{k-1}, U_{k-1})$ for all $i<k$.
 
-Furthermore, for $i<k$, $p_i$ is computed by comparing $T_i=|t_{j_i, E_{i-1}}|$, which is a function of $(E_i, U_i)$, to the reference null distribution $\L_{H_i}(T_i \mid E_{i-1}, U_{i-1})$, which is a function of $(E_{i-1}, U_{i-1})$. Having verified that under $H_k$, $p_k$ is uniform and independent of $p_{1:{k-1}}$, we can apply this conclusion iteratively to see that all remaining $p$-values are also uniform and independent.
+Furthermore, for $i<k$, $p_i$ is computed by comparing $T_i=|t_{j_i, E_{i-1}}|$, which is a function of $(E_i, U_i)$, to the reference null distribution $\cL_{H_i}(T_i \mid E_{i-1}, U_{i-1})$, which is a function of $(E_{i-1}, U_{i-1})$. Having verified that under $H_k$, $p_k$ is uniform and independent of $p_{1:{k-1}}$, we can apply this conclusion iteratively to see that all remaining $p$-values are also uniform and independent.
 
-By contrast, the saturated model $p$-values use a law different from~\eqref{eq:maxTnull} to compute $p$-values, one that uses
+By contrast, the saturated model $p$-values are computed using a reference distribution different from~\eqref{eq:maxTnull}, one that depends on
 information not contained in $(E_k,U_k)$. As a result, saturated-model $p$-values are generally not independent on nulls. We discuss the regression setting in more detail in Section \ref{sec:selective-reg}.
 
 \subsection{General Case}
@@ -606,7 +613,7 @@ As a direct consequence of Proposition~\ref{prop:forwardSSP}, greedy likelihood 
     G_k(Y) &= \sup_{\theta\in \Theta(E_k)} {\ell(\theta; Y)} \;\;- \sup_{\theta\in \Theta(E_{k-1})} {\ell(\theta; Y)}\\
     &= \sup_{\theta\in \Theta(E_k)} {\ell_{E_k}^{Y\mid U}(\theta; U_k)} \;\;- \sup_{\theta\in \Theta(E_{k-1})} {\ell_{E_k}^{Y\mid U}(\theta; U_k)}.
   \end{align*}
-  Second, the null distribution $\L\left(G_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $G_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
+  Second, the null distribution $\cL\left(G_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $G_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
 \end{proof}
 
 \begin{corollary}\label{cor:nextLambdaIndep}
@@ -623,7 +630,7 @@ As a direct consequence of Proposition~\ref{prop:forwardSSP}, greedy likelihood 
   \]
   and that the \smash{$\tE_{\lambda}$} are nested by construction and finite by assumption. As a result, there is some $\gamma_k\in \Lambda_k$ for which \smash{$\tE_{\gamma_k} = E_k$}. 
   
-  Furthermore, for all $\lambda\in\Lambda, \lambda\geq \gamma_k$, we have \smash{$\tE_\lambda \sub E_k$}. As a result, \smash{${\hat\theta^{\lambda} =\hat\theta^{(E_k,\lambda)}}$} for such $\lambda$, so $\tE_{\lambda}$ depends only on \smash{$\ell_{E_k}^{Y\mid U}(Y;\, U_k)$}, and therefore $\lambda_k$ can be computed from $(E_k, U_k)$.  Second, the null distribution $\L\left(\lambda_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $\lambda_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
+  Furthermore, for all $\lambda\in\Lambda, \lambda\geq \gamma_k$, we have \smash{$\tE_\lambda \sub E_k$}. As a result, \smash{${\hat\theta^{\lambda} =\hat\theta^{(E_k,\lambda)}}$} for such $\lambda$, so $\tE_{\lambda}$ depends only on \smash{$\ell_{E_k}^{Y\mid U}(Y;\, U_k)$}, and therefore $\lambda_k$ can be computed from $(E_k, U_k)$.  Second, the null distribution $\cL\left(\lambda_k \,\mid\, M_{k-1}, U_{k-1}\right)$ against which we compare $\lambda_k$ is also $\sF_k$-measurable because it depends only on $(M_{k-1}, U_{k-1})$, both of which are $\sF_{k-1}$-measurable.
 \end{proof}
 
 As we have shown, the selective max-$t$ test is equivalent to the selective greedy likelihood test in the case of linear regression. In the next section, we will compare and contrast the max-$t$ and next-entry, and other {\em selected-model tests}, with the {\em saturated-model tests} proposed by \citet{taylor2014exact} and others. 
@@ -641,9 +648,9 @@ so named because there is a mean parameter for every observation. Because the pa
 
 Saturated-model tests perform inference on selected linear functionals of $\mu$. In the context of sequential linear model selection,  we can use the saturated-model framework to test the incremental null \smash{$H^{\text{inc}}:\; \theta_{j_k}^{E_k} = 0$}, where $\theta^E$ minimizes \smash{$\|\mu - X_E\theta\|_2$}.
 
-Let $\eta_k\in \R^n$ denote the vector for which \smash{$\theta_{j_k}^{E_k} = \eta_k'\mu$}, and let \smash{$\proj_{\eta_k}^\perp$} denote the projection operator into the space orthogonal to $\eta_k$. The UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution \smash{$\L\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)$}, or equivalently
+Let $\eta_k\in \R^n$ denote the vector for which \smash{$\theta_{j_k}^{E_k} = \eta_k'\mu$}, and let \smash{$\proj_{\eta_k}^\perp$} denote the projection operator into the space orthogonal to $\eta_k$. The UMPU saturated-model test for $\eta_k'\mu$ is based on the distribution \smash{$\cL\left( \eta_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)$}, or equivalently
 \begin{equation}\label{eq:satModel}
-\L\left( X_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)
+\cL\left( X_k'Y \mid E_{k-1}, \;j_k, \;\proj_{\eta_k}^\perp Y \right)
 \end{equation}
 
 While the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, the null distribution we compare it against is not: it depends on \smash{$\proj_{\eta_k}^\perp Y$}, which is not measurable with respect to $\sF_k$. As a result, saturated-model $p$-values are in general {\em not} independent on nulls.
@@ -655,7 +662,7 @@ represents a more powerful option when testing for inclusion of variable $j_k$. 
 \subsubsection{Testing Against the Next Model}\label{sec:identify}
 One option for selected-model inference is to perform a selective test of $M_{k-1}$ against $M_{k}\setminus M_{k-1}$, conditioning on both models. Conditioning on $(M_{k-1},M_k)$ is equivalent to conditioning on $(E_{k-1}, j_k)$. If $\sigma^2$ is known, the test is based on
 \begin{equation}\label{eq:selModel_cond}
-\L\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
+\cL\left(X_{j_k}'Y \mid E_{k-1}, \; j_k, \; X_{E_{k-1}}'Y\right).
 \end{equation}
 If $\sigma^2$ were unknown we would also need to condition on $\|Y\|^2$. We can construct $p$-values from the UMPU, equal-tailed, or one-sided test based on the one-parameter exponential family~\eqref{eq:selModel_cond}; the only difference is in how much of the overall level $\alpha$ is apportioned to the right or left tail \citep{fithian2014optimal}. If we use the construction in~\eqref{eq:selModel_cond} after a subpath-sufficient path algorithm, the resulting $p$-values are always guaranteed to have independence on nulls. This is because the test statistic $X_{j_k}'Y$ is measurable with respect to $\sF_k$, as is the reference null distribution.
 
@@ -666,7 +673,7 @@ Note the contrast between~\eqref{eq:selModel_cond} and~\eqref{eq:satModel}. In~\
 
 To avoid conditioning on the next model $M_k$, we could instead test $M_{k-1}$ against the alternative $M_{\infty}\setminus M_{k-1}$. In that case, we could modify~\eqref{eq:selModel_cond} and base the test on
 \begin{equation}\label{eq:selModel_marg}
-\L\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right).
+\cL\left(X_{j_k}'Y \mid E_{k-1}, \; X_{E_{k-1}}'Y\right).
 \end{equation}
 Again, if $\sigma^2$ were unknown we would also need to condition on $\|Y\|^2$. We could also replace $X_{j_k}'Y$ with any other test statistic $T(Y)$. As long as $T(Y)$ is measurable with respect to $(M_k, U_k)$, and the path algorithm is subpath-sufficient, the $p$-values are guaranteed to be independent on nulls. The next-entry test for the lasso and the max-$t$ test in forward-stepwise regression with unknown $\sigma^2$ are both examples of this approach. Note that under resampling from the law in~\eqref{eq:selModel_marg}, the selected variable $j_k$ is random; by contrast, \eqref{eq:selModel_cond} conditions on $j_k$.
 
@@ -717,7 +724,7 @@ Figure~\ref{fig:bv_condSets} shows the conditioning sets for each model when $Y=
   \label{fig:bv_nullDists}
   \end{subfigure}
   \caption{Contrast between the saturated-model and selected-model
-    tests in Example~\ref{ex:bivariate}. The selected-model test is based on  $\L(Y_1 \gv j_1=1)$,  whereas the saturated-model test is based on $\L(Y_1  \gv Y_2, \; j_1=1)$. 
+    tests in Example~\ref{ex:bivariate}. The selected-model test is based on  $\cL(Y_1 \gv j_1=1)$,  whereas the saturated-model test is based on $\cL(Y_1  \gv Y_2, \; j_1=1)$. 
     When $Y=(2.9, 2.5)$, the selected- and saturated-model $p$-values are 0.007 and 0.3, respectively.}
   \label{fig:bv}
 \end{figure}
@@ -781,7 +788,7 @@ Saturated-model $p$-values are generically non-independent. Continuing with Exam
 
 Until this point, we have deferred discussing how to compute the reference distribution for the max-$t$ test, next-entry test, or any of the other tests we have discussed. In each case, the $p$-value at step $k$ comes from a test that rejects when some test statistic $T_k$ is large compared to the law
 \begin{equation}\label{eq:genDist}
-\L(T_k(Y) \,\mid\, M_{k-1}(Y), U_{k-1}(Y)),
+\cL(T_k(Y) \,\mid\, M_{k-1}(Y), U_{k-1}(Y)),
 \end{equation}
 under the null hypothesis that $F\in M_{k-1}$. Because $U_{k-1}$ is sufficient for $Y$ under the null, this law is completely known. Thus, we have reduced computation of the $p$-value at step $k$ to a sampling problem: if we can sample values of $Y$ from its null distribution given $M_{k-1}(Y), U_{k-1}(Y)$, and compute the test statistic $T_k(Y)$ for each sample, we can numerically approximate the $p$-value to whatever precision we desire.
 
@@ -1097,7 +1104,7 @@ W_k^*(Y) = \max_t \; W(Y; \, E_{k-1}, t),
 \]
 which is measurable with respect to $\sF(E_k, U_k)$ by construction. Thus, if we base the step-$k$ $p$-value $p_k$ on the law
 \begin{equation}\label{eq:condPerm}
-\L\left(W_k^* \mid E_{k-1}, U_{k-1}\right),
+\cL\left(W_k^* \mid E_{k-1}, U_{k-1}\right),
 \end{equation}
 randomizing to obtain an exactly uniform $p$-value under $M(E_{k-1})$, we will obtain an exact $\sF_k$-measurable $p$-value. As a result, the $p$-values will be independent on nulls per Theorem~\ref{thm:suffCond}. Note that sampling from the law in~\eqref{eq:condPerm} can be carried out by permuting subsequences $(Y_{t(j,E)+1}, \ldots, Y_{t(j+1,E)})$ and accepting the permutation only if it gives the same $E_{k-1}$ as we get in the original data. When this simple accept/reject algorithm is impractical we may need to resort to an MCMC strategy. We do not pursue these computational matters here.
 
@@ -1140,7 +1147,7 @@ Denote the events where we choose the two possible orderings as $A_{123}$ and $A
 
 At each step we use the selective max-$z$ test conditioning on the current null model, where $p_k$ is small when $|z_{E_{k-1}}^*|$ is large compared to the law
 \[
-\L(|z_{E_{k-1}}^*| \,\mid\, E_{k-1}, Y_{E_{k-1}}).
+\cL(|z_{E_{k-1}}^*| \,\mid\, E_{k-1}, Y_{E_{k-1}}).
 \]
 
 Note that whichever of $A_{123}$ and $A_{213}$ occurs, $E_2=\{1,2\}$ and $|z_{E_2}^*|=|Y_3|$. Thus, $E_2$ is nonrandom and $p_3=2\Phi(-|Y_3|)$, the usual two-sided normal $p$-value based on $Y_3$. Finally, note that $k_0=2$ on $A_{123}$ and $k_0=1$ on $A_{213}$. 
@@ -1172,17 +1179,17 @@ where $p_{k,E}(Y)$ for each $E\sub \{1,\ldots, p\}$ is a conditional $p$-value f
 
 If $\sigma^2$ is known, then $U_{k-1}(Y) = X_{E}'Y$ on $A$, so our task is to sample under the null from
 \begin{equation}\label{eq:truncNorm}
-\L(Y \mid X_E'Y, Y\in A),
+\cL(Y \mid X_E'Y, Y\in A),
 \end{equation}
 which is a multivariate Gaussian distribution supported on the hyperplane of dimension $n-|E|$ with $X_E'Y$ fixed at its realized value, and truncated to the event $A$. 
 
 If $\sigma^2$ is unknown, then $U_{k-1}=(X_E'Y,\, \|Y\|^2)$ on $A$ and we must sample under the null from
 \begin{equation}\label{eq:truncUnif}
-\L(Y \mid X_E'Y,\, \|Y\|^2,\, Y\in A),
+\cL(Y \mid X_E'Y,\, \|Y\|^2,\, Y\in A),
 \end{equation}
 which is a uniform distribution supported on a sphere of dimension $n-|E|-1$ defined by fixing $X_E'Y$ and $\|Y\|^2$ at their realized values, and truncated to the event $A$. For the simulations in this article, we use a hybrid of two strategies:
 
-\paragraph{Accept/Reject Sampler} In either of these two cases, sampling would be very easy if $A$ were the entire sample space $\R^n$; the only reason we might encounter difficulty is that $A$ could be an irregular set that is difficult to condition on. However, we can always sample from $\L(Y \mid U)$ and then keep each new sample $Y$ if it lies in the selection event.
+\paragraph{Accept/Reject Sampler} In either of these two cases, sampling would be very easy if $A$ were the entire sample space $\R^n$; the only reason we might encounter difficulty is that $A$ could be an irregular set that is difficult to condition on. However, we can always sample from $\cL(Y \mid U)$ and then keep each new sample $Y$ if it lies in the selection event.
 
 \paragraph{Hit-and-Run Sampler} \citet{fithian2014optimal} propose sampling from laws like that in~\eqref{eq:truncNorm} via a hit-and-run sampler for the $(n-|E|)$-dimensional multivariate Gaussian distribution: at each step, to generate $Y^{t+1}$ from $Y^t$, we choose a uniformly random unit vector $\nu$ in the hyperplane, and resample $\nu'Y$ conditional on the constraints $\proj_{\nu}^\perp Y^{t+1}=\proj_{\nu}^\perp Y^t$ and the constraint $Y^{t+1}\in A$. If $A$ is a polytope this amounts to resampling a univariate Gaussian distribution with known mean and variance, truncated to an interval defined by maximizing and minimizing $\nu'Y^{t+1}$ subject to linear constraints. For the case with $\sigma^2$ unknown, the sampler is a bit more involved; see \citet{fithian2014optimal}.
 
