@@ -82,7 +82,7 @@
 \maketitle
 
 \begin{abstract}
-  Many model selection algorithms produce a path of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path, accounting for the fact that the model path is determined adaptively using the data. In the case of linear regression, we propose two specific tests, the max-$t$ test for forward stepwise regression (generalizing a proposal of \citet{buja2014}), and the next-entry test for the lasso. These tests improve on the power of the saturated-model test of \citet{taylor2014exact}, sometimes dramatically. In addition, our framework extends beyond linear regression to a much more general class of parametric and nonparametric model selection problems.
+  Many model selection algorithms produce a path of fits specifying a sequence of increasingly complex models. Given such a sequence and the data used to produce them, we consider the problem of choosing the least complex model that is not falsified by the data. Extending the selected-model tests of \citet{fithian2014optimal}, we construct $p$-values for each step in the path which account for the adaptive selection of the model path using the data. In the case of linear regression, we propose two specific tests, the max-$t$ test for forward stepwise regression (generalizing a proposal of \citet{buja2014}), and the next-entry test for the lasso. These tests improve on the power of the saturated-model test of \citet{taylor2014exact}, sometimes dramatically. In addition, our framework extends beyond linear regression to a much more general class of parametric and nonparametric model selection problems.
 
 To select a model, we can feed our single-step $p$-values as inputs into sequential stopping rules such as those proposed by \citet{gsell2013sequential} and \citet{li2015accumulation}, achieving control of the familywise error rate or false discovery rate (FDR) as desired. The FDR-controlling rules require the null $p$-values to be independent of each other and of the non-null $p$-values, a condition not satisfied by the saturated-model $p$-values of \citet{taylor2014exact}. We derive intuitive and general sufficient conditions for independence, and show that our proposed constructions yield independent $p$-values.
 \end{abstract}
@@ -276,19 +276,19 @@ In this setting, $\lambda_k$ is a natural test statistic for model $M_{k-1}$, wi
 \subsection{Which Null Hypothesis?}
 \label{sec:whichnull}
 
-Note that in our formulation of the problem, the type I error \smash{$V=(\hk-k_0)_+$} is defined in a ``model-centric'' fashion: at step $k$ in linear regression, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ is a noise variable (i.e., truly inactive) in the full model, it is not necessarily a mistake to reject $M(E_{k-1})$ provided there are signal variables (i.e., truly active ones) that have not yet been included.
+Note that in our formulation of the problem, the type I error \smash{$V=(\hk-k_0)_+$} is defined in a ``model-centric'' fashion: at step $k$ in linear regression, we are testing  whether a particular linear model $M(E_{k-1})$ adequately describes the data $Y$. Even if the next selected variable $X_{j_k}$ has a zero coefficient in the full model, it is not a mistake to reject $M(E_{k-1})$ provided there are some signal variables that have not yet been included.
 
-In some circumstances, we might want to define a type I error at step $k$ differently, by choosing a different null hypothesis to test. Let $\mu = \E Y$ and let $\theta^E$ denote the {\em least-squares coefficients} of active set $E$ --- the coefficients of the best linear predictor for the design matrix $X_E$:
+Depending on the scientific context, we might want to define a type I error at step $k$ differently, by choosing a different null hypothesis to test. Let $\mu = \E Y$ and let $\theta^E$ denote the {\em least-squares coefficients} of active set $E$ --- the coefficients of the best linear predictor for the design matrix $X_E$:
 \[
 \theta^E = X_E^+ \mu = \argmin_{\theta\in \R^{|E|}} \; \|\mu - X_E\theta\|_2^2,
 \]
-where $X_E^+$ is the Moore-Penrose pseudoinverse of the matrix $X_E$. 
+where $X_E^+$ is the Moore-Penrose pseudoinverse of the matrix $X_E$.
 
 \citet{gsell2013sequential} describe three different null hypotheses that we could consider testing at step $k$ in the case of linear regression:
 \begin{description}
 \item[Complete Null:] $M_{k-1}$ is (already) correct. That is, 
 \[
-H_k^{\text{comp}}:\;\mu = X_{E_{k-1}} \theta^{E_{k-1}}.
+H_k:\;\mu = X_{E_{k-1}} \theta^{E_{k-1}}.
 \]
 \item[Incremental Null:] $M_{k-1}$ may be incorrect, but $M_k$ is no improvement. That is, 
 \[
@@ -300,7 +300,7 @@ H_k^{\text{full}}:\; \theta_{j_k}^{\{1,\ldots,p\}} = 0.
 \]
 \end{description}
 
-While the complete null is the strongest hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. Defining 
+While the complete null is the strongest null hypothesis of the three, the incremental null is neither weaker nor stronger than the full-model null. Defining 
 \begin{align*}
 V^{\text{inc}} &= \#\{k < \hk:\; H_k^{\text{inc}} \text{ is true}\}, \quad \text{ and } \\
 V^{\text{full}} &= \#\{k < \hk:\; H_k^{\text{full}} \text{ is true}\},
@@ -309,23 +309,17 @@ we can define an analogous FWER and FDR with respect to each of these alternativ
 \[
 \text{FDR}^{\text{full}} = \E[V^{\text{full}} / (\hk \vee 1)],
 \]
-as the false discovery rate with respect to the full-model null. \citet{barber2014controlling} present a framework for controlling $\text{FDR}^{\text{full}}$. 
+as the false discovery rate with respect to the full-model null. \citet{barber2014controlling} present a framework for controlling $\text{FDR}^{\text{full}}$.
 
-The full-model null is the most different conceptually from the other two, taking a ``variable-centric'' instead of ``model-centric'' viewpoint, where it is of primary scientific interest to discover variables that have nonzero coefficients after controlling for all $p-1$ other variables that were measured.
+The full-model null is the most different conceptually from the other two, taking a ``variable-centric'' instead of ``model-centric'' viewpoint, with the focus on discovering variables that have nonzero coefficients after adjusting for all $p-1$ other variables under consideration. To elucidate this distinction, consider a bivariate regression example in which the two predictors $X_1$ and $X_2$ are both highly correlated with $Y$, but are also nearly collinear with each other, making it impossible to distinguish which variable has the ``true'' effect. Any procedure that controls $\text{FWER}^{\text{full}}$ could not select either variable, and would return the empty set of predictors. By contrast, most of the methods presented in this article would select the first variable to enter (rejecting the global null model), and then stop at the univariate model. 
 
-To elucidate this distinction consider two methods we could apply in a classical setting where we have some fixed {\em a priori} ordering for the variables, inducing the fixed sequence of nested linear models
-\[
-M(\emptyset) \sub M(\{1\}) \sub M(\{1,2\}) \sub \cdots \sub M(\{1,\ldots, p\}).
-\]
-The goal of course is to select a model along this sequence. In the first procedure, we construct a (type I) analysis-of-variance (ANOVA) table performing an $F$- or $t$-test of each model against the next. We then stop and select model $M_k=M(\{1,\ldots,k\})$ the first time the $F$-test $p$-value is larger than $\alpha$. This procedure would control the complete-null and incremental-null FWER, but {\em not} the full-model-null FWER. The methods we consider in this article are essentially generalizations of this procedure to the setting where the model sequence is selected adaptively, and where we may wish to control FDR instead of FWER.
+Similarly, consider a genomics model with quantitative phenotype $Y$ and predictors $X_j$, representing minor allele counts for each of $p$ single-nucleotide polymorphisms (SNPs). If correlation between neighboring SNPs (neighboring $X_j$'s) is high, it may be very difficult to identify SNPs that are highly correlated with $Y$, adjusting for all other SNPs; however, we might nevertheless be glad to select a model with a single SNP from each important {\em gene}, even if we cannot guarantee it is truly the ``best'' SNP from that gene.
 
-In the second procedure, we fit the full model $M(\{1,\ldots,p\})$ and compute a $t$-statistic for each variable with respect to that model, yielding $t$-statistics $t_1, t_2, \ldots, t_p$ (not ordered by size). For $k=1,\ldots,p$, we compare each $|t_j|$ to the level-$\alpha$ cutoff for a $t$-test with $n-p$ degrees of freedom, and stop selecting variables the first time $|t_{k+1}|$ is not larger than this cutoff. We might use this procedure if the variables had a  fixed ordering.
-This procedure would control the full-model-null FWER, but {\em not} the incremental-null FWER. Note that the {\em model} $M_k$ plays no role in this procedure: its fit to the data is never evaluated and it is not really selected in any meaningful sense. Even if the fit of $M_k$ is far worse than that of $M_{k+1}$, we may not be able to select $X_{k+1}$ if (say) it is highly collinear with $X_{k+100}$. Conversely, even if the fit of $M_k$ is no better than that of $M_{k-1}$, we may still select $X_k$ if it is a highly useful predictor when used in concert with $X_{k+100}$.
+As the above examples illustrate, methods that control full-model error rates are best viewed not as {\em model-selection} procedures --- since all inferences are made with respect to the full model --- but instead as {\em variable-selection} procedures that test multiple hypotheses with respect to a single model, which is specified ahead of time. The ``model'' returned by such procedures is not selected or validated in any meaningful sense. Indeed, in the bivariate example above, of the four models under consideration ($\emptyset$, $\{1\}$, $\{2\}$, and $\{1,2\}$), only the global null model is clearly inconsistent with the data; and yet, a full-model procedure is bound not to return any predictors.
 
-More generally, methods that control full-model error rates are best viewed not as {\em model-selection} procedures --- since all inferences are made with respect to the full model, which is specified ahead of time --- but {\em variable-selection} procedures that test multiple hypotheses with respect to a single fixed model. Note that the truth or falsehood of these hypotheses can depend sensitively on the set of $p$ predictors: rejecting $H_j^{\text{full}}$ has no meaning without reference to the list of all variables that we controlled for, which can make a rejection difficult to interpret when $p$ is large. Thus, error rates like $\text{FDR}^{\text{full}}$ are best motivated when the full model has some special scientific status. For example, the scientist may believe due to theoretical considerations that the linear model in $X_1,\ldots,X_p$ is fairly credible, and that a nonzero coefficient $\beta_j$, controlling for all of the other variables, would constitute evidence for a causal effect of $X_j$ on the response.
+Because the truth or falsehood of full-model hypotheses can depend sensitively on the set of $p$ predictors, rejecting $H_j^{\text{full}}$ has no meaning without reference to the list of all variables that we controlled for. As a result, rejections may be difficult to interpret when $p$ is large. Thus, error rates like $\text{FDR}^{\text{full}}$ are best motivated when the full model has some special scientific status. For example, the scientist may believe, due to theoretical considerations, that the linear model in $X_1,\ldots,X_p$ is fairly credible, and that a nonzero coefficient $\beta_j$, controlling for all of the other variables, would constitute evidence for a causal effect of $X_j$ on the response. 
 
-In this article we will concern ourselves primarily with testing the complete null, reflecting our stated aim of choosing the least complex model that is not rejected by the data. As we discuss further in Section~\ref{sec:selective-reg}, the saturated-model tests of \citet{taylor2014exact} are valid selective tests of $H_k^{\text{inc}}$. The advantage of these tests is that they are highly computationally efficient (they do not require sampling). But, unfortunately, they also carry a number of drawbacks: they require us to assume $\sigma^2$ is known, can result in a large reduction in power, create dependence between $p$-values at different steps, and are difficult to generalize beyond the case of linear regression. 
-
+In this article we will concern ourselves primarily with testing the complete null, reflecting our stated aim of {\em choosing the least complex model that is consistent with the data}. As we discuss further in Section~\ref{sec:selective-reg}, the saturated-model tests of \citet{taylor2014exact} are valid selective tests of $H_k^{\text{inc}}$. The advantage of these tests is that they are highly computationally efficient (they do not require sampling). But, unfortunately, they also carry a number of drawbacks: they require us to assume $\sigma^2$ is known, can result in a large reduction in power, create dependence between $p$-values at different steps, and are difficult to generalize beyond the case of linear regression.
 
 \subsection{Related Work}
 
@@ -333,6 +327,8 @@ The problem of model selection is an old one, with quite an extensive literature
 We compare our proposal to the knockoff method in Section \ref{sec:sparseReg}.
 
 Methods like AIC \citep{akaike1974new} and BIC \citep{schwarz1978estimating} are designed for the non-adaptive case, where the sequence of models is determined in advance of observing the data. Cross-validation, another general-purpose algorithm for tuning parameter selection, targets out-of-sample error and tends to select many noise variables when the signal is sparse \citep[e.g.][]{LY2015}. \citet{benjamini2009simple} extend the AIC by using an adaptive penalty $\sigma^2\lambda_{k,p} k$ to select a model, based on generalizing the Benjamini-Hochberg procedure \citep{benjamini1995controlling}, but do not prove finite-sample control. The stability selection approach of \citet{meinshausen2010stability} uses an approach based on splitting the data many times and offers asymptotic control of the FDR, but no finite-sample guarantees are available.
+
+If the full model is sparse, and the predictors are not too highly correlated, it may be possible asymptotically to recover the support of the full-model coefficients with high probability --- the property of {\em sparsistency}. Much recent model-selection literature focuses on characterizing the regime in which sparsistency is possible; see, e.g. \citet{bickel2009simultaneous}, \citet{meinshausen2006high}, \citet{negahban2009unified}, \citet{van2009conditions}, \citet{wainwright2009sharp}, \citet{zhao2006model}. Under this regime, there is no need to distinguish between the ``model-centric'' and ``variable-centric'' viewpoints. However, the required conditions for sparsistency can be difficult to verify, and in many applied settings they fail to hold. By contrast, the methods presented here require no assumptions about sparsity or about the design matrix $X$, and offer finite-sample guarantees.
 
 \section{Stopping Rules and Ordered Testing}\label{sec:ordered}
 
