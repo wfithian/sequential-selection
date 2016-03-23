@@ -44,16 +44,16 @@ plot(ecdf(simulation.data[[paste0("maxT_pvalue_",k)]][which.null]),col="red",add
   plot(ecdf(simulation.data[[paste0("maxT_unknown_pvalue_",k)]][which.null]),col="green",add=T)
   plot(ecdf(simulation.data[[paste0("saturated_pvalue_",k)]][which.null]),col="blue",add=T)
   abline(0,1,lty=3,col="gray")
-if(k==(s+1)) legend (list(x=c(.3,1),y=c(.25,0)),c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.7)
+if(k==(s+1))legend ("bottomright", bg="white", legend=c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.9)
 }
 dev.off()
 
 
 pdf("../../figs/simulation_snr_5_alpha_05_null_false.pdf",
-    width=8,height=2.5)
+    width=8,height=5)
 par(xaxs="i",mar=c(2.1,3.1,3.1,0.7),
-    mfrow=c(1,4))
-for(k in 6:9) {
+    mfrow=c(2,4))
+for(k in 1:8) {
   which.nonnull <- which(simulation.data$completion_idx >= k)
    main <- paste("Step ",as.character(k),sep="")
   del=runif(length(which.nonnull),0,.01)
@@ -63,7 +63,7 @@ plot(ecdf(simulation.data[[paste0("maxT_pvalue_",k)]][which.nonnull]+del),col="r
   plot(ecdf(simulation.data[[paste0("maxT_unknown_pvalue_",k)]][which.nonnull]+del),col="green",add=T)
   plot(ecdf(simulation.data[[paste0("saturated_pvalue_",k)]][which.nonnull]),col="blue",add=T)
   abline(0,1,lty=3,col="gray")
-if(k==6) legend (list(x=c(.3,1),y=c(.25,0)),c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.7)
+if(k==1) legend ("bottomright", bg="white", legend=c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.9)
 }
 dev.off()
 
@@ -82,7 +82,7 @@ for(k in 1:4) {
   plot(ecdf(simulation.data[[paste0("maxT_unknown_pvalue_",k)]][which.noise]+del),col="green",add=T)
   plot(ecdf(simulation.data[[paste0("saturated_pvalue_",k)]][which.noise]),col="blue",add=T)
   abline(0,1,lty=3,col="gray")
-  if(k==1) legend (list(x=c(.3,1),y=c(.25,0)),c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.7)
+  if(k==1)legend ("bottomright", bg="white", legend=c("Nominal","MaxZ","MaxT","Saturated"),col=c("black","red","green","blue"),lty=1,cex=.9)
 }
 dev.off()
 
