@@ -237,6 +237,7 @@ Run a batch of simulations.
           n=args.nsample,
           p=args.nfeature,
           s=args.sparsity,
+          signal=args.signal,
           rho=args.rho,
           correlation=args.correlation,
           do_knockoff=(args.nsample > 2 * args.nfeature))

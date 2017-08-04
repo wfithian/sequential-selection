@@ -148,8 +148,20 @@ def produce_tables(results, outbase):
     print largest_stderr
 
 if __name__ == "__main__":
-    for results, outbase in zip(['test.csv'], ['test']):
-        produce_tables(results, outbase)
+
+    from argparse import ArgumentParser
+    parser = ArgumentParser(
+        description= '''
+Produce LaTeX and HTML tables from simulation results.
+        ''')
+    parser.add_argument('--results',
+                        help='CSV file containing the results.')
+    parser.add_argument('--outbase',
+                        help='Base for output filenames.')
+
+    args = parser.parse_args()
+    produce_tables(args.results, args.outbase)
+
         #  zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05', '10', '20']] + ['../snr_7_alpha_20_sparsity7_p200.csv'],
         #                             ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200'])[:-1]:
 
