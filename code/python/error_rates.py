@@ -2,8 +2,7 @@ import os
 from itertools import product
 import pandas as pd, numpy as np
 
-for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05', '10', '20']] + ['../snr_7_alpha_20_sparsity7_p200.csv'],
-                            ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200'])[:-1]:
+def produce_tables(results, outbase):
     sim_results = pd.read_csv(results)
 
     getvar = lambda var: sim_results['_'.join([name, var])]
@@ -147,3 +146,10 @@ for results, outbase in zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05',
 
     print table
     print largest_stderr
+
+if __name__ == "__main__":
+    for results, outbase in zip(['test.csv'], ['test']):
+        produce_tables(results, outbase)
+        #  zip(['../snr_5_alpha_%s.csv' % alpha for alpha in ['05', '10', '20']] + ['../snr_7_alpha_20_sparsity7_p200.csv'],
+        #                             ['../../tables/error_rates_%s' % alpha for alpha in ['05', '10', '20']] + ['../../error_rates_p200'])[:-1]:
+

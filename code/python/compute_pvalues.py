@@ -58,8 +58,6 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
     FS_identity_U = forward_step(X, y, covariance=np.identity(n))
     FS_maxT_U = forward_step(X, y, covariance=np.identity(n))
     
-    iter(FS_identity); iter(FS_maxT)
-    iter(FS_identity_U); iter(FS_maxT_U)
     results = []
 
     completed = False
@@ -74,12 +72,12 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
 
             # take a step of FS
 
-            pval_maxT = FS_maxT.next(compute_pval=True,
+            pval_maxT = FS_maxT.step(compute_maxZ_pval=True,
                                      use_identity=False,
                                      ndraw=ndraw,
                                      burnin=burnin)
 
-            pval_maxT_U = FS_maxT_U.next(compute_pval=True,
+            pval_maxT_U = FS_maxT_U.step(compute_maxZ_pval=True,
                                          use_identity=False,
                                          ndraw=ndraw,
                                          burnin=burnin,
@@ -87,31 +85,30 @@ def compute_pvalues(y, X, active_set=None, sigma=1., maxstep=np.inf,
 
             if compute_maxT_identify:
 
-                pval_maxT_identify = FS_identity.next(compute_pval=True,
+                pval_maxT_identify = FS_identity.step(compute_maxZ_pval=True,
                                                       use_identity=True,
                                                       ndraw=ndraw,
                                                       burnin=burnin)
 
-                pval_maxT_identify_U = FS_identity_U.next(compute_pval=True,
+                pval_maxT_identify_U = FS_identity_U.step(compute_maxZ_pval=True,
                                                           use_identity=True,
                                                           ndraw=ndraw,
                                                           burnin=burnin,
                                                           sigma_known=False)
 
             else:
-                FS_identity.next(compute_pval=False)
+                FS_identity.step(compute_maxZ_pval=False)
                 pval_maxT_identify = np.random.sample()
                 pval_maxT_identify_U = np.random.sample()
 
         else:
-            FS_maxT.next(compute_pval=False)
+            FS_maxT.step(compute_maxZ_pval=False)
             pval_maxT, pval_maxT_identify, pval_maxT_U, pval_maxT_identify_U = np.random.sample(4)
             if not completed:
                 completed = True
                 completion_idx = i
 
-        alternative = {1:'greater',
-                       -1:'less'}[FS_maxT.signs[-1]]
+        alternative = 'onesided'
 
         var_select, pval_saturated = FS_maxT.model_pivots(i+1, 
                                                           alternative=alternative,
@@ -178,7 +175,8 @@ def completion_index(selected, active_set):
     return len(selected)-1
 
 if __name__ == "__main__":
-    from selection.algorithms.lasso import instance
-    X, y, beta, active, sigma = instance(n=100, p=40, snr=5, rho=0.3)
+    from selection.tests.instance import gaussian_instance as instance
+    X, y, beta, active, sigma = instance(n=100, p=40, signal=0, rho=0.3)
     R, FS = compute_pvalues(y, X, sigma=sigma, maxstep=20)
-    print completion_index(R['variable_selected'], active)
+    print(R)
+    print(completion_index(R['variable_selected'], active))

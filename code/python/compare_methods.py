@@ -3,10 +3,12 @@ from __future__ import division
 import os
 import numpy as np, pandas as pd
 from itertools import product
-from selection.algorithms.lasso import instance
+from selection.tests.instance import gaussian_instance, AR_instance
 
 from rules import simple_stop, forward_stop, strong_stop
 from compute_pvalues import compute_pvalues, completion_index
+
+from selection.sampling.truncnorm import BoundViolation
 
 from matplotlib import mlab
 
@@ -28,26 +30,36 @@ def summary(variables, pvalues, active, rule, alpha):
     return R, V_var, V_model, screen, FWER_model, FDP_model, FDP_var, S_var
 
 def simulate(n=100, p=40, rho=0.3, 
-             snr=5,
+             signal=5,
              do_knockoff=False,
              full_results={},
              alpha=0.05,
              s=7,
-             random_signs=False,
+             correlation='equicorrelated',
              maxstep=np.inf,
              compute_maxT_identify=True):
 
-    X, y, _, active, sigma = instance(n=n,
-                                      p=p,
-                                      rho=rho,
-                                      snr=snr,
-                                      s=s,
-                                      random_signs=random_signs)
+    if correlation == 'equicorrelated':
+        X, y, _, active, sigma = gaussian_instance(n=n,
+                                                   p=p,
+                                                   rho=rho,
+                                                   signal=signal,
+                                                   s=s,
+                                                   random_signs=False)
+    elif correlation == 'AR':
+        X, y, _, active, sigma = AR_instance(n=n,
+                                             p=p,
+                                             rho=rho,
+                                             signal=signal,
+                                             s=s)
+    else:
+        raise ValueError('correlation must be one of ["equicorrelated", "AR"]')
+
     full_results.setdefault('n', []).append(n)
     full_results.setdefault('p', []).append(p)
     full_results.setdefault('rho', []).append(rho)
     full_results.setdefault('s', []).append(len(active))
-    full_results.setdefault('snr', []).append(snr)
+    full_results.setdefault('signal', []).append(signal)
 
     return run(y, X, sigma, active, 
                do_knockoff=do_knockoff,
@@ -168,8 +180,8 @@ def batch(outfile, nsim, **simulate_args):
             df.to_csv(outfile, index=False)
         except KeyboardInterrupt: 
             raise KeyboardInterrupt('halting due to keyboard interruption')
-        except:
-            pass
+        except BoundViolation:
+            print("bound violation in sampling -- new instance drawn")
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
@@ -184,8 +196,8 @@ Run a batch of simulations.
     parser.add_argument('--alpha',
                         help='Level for FDR and FWER control.', type=float,
                         default=0.05)
-    parser.add_argument('--snr',
-                        help='Signal to noise.', type=float,
+    parser.add_argument('--signal',
+                        help='Signal size.', type=float,
                         default=7)
     parser.add_argument('--nsample',
                         help='Sample size.', type=int,
@@ -202,6 +214,14 @@ Run a batch of simulations.
                         help='How many steps should we take?',
                         type=int,
                         default=-1)
+    parser.add_argument('--rho',
+                        help='Correlation parameter (for AR or equi-correlated)',
+                        type=float,
+                        default=0.1)
+    parser.add_argument('--correlation',
+                        help='One of ["equicorrelated", "AR"]',
+                        default='equicorrelated')
+
 
     args = parser.parse_args()
     if args.maxstep < 0:
@@ -217,4 +237,6 @@ Run a batch of simulations.
           n=args.nsample,
           p=args.nfeature,
           s=args.sparsity,
+          rho=args.rho,
+          correlation=args.correlation,
           do_knockoff=(args.nsample > 2 * args.nfeature))
