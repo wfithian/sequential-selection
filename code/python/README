@@ -1,0 +1,20 @@
+- To run these simulation results, first use the script "compare_methods.py".
+
+- For help, run
+
+     python compare_methods.py --help
+
+- A sample of arguments might look like:
+
+     python compare_methods.py --nfeature 100 --nsample 300 
+                               --signalL 3.5 --signalU 5 --correlation AR 
+                               --rho 0.25 --sparsity 40 --outfile test3.csv 
+                               --nsim 100 --alpha 0.1 --ndraw 8000 --burnin 2000
+
+- To create output tables, use the script "error_rates.py"
+
+- A sample of arguments for this script might be
+
+     python error_rates.py --results test3.csv --outbase test3
+
+- The above will create test3.tex and test3.html, with some summaries derived from the results in test3.csv

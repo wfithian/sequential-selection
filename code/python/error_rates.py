@@ -90,6 +90,52 @@ def produce_tables(results, outbase):
         names.append('Knockoff+ &')
         guarantees.append((False, False, False, False, True, False))
 
+    # now AIC
+
+    if 'AIC_R' in sim_results:
+
+        R = sim_results['AIC_R']
+        V = sim_results['AIC_V']
+        AIC_FDP = V * 1. / np.maximum(R, 1)
+        AIC_S_var = R - V
+        results.append((np.mean(sim_results['AIC_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(AIC_FDP),
+                        np.mean(AIC_S_var)))
+        stderrs.append((np.sqrt(np.var(sim_results['AIC_screen'])/n_sim),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.sqrt(np.var(AIC_FDP)/n_sim),
+                        np.sqrt(np.var(AIC_S_var)/n_sim)))
+        names.append('AIC &')
+        guarantees.append((False, False, False, False, False, False))
+
+    # now BIC
+
+    if 'BIC_R' in sim_results:
+
+        R = sim_results['BIC_R']
+        V = sim_results['BIC_V']
+        BIC_FDP = V * 1. / np.maximum(R, 1)
+        BIC_S_var = R - V
+        results.append((np.mean(sim_results['BIC_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(BIC_FDP),
+                        np.mean(BIC_S_var)))
+        stderrs.append((np.sqrt(np.var(sim_results['BIC_screen'])/n_sim),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.sqrt(np.var(BIC_FDP)/n_sim),
+                        np.sqrt(np.var(BIC_S_var)/n_sim)))
+        names.append('BIC &')
+        guarantees.append((False, False, False, False, False, False))
+
     results = np.array(results)
     guarantees = np.array(guarantees)
     error_df = pd.DataFrame({'screen':results[:,0],
@@ -101,7 +147,21 @@ def produce_tables(results, outbase):
                             index=names)
 
     error_df = error_df.reindex_axis(['screen', 'fwer.mod', 'fwer.mod.cond', 'fdr.mod', 'fdr.var', 's.var'], axis=1)
-    file('%s.html' % outbase, 'w').write(error_df.to_html(float_format = lambda v: '%0.3f' % v))
+
+    if 'correlation' in sim_results.columns:
+        cor = sim_results['correlation'][0]
+    else:
+        cor = 'equicorrelated'
+
+    sim_settings = {'nsim': len(sim_results['n']),
+                    'nsample': sim_results['n'][0],
+                    'nfeature': sim_results['p'][0],
+                    'sparsity': sim_results['s'][0],
+                    'signalL': sim_results['signalL'][0],
+                    'signalU': sim_results['signalU'][0],
+                    'rho': sim_results['rho'][0],
+                    'correlation': cor}
+    file('%s.html' % outbase, 'w').write(('<h2>%s</h2>\n' % sim_settings) + error_df.to_html(float_format = lambda v: '%0.3f' % v))
 
     def table_generator():
         for result, stderr, guar, name in zip(results, stderrs, guarantees, error_df.index):
@@ -144,8 +204,8 @@ def produce_tables(results, outbase):
 
     file('%s.tex' % outbase, 'w').write(table)
 
-    print table
-    print largest_stderr
+    print(table)
+    print(largest_stderr)
 
 if __name__ == "__main__":
 
