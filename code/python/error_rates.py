@@ -68,7 +68,7 @@ def produce_tables(results, outbase):
                         np.nan,
                         np.sqrt(np.var(knock_FDP)/n_sim),
                         np.sqrt(np.var(knock_S_var)/n_sim)))
-        names.append('Knockoff &')
+        names.append('Knockoff & None ')
         guarantees.append((False, False, False, False, False, False))
 
         R = sim_results['knockoff_plus_R']
@@ -87,7 +87,7 @@ def produce_tables(results, outbase):
                         np.nan,
                         np.sqrt(np.var(knock_FDP)/n_sim),
                         np.sqrt(np.var(knock_S_var)/n_sim)))
-        names.append('Knockoff+ &')
+        names.append('Knockoff+ & None')
         guarantees.append((False, False, False, False, True, False))
 
     # now AIC
@@ -110,7 +110,7 @@ def produce_tables(results, outbase):
                         np.nan,
                         np.sqrt(np.var(AIC_FDP)/n_sim),
                         np.sqrt(np.var(AIC_S_var)/n_sim)))
-        names.append('AIC &')
+        names.append('AIC & None ')
         guarantees.append((False, False, False, False, False, False))
 
     # now BIC
@@ -133,10 +133,55 @@ def produce_tables(results, outbase):
                         np.nan,
                         np.sqrt(np.var(BIC_FDP)/n_sim),
                         np.sqrt(np.var(BIC_S_var)/n_sim)))
-        names.append('BIC &')
+        names.append('BIC & None')
+        guarantees.append((False, False, False, False, False, False))
+
+    # now BIC
+
+    if 'GLMnet_R' in sim_results:
+
+        R = sim_results['GLMnet_R']
+        V = sim_results['GLMnet_V']
+        GLMnet_FDP = V * 1. / np.maximum(R, 1)
+        GLMnet_S_var = R - V
+        results.append((np.mean(sim_results['GLMnet_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(GLMnet_FDP),
+                        np.mean(GLMnet_S_var)))
+        stderrs.append((np.sqrt(np.var(sim_results['GLMnet_screen'])/n_sim),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.sqrt(np.var(GLMnet_FDP)/n_sim),
+                        np.sqrt(np.var(GLMnet_S_var)/n_sim)))
+        names.append('GLMnet - min & None')
+        guarantees.append((False, False, False, False, False, False))
+
+    if 'GLMnet1se_R' in sim_results:
+
+        R = sim_results['GLMnet1se_R']
+        V = sim_results['GLMnet1se_V']
+        GLMnet1se_FDP = V * 1. / np.maximum(R, 1)
+        GLMnet1se_S_var = R - V
+        results.append((np.mean(sim_results['GLMnet1se_screen']),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.mean(GLMnet1se_FDP),
+                        np.mean(GLMnet1se_S_var)))
+        stderrs.append((np.sqrt(np.var(sim_results['GLMnet1se_screen'])/n_sim),
+                        np.nan,
+                        np.nan,
+                        np.nan,
+                        np.sqrt(np.var(GLMnet1se_FDP)/n_sim),
+                        np.sqrt(np.var(GLMnet1se_S_var)/n_sim)))
+        names.append('GLMnet - 1 SE & None')
         guarantees.append((False, False, False, False, False, False))
 
     results = np.array(results)
+
     guarantees = np.array(guarantees)
     error_df = pd.DataFrame({'screen':results[:,0],
                              'fwer.mod':results[:,1],
@@ -157,11 +202,10 @@ def produce_tables(results, outbase):
                     'nsample': sim_results['n'][0],
                     'nfeature': sim_results['p'][0],
                     'sparsity': sim_results['s'][0],
-                    'signalL': sim_results['signalL'][0],
-                    'signalU': sim_results['signalU'][0],
+                    'signal': (sim_results['signalL'][0], sim_results['signalU'][0]),
                     'rho': sim_results['rho'][0],
                     'correlation': cor}
-    file('%s.html' % outbase, 'w').write(('<h2>%s</h2>\n' % sim_settings) + error_df.to_html(float_format = lambda v: '%0.3f' % v))
+    open('%s.html' % outbase, 'w').write(('<h2>%s</h2>\n' % sim_settings) + error_df.to_html(float_format = lambda v: '%0.3f' % v))
 
     def table_generator():
         for result, stderr, guar, name in zip(results, stderrs, guarantees, error_df.index):
@@ -202,7 +246,7 @@ def produce_tables(results, outbase):
 %s \hline
 \end{tabular}}''' % '\n'.join(table_generator())
 
-    file('%s.tex' % outbase, 'w').write(table)
+    open('%s.tex' % outbase, 'w').write(table)
 
     print(table)
     print(largest_stderr)

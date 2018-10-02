@@ -37,6 +37,7 @@ def simulate(n=100, p=40, rho=0.3,
              do_knockoff=False,
              do_AIC=True,
              do_BIC=True,
+             do_glmnet=True,
              full_results={},
              alpha=0.05,
              s=7,
@@ -53,7 +54,7 @@ def simulate(n=100, p=40, rho=0.3,
                                                    signal=signal,
                                                    s=s,
                                                    random_signs=False,
-                                                   equicorrelated=True)
+                                                   equicorrelated=True)[:5]
     elif correlation == 'AR':
         X, y, _, active, sigma = gaussian_instance(n=n,
                                                    p=p,
@@ -61,9 +62,22 @@ def simulate(n=100, p=40, rho=0.3,
                                                    signal=signal,
                                                    s=s,
                                                    random_signs=True,
-                                                   equicorrelated=False)
+                                                   equicorrelated=False)[:5]
     else:
         raise ValueError('correlation must be one of ["equicorrelated", "AR"]')
+
+    value = compute_results(y, X, sigma, active, 
+                            do_knockoff=do_knockoff,
+                            full_results=full_results,
+                            maxstep=maxstep,
+                            compute_maxT_identify=compute_maxT_identify,
+                            alpha=alpha,
+                            ndraw=ndraw,
+                            burnin=burnin,
+                            do_AIC=do_AIC,
+                            do_BIC=do_BIC,
+                            do_glmnet=do_glmnet,
+                            )
 
     full_results.setdefault('n', []).append(n)
     full_results.setdefault('p', []).append(p)
@@ -73,23 +87,19 @@ def simulate(n=100, p=40, rho=0.3,
     full_results.setdefault('signalL', []).append(min(signal))
     full_results.setdefault('correlation', []).append(correlation)
 
-    return compute_results(y, X, sigma, active, 
-                           do_knockoff=do_knockoff,
-                           full_results=full_results,
-                           maxstep=maxstep,
-                           compute_maxT_identify=compute_maxT_identify,
-                           alpha=alpha,
-                           ndraw=ndraw,
-                           burnin=burnin,
-                           do_AIC=True,
-                           do_BIC=True,
-                           )
+    min_len = min([len(full_results[k]) for k in full_results.keys()])
+
+    for k in full_results.keys():
+        full_results[k] = full_results[k][:min_len]
+
+    return value
 
 def compute_results(y, X, sigma, active,
                     full_results={},
                     do_knockoff=False,
                     do_AIC=True,
                     do_BIC=True,
+                    do_glmnet=True,
                     alpha=0.05,
                     maxstep=np.inf,
                     compute_maxT_identify=True,
@@ -131,14 +141,14 @@ def compute_results(y, X, sigma, active,
 
         knockoff = np.array(rpy.r("""
         library(knockoff)
-        knockoff.filter(X = X, y = y, fdr=alpha, threshold="knockoff")$selected
+        knockoff.filter(X = X, y = y, fdr=alpha, knockoffs=create.fixed, offset=0)$selected
     """)) - 1
         knockoff_R = knockoff.shape[0]
         knockoff_V = knockoff_R - len(set(active).intersection(knockoff))
         knockoff_screen = set(knockoff).issuperset(active)
 
         knockoff_plus = np.array(rpy.r("""
-        knockoff.filter(X = X, y = y, fdr=alpha, threshold="knockoff+")$selected
+        knockoff.filter(X = X, y = y, fdr=alpha, knockoffs=create.fixed, offset=1)$selected
     """)) - 1
         knockoff_plus_R = knockoff_plus.shape[0]
         knockoff_plus_V = knockoff_plus_R - len(set(active).intersection(knockoff_plus))
@@ -182,8 +192,6 @@ def compute_results(y, X, sigma, active,
         numpy2ri.deactivate()
 
     if do_BIC:
-
-        # this will probably not work on miller
         import rpy2.robjects as rpy
         from rpy2.robjects import numpy2ri
         rpy.conversion.py2ri = numpy2ri.numpy2ri
@@ -206,6 +214,46 @@ def compute_results(y, X, sigma, active,
         full_results.setdefault('BIC_R', []).append(BIC_R)
         full_results.setdefault('BIC_V', []).append(BIC_V)
         full_results.setdefault('BIC_screen', []).append(BIC_screen)
+
+        numpy2ri.deactivate()
+
+    if do_glmnet:
+
+        import rpy2.robjects as rpy
+        from rpy2.robjects import numpy2ri
+        rpy.conversion.py2ri = numpy2ri.numpy2ri
+
+        numpy2ri.activate()
+        rpy.r.assign('X', X)
+        rpy.r.assign('y', y)
+        rpy.r('''library(glmnet);
+                 y = as.matrix(y);
+                 X = as.matrix(X); 
+                 CVG = cv.glmnet(X, y);
+                 G = glmnet(X, y);
+                 B = coef(G, s=CVG$lambda.min, exact=TRUE);
+                 selected = which(B[2:length(B)] != 0);
+                 B2 = coef(G, s=CVG$lambda.1se, exact=TRUE);
+                 selected2 = which(B2[2:length(B2)] != 0);
+                 ''')
+
+        GLMnet = np.asarray(rpy.r("selected")) - 1 # subtract 1 for 0-based indexing
+        GLMnet_R = GLMnet.shape[0]
+        GLMnet_V = GLMnet_R - len(set(active).intersection(GLMnet))
+        GLMnet_screen = set(GLMnet).issuperset(active)
+
+        full_results.setdefault('GLMnet_R', []).append(GLMnet_R)
+        full_results.setdefault('GLMnet_V', []).append(GLMnet_V)
+        full_results.setdefault('GLMnet_screen', []).append(GLMnet_screen)
+
+        GLMnet1se = np.asarray(rpy.r("selected2")) - 1 # subtract 1 for 0-based indexing
+        GLMnet1se_R = GLMnet1se.shape[0]
+        GLMnet1se_V = GLMnet1se_R - len(set(active).intersection(GLMnet1se))
+        GLMnet1se_screen = set(GLMnet1se).issuperset(active)
+
+        full_results.setdefault('GLMnet1se_R', []).append(GLMnet1se_R)
+        full_results.setdefault('GLMnet1se_V', []).append(GLMnet1se_V)
+        full_results.setdefault('GLMnet1se_screen', []).append(GLMnet1se_screen)
 
         numpy2ri.deactivate()
 
@@ -247,14 +295,17 @@ def batch(outfile, nsim, **simulate_args):
 
     full_results = {}
     simulate_args['full_results'] = full_results
-    for i in range(nsim):
+    
+    isim = 0
+
+    while True:
         try:
-            print 'run %d' % (i+1)
+            print('run %d' % (isim+1))
             simulate(**simulate_args)
             df = pd.DataFrame(full_results)
             df.to_csv(outfile, index=False)
-        except ValueError, e: # np.linalg seems to raise these 
-            print('ValueError: %s, new instance drawn' % e)
+        except ValueError as err: # np.linalg seems to raise these 
+            print('ValueError: %s, new instance drawn' % err)
             pass
         except KeyboardInterrupt: 
             raise KeyboardInterrupt('halting due to keyboard interruption')
@@ -264,6 +315,9 @@ def batch(outfile, nsim, **simulate_args):
         except LinAlgError:
             print("linear algebra error -- new instance drawn")
             pass
+        isim += 1
+        if isim == nsim:
+            break
 
 if __name__ == "__main__":
     from argparse import ArgumentParser
